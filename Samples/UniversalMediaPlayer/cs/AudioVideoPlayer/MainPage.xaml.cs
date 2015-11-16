@@ -1625,10 +1625,13 @@ namespace AudioVideoPlayer
                                 }
                             }
                         }
+                        else
+                            LogMessage("Failed to load poster: " + PosterUrl);
+
                     }
                     catch (Exception e)
                     {
-                        System.Diagnostics.Debug.WriteLine("Exception: " + e.Message);
+                        LogMessage("Exception while loading poster: " + PosterUrl + " - " + e.Message);
                     }
                 }
                 else
@@ -1797,6 +1800,8 @@ namespace AudioVideoPlayer
                             return true;
                         }
                     }
+                    else
+                        LogMessage("Failed to load media file: " + Content);
                 }
                 else if (!IsAdaptiveStreaming(Content))
                 {
