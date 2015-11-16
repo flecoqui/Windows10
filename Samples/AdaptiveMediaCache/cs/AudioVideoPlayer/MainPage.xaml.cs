@@ -27,6 +27,7 @@ using System.Collections.ObjectModel;
 using AudioVideoPlayer.DataModel;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
+using AdaptiveMediaCache;
 using System.Reflection;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -71,6 +72,8 @@ namespace AudioVideoPlayer
                 }
             }
         }
+        // MediaCache used to store the assets for the Download-To-Go experience and the Progressive Download experience
+        private MediaCache mediaCache;
         // attribute used to register Smooth Streaming component
         private Windows.Media.MediaExtensionManager extension = null;
         // attribute used to play HLS and DASH component
@@ -125,8 +128,13 @@ namespace AudioVideoPlayer
             LogMessage("MainPage OnNavigatedTo");
             ReadSettings();
 
+            // Initialize Media Cache
+            await InitializeCache();
+
             if (e.NavigationMode != NavigationMode.New)
                 RestoreState();
+            else
+                await mediaCache.Resume();
 
             // Register Suspend/Resume
             Application.Current.Suspending += Current_Suspending;
@@ -246,6 +254,9 @@ namespace AudioVideoPlayer
 
             // Set AutoSkip mode 
             AutoSkip.IsChecked = bAutoSkip;
+
+            // Set Progressive Download (false) or DownloadToGo (true)
+            DownloadToGoCheckBox.IsChecked = true;
 
             // Initialize minBitrate and maxBitrate TextBox
             minBitrate.Text = MinBitRate.ToString();
@@ -370,6 +381,366 @@ namespace AudioVideoPlayer
         }
 
         #endregion
+
+        #region CacheMethods
+        /// <summary>
+        /// This method initialize the Media Cache 
+        /// </summary>
+        private async System.Threading.Tasks.Task<bool> InitializeCache()
+        {
+            bool result = false;
+            if (mediaCache != null)
+            {
+                mediaCache.StatusProgressEvent -= Cache_StatusProgress;
+                mediaCache.DownloadProgressEvent -= Cache_DownloadProgress;
+                mediaCache = null;
+            }
+            //
+            // Create the Media Cache to download Smooth Streaming Asset
+            //
+            mediaCache = new MediaCache();
+            if (mediaCache != null)
+            {
+                //
+                // Initialize the Media Cache
+                //
+                // "AssetCache" is the name of the directory in the Isolated Storage where the video and audio chunks will be recorded
+                // Max Download Session = 5, it's the maximum number of simultaneous download session
+                // Max Memory Buffer size = 64 MB, it's the maximum size of the memory buffer, when the buffer size is over this limit the video and audio chunks will be stored in the isolated storage
+                // Max Downloaded Assets = 100, the maximum number of assets which can be stored on disk
+                // Max Error = 20, when the number of http error is over this limit, the download thread associated with the asset is cancelled
+                // AutoStartDownload, if true the download thread will start automatically after a resume
+                // 
+
+                result = await mediaCache.Initialize("AssetsCache",
+                    // Max Download Session
+                    5,
+                    // Max Memory buffer Size per session
+                    256000,
+                    // Max downloaded Assets
+                    100,
+                    // Max Error  
+                    20,
+                    //AutoStartDownload
+                    // Set Auto start download when launching the application 
+                    // The download thread will be automatically launched if the asset is not completely downloaded
+                    true
+                    );
+
+                if (result)
+                {
+                    mediaCache.StatusProgressEvent += Cache_StatusProgress;
+                    mediaCache.DownloadProgressEvent += Cache_DownloadProgress;
+                    ulong asize = await mediaCache.GetAvailableSize();
+                    ulong csize = await mediaCache.GetCacheSize();
+                    LogMessage("Cache Initialized");
+                    LogMessage("Cache available size: " + asize.ToString() + " Bytes");
+                    LogMessage("Cache current size: " + csize.ToString() + " Bytes");
+                }
+            }
+            return result;
+        }
+        /// <summary>
+        /// This method is invoked when the MediaCache has downloaded several video and audio chunks for the asset
+        /// associated with the manifestUri. The progress value is defined with value percent.
+        /// From this method it's possible to monitor the download of the video and audio chunks. 
+        /// </summary>
+        private void Cache_DownloadProgress(MediaCache sender, Uri manifestUri, uint percent)
+        {
+            ulong duration = mediaCache.GetDuration(manifestUri) / 10000000;
+
+            LogMessage("Download progress: " + percent.ToString() + "%" +
+                " Audio chunks: " + sender.GetSavedAudioChunksCount(manifestUri).ToString() + "/" + sender.GetAudioChunksCount(manifestUri).ToString() +
+                " Video chunks: " + sender.GetSavedVideoChunksCount(manifestUri).ToString() + "/" + sender.GetVideoChunksCount(manifestUri).ToString() +
+                " Size on disk: " + sender.GetCurrentMediaCacheSize(manifestUri).ToString() + "/" + sender.GetExpectedSize(manifestUri).ToString() +
+                " Remaining time: " + sender.GetRemainingDowloadTime(manifestUri).ToString() + " seconds " +
+                " Asset duration: " + duration.ToString() + " seconds " +
+                " for manifest: " + manifestUri.ToString());
+        }
+
+        /// <summary>
+        /// This method is invoked when the status of an asset in the MediaCache has changed.
+        /// Parameter: The status of the asset: 
+        /// - Initialized
+        /// - DownloadingManifest
+        /// - ManifestDownloaded
+        /// - DownloadingChunks
+        /// - AssetPlayable (for Progressive Download only - Not applicable for DownloadToGo)
+        /// - ChunksDownloaded
+        /// - Errorxxxxx
+        /// </summary>
+        private async void Cache_StatusProgress(MediaCache sender, Uri manifestUri, AssetStatus assetStatus)
+        {
+            LogMessage("Download status: " + assetStatus.ToString() + " for manifest: " + manifestUri.ToString());
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
+                async () =>
+                {
+                    if (assetStatus == AssetStatus.ChunksDownloaded)
+                    {
+                        // if the asset is fully downloaded and the asset is protected with PlayReady, the PlayReady License can be acquired.
+                        // The PlayReady License is automatically acquired by the MediaCache after calling mediaCache.StartDownload
+                        // The step below is normally not required for persistent license
+                        if (mediaCache.IsAssetProtected(manifestUri))
+                        {
+                            LogMessage("As the downloaded content is protected License Acquisition required, LicenseUrl: " + (!string.IsNullOrEmpty(PlayReadyLicenseUrl) ? PlayReadyLicenseUrl : "null") + " CustomData: " + PlayReadyChallengeCustomData);
+                            bool result = await mediaCache.GetPlayReadyLicense(manifestUri, (!string.IsNullOrEmpty(PlayReadyLicenseUrl) ? new Uri(PlayReadyLicenseUrl) : null), PlayReadyChallengeCustomData);
+                            if (result == true)
+                                LogMessage("Acquisition License successful");
+                            else
+                                LogMessage("Acquisition License failed");
+                        }
+                    }
+                    UpdateControls();
+                });
+
+        }
+        /// <summary>
+        /// Download method which launches the download of video and audio chunks 
+        /// </summary>
+        private async void download_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(mediaUri.Text))
+                {
+                    Uri newUrl = new Uri(mediaUri.Text);
+                    {
+
+                        // Add the asset in the cache 
+                        //
+                        LogMessage("Adding the asset in the cache: " + mediaUri.Text);
+                        // Retrieve DownloadToGo information from the Control
+                        bool bDownloadToGo = true;
+                        if (DownloadToGoCheckBox.IsChecked != true)
+                            bDownloadToGo = false;
+                        // Retrieve MinBitRate and MaxBitRate information from the Controls
+                        MinBitRate = 0;
+                        MaxBitRate = 0;
+                        if (uint.TryParse(minBitrate.Text, out MinBitRate) == false)
+                            minBitrate.Text = MinBitRate.ToString();
+                        if (uint.TryParse(maxBitrate.Text, out MaxBitRate) == false)
+                            maxBitrate.Text = MaxBitRate.ToString();
+
+                        // Set Audio Track Index
+                        int AudioIndex = 0;
+                        LogMessage("Adding asset in the cache with Min Bitrate: " + MinBitRate.ToString() + " b/s - Max bitrate: " + MaxBitRate.ToString() +
+                            " b/s - Download Method: " + (bDownloadToGo ? "Downlaod To Go" : "Progressive Download") +
+                            " - Audio track: " + AudioIndex.ToString() +
+                            " Asset: " + newUrl.ToString());
+
+                        AssetStatus status = mediaCache.Add(newUrl, bDownloadToGo, MinBitRate, MaxBitRate, AudioIndex);
+                        if (status == AssetStatus.Initialized)
+                        {
+                            LogMessage("Downloading the asset manifest : " + mediaUri.Text);
+                            // Call DownloadManifest to retrieve information about the asset
+                            // It's not mandatory to call this method to successfully download an asset 
+                            // This method is called to retrieve informatio about the asset like: duration, video and audio tracks
+                            if (await mediaCache.DownloadManifest(newUrl) == AssetStatus.ManifestDownloaded)
+                            {
+                                ulong availableSizeOnDisk = await mediaCache.GetAvailableSize();
+                                ulong expectedAssetSize = mediaCache.GetExpectedSize(newUrl);
+                                LogMessage("Available size on disk: " + availableSizeOnDisk.ToString() + " Bytes, expected Asset size: " + expectedAssetSize.ToString() + " for Asset: " + mediaUri.Text);
+                                var audioList = mediaCache.GetAudioTracks(newUrl);
+                                var videoList = mediaCache.GetVideoTracks(newUrl);
+                                ulong duration = mediaCache.GetDuration(newUrl) / 10000000;
+                                LogMessage("Asset Duration: " + duration.ToString() + " secondes");
+                                LogMessage("Video tracks:");
+                                foreach (var track in videoList)
+                                {
+                                    LogMessage("Index: " + track.Index.ToString() + " Bitrate: " + track.Bitrate.ToString() + " b/s FourCC: " + track.FourCC + " Resolution: " + track.MaxWidth.ToString() + "x" + track.MaxHeight.ToString());
+                                }
+                                LogMessage("Selected Video track: " + mediaCache.GetSelectedVideoTrackIndex(newUrl).ToString());
+
+                                LogMessage("Audio tracks:");
+                                foreach (var track in audioList)
+                                {
+                                    LogMessage("Index: " + track.Index.ToString() + " Bitrate: " + track.Bitrate.ToString() + " b/s FourCC: " + track.FourCC);
+                                }
+                                LogMessage("Selected Audio track: " + mediaCache.GetSelectedAudioTrackIndex(newUrl).ToString());
+                            }
+
+
+                            //
+                            // if the ManifestCache returned is not null, the cache is ready to download manifest and chunks
+                            // the download can start
+                            //
+                            await mediaCache.StartDownload(newUrl, (string.IsNullOrEmpty(PlayReadyLicenseUrl) ? null : new Uri(PlayReadyLicenseUrl)), PlayReadyChallengeCustomData);
+                        }
+                    }
+                    UpdateControls();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Failed to download the asset: " + mediaUri.Text + " Exception: " + ex.Message);
+            }
+        }
+
+
+        /// <summary>
+        /// Remove method which removes  the asset from the cache
+        /// </summary>
+        private async void remove_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Uri newUri = new Uri(mediaUri.Text);
+                //
+                // Retrieve the ManifestCache from the Media Cache using the manifest Uri
+                //
+                if (mediaCache.IsAssetInCache(newUri))
+                {
+                    AssetStatus status = mediaCache.GetAssetStatus(newUri);
+                    if (status < AssetStatus.ChunksDownloaded)
+                        mediaCache.StopDownload(newUri);
+                    //
+                    // if the asset is already in the MediaCache, it's a Remove command to remove the asset from the cache.
+                    //
+                    LogMessage("Remove asset from the cache: " + mediaUri.Text);
+                    await mediaCache.Delete(newUri);
+                    UpdateControls();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Failed to remove asset from the cache: " + mediaUri.Text + " Exception: " + ex.Message);
+            }
+        }
+        /// <summary>
+        /// PlayLocal method which play the asset from the cache
+        /// </summary>
+        private void playLocal_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (IsSmoothStreaming(mediaUri.Text))
+                {
+                    // Retrieve the ManifestCache from the Media Cache
+                    //
+                    if ((mediaCache.IsAssetReadyToPlay(new Uri(mediaUri.Text)) == true))
+                    {
+                        // As playing video hide the pictureElement
+                        SetPictureSource(null);
+                        pictureElement.Visibility = Visibility.Collapsed;
+                        // 
+                        // Warning:
+                        // In order to prevent the MediaElement from sending http request when offline
+                        // we need to replace http:// with ms-sstr::// prefix
+                        //
+                        //
+                        LogMessage("Playing from the cache asset: " + mediaUri.Text);
+                        LogMessage("Url used to avoid network request: " + mediaCache.GetSourceUri(new Uri(mediaUri.Text)).ToString());
+                        mediaElement.Source = mediaCache.GetSourceUri(new Uri(mediaUri.Text));
+                        LogMessage("Playing from cache: " + mediaUri.Text.ToString());
+                        mediaElement.Play();
+                        CurrentMediaUrl = mediaUri.Text;
+                    }
+                    else
+                        LogMessage("Asset: " + mediaUri.Text + " not ready to be played, if the asset is protected with PlayReady acquire license");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Exception Playing from cache: " + ex.Message.ToString());
+                CurrentMediaUrl = string.Empty;
+            }
+        }
+        /// <summary>
+        /// ResumeDownload method which resume the download of video and audio chunks for this asset
+        /// </summary>
+        private void resumeDownload_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Uri newUri = new Uri(mediaUri.Text);
+                //
+                // Retrieve the ManifestCache from the Media Cache using the manifest Uri
+                //
+                if (mediaCache.IsAssetInCache(newUri))
+                {
+                    AssetStatus status = mediaCache.GetAssetStatus(newUri);
+                    if (status < AssetStatus.ChunksDownloaded)
+                    {
+                        if (mediaCache.IsDownloadRunning(newUri) == false)
+                        {
+                            if (mediaCache.ResumeDownload(newUri))
+                                LogMessage("Resume the download of chunks for asset: " + mediaUri.Text);
+                            else
+                                LogMessage("Failed to resume the download of chunks for asset: " + mediaUri.Text);
+                        }
+                        UpdateControls();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Failed to resume the download of chunks for asset: " + mediaUri.Text + " Exception: " + ex.Message);
+            }
+        }
+        /// <summary>
+        /// PauseDownload method which pauses the download of video and audio chunks for this asset
+        /// </summary>
+        private void pauseDownload_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Uri newUri = new Uri(mediaUri.Text);
+                //
+                // Retrieve the ManifestCache from the Media Cache using the manifest Uri
+                //
+                if (mediaCache.IsAssetInCache(newUri))
+                {
+                    AssetStatus status = mediaCache.GetAssetStatus(newUri);
+                    if (status < AssetStatus.ChunksDownloaded)
+                    {
+                        if (mediaCache.IsDownloadRunning(newUri))
+                        {
+                            if (mediaCache.PauseDownload(newUri))
+                                LogMessage("Pause the download of chunks for asset: " + mediaUri.Text);
+                            else
+                                LogMessage("Failed to pause the download of chunks for asset: " + mediaUri.Text);
+                            UpdateControls();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Failed to pause the download of chunks for asset: " + mediaUri.Text + " Exception: " + ex.Message);
+            }
+        }
+        /// <summary>
+        /// PlayReady method which acquires a playReady license if the asset is protected with PlayReady
+        /// </summary>
+        private async void playReady_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Uri newUri = new Uri(mediaUri.Text);
+                //
+                // Retrieve the ManifestCache from the Media Cache using the manifest Uri
+                //
+                if (mediaCache.IsAssetInCache(newUri))
+                {
+                    if (mediaCache.IsAssetProtected(newUri))
+                    {
+                        LogMessage("Getting PlayReady License for asset: " + mediaUri.Text);
+                        bool bResult = await mediaCache.GetPlayReadyLicense(newUri, (string.IsNullOrEmpty(PlayReadyLicenseUrl) ? null : new Uri(PlayReadyLicenseUrl)), PlayReadyChallengeCustomData);
+                        if (bResult == true)
+                            LogMessage("PlayReady License acquired successfully for asset: " + mediaUri.Text);
+                        else
+                            LogMessage("PlayReady License acquisition failed for asset: " + mediaUri.Text);
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Failed to remove asset from the cache: " + mediaUri.Text + " Exception: " + ex.Message);
+            }
+        }
+        #endregion
+
 
         #region Orientation
 
@@ -713,12 +1084,16 @@ namespace AudioVideoPlayer
             localSettings.Values["PlayerState"] = i;
             LogMessage("SaveState - Position: " + mediaElement.Position.ToString() + " State: " + mediaElement.CurrentState.ToString());
             mediaElement.Pause();
+            // 
+            //  Save the Media Cache in the isolated storage
+            //
+            bool bResult = mediaCache.Suspend();
         }
         /// <summary>
         /// This method restores the MediaElement position and the media state 
         /// it also restores the MediaCache
         /// </summary>
-        void RestoreState()
+        async void RestoreState()
         {
             var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
             Object value = localSettings.Values["PlayerPosition"];
@@ -741,6 +1116,10 @@ namespace AudioVideoPlayer
                     mediaElement.Pause();
             }
             LogMessage("RestoreState - Position: " + mediaElement.Position.ToString() + " State: " + mediaElement.CurrentState.ToString());
+            // 
+            //  Restore the Media Cache from the isolated storage and resume the download of chunks
+            //
+            bool bResult = await mediaCache.Resume();
         }
         /// <summary>
         /// This method is called when the application is resuming
@@ -916,6 +1295,76 @@ namespace AudioVideoPlayer
                 playPauseButton.IsEnabled = false;
                 pausePlayButton.IsEnabled = false;
                 stopButton.IsEnabled = false;
+
+                downloadButton.IsEnabled = false;
+                removeButton.IsEnabled = false;
+                resumeDownloadButton.IsEnabled = false;
+                pauseDownloadButton.IsEnabled = false;
+                playLocalButton.IsEnabled = false;
+                playReadyButton.IsEnabled = false;
+
+
+                if (IsSmoothStreaming(mediaUri.Text))
+                {
+                    downloadButton.IsEnabled = true;
+                    Uri newUri;
+                    try
+                    {
+                        newUri = new Uri(mediaUri.Text);
+
+                        // 
+                        //  Retrieve the Manifest Cache from the Media Cache using the manifest Uri
+                        //
+                        if (mediaCache.IsAssetInCache(newUri))
+                        {
+                            downloadButton.IsEnabled = false;
+                            removeButton.IsEnabled = true;
+                            if (mediaCache.IsAssetProtected(newUri))
+                            {
+                                playReadyButton.IsEnabled = true;
+                            }
+                            if (mediaCache.IsDownloadRunning(newUri))
+                            {
+                                pauseDownloadButton.IsEnabled = true;
+                                resumeDownloadButton.IsEnabled = false;
+                            }
+                            else
+                            {
+                                if (mediaCache.GetAssetStatus(newUri) < AssetStatus.ChunksDownloaded)
+                                {
+                                    pauseDownloadButton.IsEnabled = false;
+                                    resumeDownloadButton.IsEnabled = true;
+                                }
+                            }
+                            // If the asset is fully downloaded the MediaElement can play it
+                            if (mediaCache.GetAssetStatus(newUri) == AssetStatus.ChunksDownloaded)
+                            {
+                                playLocalButton.IsEnabled = true;
+                                downloadButton.IsEnabled = false;
+                                pauseDownloadButton.IsEnabled = false;
+                                resumeDownloadButton.IsEnabled = false;
+                            }
+                            else if (mediaCache.GetAssetStatus(newUri) == AssetStatus.AssetPlayable)
+                            {
+                                playLocalButton.IsEnabled = true;
+                            }
+                            else
+                            {
+                                // If the asset is not downloaded, the MediaElement can still play the asset in streaming 
+                                playLocalButton.IsEnabled = false;
+                            }
+                        }
+                        else
+                        {
+                            playLocalButton.IsEnabled = false;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+                else
+                    downloadButton.IsEnabled = false;
 
 
                 if (IsPicture(CurrentMediaUrl))
@@ -1625,10 +2074,13 @@ namespace AudioVideoPlayer
                                 }
                             }
                         }
+                        else
+                            LogMessage("Failed to load poster: " + PosterUrl);
+
                     }
                     catch (Exception e)
                     {
-                        System.Diagnostics.Debug.WriteLine("Exception: " + e.Message);
+                        LogMessage("Exception while loading poster: " + PosterUrl + " - " + e.Message );
                     }
                 }
                 else
@@ -1658,7 +2110,7 @@ namespace AudioVideoPlayer
                     }
                     catch (Exception e)
                     {
-                        System.Diagnostics.Debug.WriteLine("Exception: " + e.Message);
+                        LogMessage("Exception while loading poster: " + PosterUrl + " - " + e.Message);
                     }
                 }
             }
@@ -1771,7 +2223,6 @@ namespace AudioVideoPlayer
                 file = await folder.GetFileAsync(path);
             else
                 file = await Windows.Storage.StorageFile.GetFileFromPathAsync(path);
-
             return file;
         }
 
@@ -1797,6 +2248,9 @@ namespace AudioVideoPlayer
                             return true;
                         }
                     }
+                    else
+                        LogMessage("Failed to load media file: " + Content );
+
                 }
                 else if (!IsAdaptiveStreaming(Content))
                 {
@@ -1809,8 +2263,27 @@ namespace AudioVideoPlayer
                     // If SMOOTH stream
                     if (IsSmoothStreaming(Content))
                     {
-                        mediaElement.Source = new Uri(Content);
-                        return true;
+                        // if the stream is ready to play in the cache
+                        // initialize the Source with the url of the asset
+                        // using the MediaCache method GetSourceUri
+                        if ((mediaCache.IsAssetReadyToPlay(new Uri(Content)) == true))
+                        {
+                            // 
+                            // Warning:
+                            // In order to prevent the MediaElement from sending http request when offline
+                            // we need to replace http:// with ms-sstr::// prefix
+                            //
+                            //
+                            LogMessage("Playing from the cache asset: " + Content);
+                            LogMessage("Url used to avoid network request: " + mediaCache.GetSourceUri(new Uri(Content)).ToString());
+                            mediaElement.Source = mediaCache.GetSourceUri(new Uri(Content));
+                            return true;
+                        }
+                        else
+                        {
+                            mediaElement.Source = new Uri(Content);
+                            return true;
+                        }
                     }
                     else
                     {
@@ -1888,23 +2361,27 @@ namespace AudioVideoPlayer
                     IReadOnlyList<Microsoft.Media.AdaptiveStreaming.IManifestTrack> list = null;
 
                     // if asset not in the Cache the application can restrick track
-                    if ((MinBitRate > 0) && (MaxBitRate > 0))
+                    // if asset not in the Cache the application can restrick track
+                    if (!mediaCache.IsAssetInCache(sender.Uri))
                     {
-                        list = stream.AvailableTracks.Where(t => (t.Bitrate > MinBitRate) && (t.Bitrate <= MaxBitRate)).ToList();
-                        if ((list != null) && (list.Count > 0))
-                            stream.RestrictTracks(list);
-                    }
-                    else if (MinBitRate > 0)
-                    {
-                        list = stream.AvailableTracks.Where(t => (t.Bitrate > MinBitRate)).ToList();
-                        if ((list != null) && (list.Count > 0))
-                            stream.RestrictTracks(list);
-                    }
-                    else if (MaxBitRate > 0)
-                    {
-                        list = stream.AvailableTracks.Where(t => (t.Bitrate < MaxBitRate)).ToList();
-                        if ((list != null) && (list.Count > 0))
-                            stream.RestrictTracks(list);
+                        if ((MinBitRate > 0) && (MaxBitRate > 0))
+                        {
+                            list = stream.AvailableTracks.Where(t => (t.Bitrate > MinBitRate) && (t.Bitrate <= MaxBitRate)).ToList();
+                            if ((list != null) && (list.Count > 0))
+                                stream.RestrictTracks(list);
+                        }
+                        else if (MinBitRate > 0)
+                        {
+                            list = stream.AvailableTracks.Where(t => (t.Bitrate > MinBitRate)).ToList();
+                            if ((list != null) && (list.Count > 0))
+                                stream.RestrictTracks(list);
+                        }
+                        else if (MaxBitRate > 0)
+                        {
+                            list = stream.AvailableTracks.Where(t => (t.Bitrate < MaxBitRate)).ToList();
+                            if ((list != null) && (list.Count > 0))
+                                stream.RestrictTracks(list);
+                        }
                     }
                     if ((list != null) && (list.Count > 0))
                     {

@@ -157,6 +157,12 @@
       <Name>Windows Mobile Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AdaptiveMediaCache\AdaptiveMediaCache.csproj">
+      <Project>{acaf03ab-4e66-4e83-bbe5-bc30726687c3}</Project>
+      <Name>AdaptiveMediaCache</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

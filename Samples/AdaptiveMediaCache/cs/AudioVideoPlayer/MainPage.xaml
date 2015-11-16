@@ -111,16 +111,26 @@
                 <Button IsEnabled="False" Content="&#xE769;" x:Name="pausePlayButton" ToolTipService.ToolTip="Resume the stream currently puased by the MediaElement"   FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="pausePlay_Click"/>
                 <Button IsEnabled="False" Content="&#xE71A;" x:Name="stopButton" ToolTipService.ToolTip="Stop the stream currently played by the MediaElement"   FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="stop_Click"/>
                 <Image x:Name="streamLogo" Width="40" Height="40" VerticalAlignment="Center" Margin="1,1,1,1" />
+                <CheckBox VerticalAlignment="Center" x:Name="AutoSkip" Checked="AutoSkip_Checked" Unchecked="AutoSkip_Unchecked" ToolTipService.ToolTip="Select automically the next stream at the end of the MediaElement"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="-55,0,0,0" Content="Auto:"  />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                <CheckBox VerticalAlignment="Center" x:Name="AutoSkip" Checked="AutoSkip_Checked" Unchecked="AutoSkip_Unchecked" ToolTipService.ToolTip="Select automically the next stream at the end of the MediaElement"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="-55,0,0,0" Content="Auto:"  />
+                <CheckBox VerticalAlignment="Center" x:Name="DownloadToGoCheckBox" ToolTipService.ToolTip="Select either the DownloadToGo or the ProgressiveDownload experience"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="-60,0,0,0" Content="DTG:"  />
                 <TextBlock VerticalAlignment="Center" Margin="5,0,5,0"  FontSize="12">Bitrate Min:</TextBlock>
                 <TextBox x:Name="minBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Minimum bitrate in bit/s"   MinWidth="60" IsTabStop="True" InputScope="Number" TextChanged="BitrateTextChanged" FontSize="12"/>
                 <TextBlock VerticalAlignment="Center" Margin="5,0,5,0" FontSize="12">Max:</TextBlock>
                 <TextBox x:Name="maxBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Maximum bitrate in bit/s, (if value = 0, no maximum)" MinWidth="60" IsTabStop="True"  InputScope="Number" TextChanged="BitrateTextChanged"  FontSize="12"  />
             </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
+                <Button IsEnabled="False" Content="&#xE896;" x:Name="downloadButton" ToolTipService.ToolTip="Download the current stream selecting the highest video bitrate in the bitrate range" FontFamily="Segoe MDL2 Assets"  IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="download_Click"/>
+                <Button IsEnabled="False" Content="&#xE894;" x:Name="removeButton" ToolTipService.ToolTip="Remove the stream already partially or completely stored on disk" FontFamily="Segoe MDL2 Assets"  IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="remove_Click"/>
+                <Button IsEnabled="False" Content="&#xE769;" x:Name="pauseDownloadButton" ToolTipService.ToolTip="Pause the download" FontFamily="Segoe MDL2 Assets" FontSize="10"  IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="pauseDownload_Click"/>
+                <Button IsEnabled="False" Content="&#xE896;" x:Name="resumeDownloadButton" ToolTipService.ToolTip="Resume the download"  FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="resumeDownload_Click"/>
+                <Button IsEnabled="False" Content="&#xE8D7;" x:Name="playReadyButton" ToolTipService.ToolTip="If the stream is protected, acquire the PlayReady license" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playReady_Click"/>
+                <Button IsEnabled="False" Content="&#xE768;" x:Name="playLocalButton" ToolTipService.ToolTip="Play the current stream from the disk (no streaming from the server, the application can be offline)"  FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playLocal_Click"/>
+            </StackPanel>
         </StackPanel>
-        </StackPanel>
+
         <Grid x:Name="GridMedia"  Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" >
                 <Image x:Name="backgroundVideo"  Source="Assets/Screen169.png" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="UniformToFill"></Image>
                 <MediaElement x:Name="mediaElement" AutoPlay="True" AreTransportControlsEnabled="False"   HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform"   />

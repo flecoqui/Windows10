@@ -1,0 +1,2 @@
+C:\git\flecoqui\Windows10\Samples\AdaptiveMediaCache\cs\AdaptiveMediaCache\AdaptiveMediaCache.csproj;x64
+C:\git\flecoqui\Windows10\Samples\AdaptiveMediaCache\cs\AudioVideoPlayer\AudioVideoPlayer.csproj;x64
