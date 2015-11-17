@@ -5,6 +5,7 @@
 # Windows 10 Media Application Samples
 
 This repository contains the Windows 10 application samples that demonstrate the Media API usage patterns for the Universal Windows Platform (UWP) in the Windows Software Development Kit (SDK) for Windows 10. These code samples were created with the Universal Windows templates available in Visual Studio, and are designed to run on desktop, mobile, and future devices that support the Universal Windows Platform.  
+The Windows 10 application samples in this repository are complementary to to the samples here: [Windows Universal Samples on GitHub](https://github.com/Microsoft/Windows-universal-samples/).   
 
 ## Universal Windows Platform development
 
@@ -12,6 +13,7 @@ These samples require Visual Studio 2015 and the Windows Software Development Ki
 
    [Get a free copy of Visual Studio 2015 Community Edition with support for building Universal Windows apps](http://go.microsoft.com/fwlink/?LinkID=280676)
 
+Moreover, oftentimes the samples requires the [Microsoft Universal Smooth Streaming Client SDK](https://visualstudiogallery.msdn.microsoft.com/1e7d4700-7fa8-49b6-8a7b-8d8666685459)  
 
 ## Using the samples
 
