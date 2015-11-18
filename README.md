@@ -43,5 +43,6 @@ For additional Windows samples, see [Windows Universal Samples on GitHub](https:
  <tr>
   <td><a href="Samples/UniversalMediaPlayer">Universal Media Player</a></td>
   <td><a href="Samples/AdaptiveMediaCache">Adaptive Media Cache</a></td>
- </tr>
+  <td><a href="Samples/LegacyHLSPlayer">Legacy HLS Player</a></td>
+   </tr>
 </table>
