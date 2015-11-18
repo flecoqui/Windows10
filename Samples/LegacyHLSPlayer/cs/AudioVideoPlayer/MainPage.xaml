@@ -1,0 +1,134 @@
+﻿<!--
+//*********************************************************
+//
+// Copyright (c) Microsoft. All rights reserved.
+// This code is licensed under the MIT License (MIT).
+// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
+// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
+// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
+// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
+//
+//*********************************************************
+ -->
+<Page 
+    x:Class="AudioVideoPlayer.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AudioVideoPlayer"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid x:Name="gridmain" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Margin="5,5,5,5" >
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="wideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="530" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="GridMedia.(Grid.Column)" Value="1"/>
+                        <Setter Target="GridMedia.(Grid.Row)" Value="0"/>
+                        <Setter Target="GridMedia.(Grid.RowSpan)" Value="2"/>
+                        <Setter Target="GridMedia.(Grid.ColumnSpan)" Value="1"/>
+                        <Setter Target="TitlePanel.(Grid.Row)" Value="0"></Setter>
+                        <Setter Target="TitlePanel.(Grid.RowSpan)" Value="1"></Setter>
+                        <Setter Target="TitlePanel.(Grid.Column)" Value="0"></Setter>
+                        <Setter Target="TitlePanel.(Grid.ColumnSpan)" Value="1"></Setter>
+                        <!--
+                        <Setter Target="TitlePanel.Grid.Row" Value="0"/>
+                        <Setter Target="TitlePanel.Grid.RowSpan" Value="1"/>
+                        <Setter Target="TitlePanel.Grid.Column" Value="0"/>
+                        <Setter Target="TitlePanel.Grid.ColumnSpan" Value="2"/>
+                        -->
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="narrowState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="GridMedia.(Grid.Column)" Value="0"/>
+                        <Setter Target="GridMedia.(Grid.Row)" Value="1"/>
+                        <Setter Target="GridMedia.(Grid.RowSpan)" Value="1"/>
+                        <Setter Target="GridMedia.(Grid.ColumnSpan)" Value="2"/>
+                        <Setter Target="TitlePanel.(Grid.Row)" Value="0"></Setter>
+                        <Setter Target="TitlePanel.(Grid.RowSpan)" Value="1"></Setter>
+                        <Setter Target="TitlePanel.(Grid.Column)" Value="0"></Setter>
+                        <Setter Target="TitlePanel.(Grid.ColumnSpan)" Value="2"></Setter>
+                        <!--
+                        <Setter Target="TitlePanel.Grid.Row" Value="0"/>
+                        <Setter Target="TitlePanel.Grid.RowSpan" Value="1"/>
+                        <Setter Target="TitlePanel.Grid.Column" Value="0"/>
+                        <Setter Target="TitlePanel.Grid.ColumnSpan" Value="1"/>
+                        -->
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="310"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel x:Name="TitlePanel" Grid.Row="0" Grid.RowSpan="1" Grid.Column="0" Grid.ColumnSpan="2"  >
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" >
+            <Button IsEnabled="True" ToolTipService.ToolTip="Open anotherJSON playlist on the disk" Content="&#xEA37;" x:Name="playlistButton" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playlist_Click"/>
+            <Image x:Name="TestLogo" Source="Assets/AudioVideo.png" VerticalAlignment="Center" Margin="3,3,3,3" Stretch="Fill" Width="40" Height="40" />
+            <TextBlock x:Name="TestTitle" VerticalAlignment="Center" TextWrapping="Wrap">Windows 10 Universal Media Player Test</TextBlock>
+        </StackPanel>
+        <StackPanel x:Name="ButtonPanel" VerticalAlignment="Top"  >
+                <StackPanel>
+                 <TextBlock x:Name="labelStream"  Text="Select a stream:" HorizontalAlignment="Left" />
+                <ComboBox  x:Name="comboStream" ToolTipService.ToolTip="Title of the current selected stream"    HorizontalAlignment="Stretch" ItemsSource="{Binding}" IsTabStop="True"  >
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal"   >
+                                <TextBlock Text="{Binding Title}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock x:Name="labelUri" Text="URL:" HorizontalAlignment="Left" />
+                <TextBox x:Name="mediaUri" ToolTipService.ToolTip="Uri of the current selected stream (edit)" IsTabStop="True"  />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
+                <Button IsEnabled="False" Content="&#xE892;" x:Name="minusButton" ToolTipService.ToolTip="Select the previous stream in the playlist" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="minus_Click"/>
+                <Button IsEnabled="False" Content="&#xE893;" x:Name="plusButton" ToolTipService.ToolTip="Select the next stream in the playlist" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="plus_Click"/>
+                <Button IsEnabled="False" Content="&#xE740;" x:Name="fullscreenButton" ToolTipService.ToolTip="Switch to full screen resolution with transport control" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="fullscreen_Click" />
+                <Button IsEnabled="False" Content="&#xE158;" x:Name="fullwindowButton" ToolTipService.ToolTip="Switch to full window resolution without transport control" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="fullwindow_Click" />
+                <Button IsEnabled="False" Content="&#xE74F;" x:Name="muteButton" ToolTipService.ToolTip="Mute the audio" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="mute_Click" />
+                <Button IsEnabled="False" Content="&#xE767;" x:Name="volumeUpButton" ToolTipService.ToolTip="Volume up" FontFamily="Segoe MDL2 Assets" FontSize="20" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="volumeUp_Click" />
+                <Button IsEnabled="False" Content="&#xE767;" x:Name="volumeDownButton" ToolTipService.ToolTip="Volume down"  FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="volumeDown_Click" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
+                <Button IsEnabled="False" Content="&#xE768;" x:Name="playButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="play_Click"/>
+                <Button IsEnabled="False" Content="&#xE768;" x:Name="playPauseButton" ToolTipService.ToolTip="Pause the stream currently played by the MediaElement"  FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playPause_Click"/>
+                <Button IsEnabled="False" Content="&#xE769;" x:Name="pausePlayButton" ToolTipService.ToolTip="Resume the stream currently puased by the MediaElement"   FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="pausePlay_Click"/>
+                <Button IsEnabled="False" Content="&#xE71A;" x:Name="stopButton" ToolTipService.ToolTip="Stop the stream currently played by the MediaElement"   FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="stop_Click"/>
+                <Image x:Name="streamLogo" Width="40" Height="40" VerticalAlignment="Center" Margin="1,1,1,1" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
+                <CheckBox VerticalAlignment="Center" x:Name="AutoSkip" Checked="AutoSkip_Checked" Unchecked="AutoSkip_Unchecked" ToolTipService.ToolTip="Select automically the next stream at the end of the MediaElement"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="-55,0,0,0" Content="Auto:"  />
+                <TextBlock VerticalAlignment="Center" Margin="5,0,5,0"  FontSize="12">Bitrate Min:</TextBlock>
+                <TextBox x:Name="minBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Minimum bitrate in bit/s"   MinWidth="60" IsTabStop="True" InputScope="Number" TextChanged="BitrateTextChanged" FontSize="12"/>
+                <TextBlock VerticalAlignment="Center" Margin="5,0,5,0" FontSize="12">Max:</TextBlock>
+                <TextBox x:Name="maxBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Maximum bitrate in bit/s, (if value = 0, no maximum)" MinWidth="60" IsTabStop="True"  InputScope="Number" TextChanged="BitrateTextChanged"  FontSize="12"  />
+            </StackPanel>
+        </StackPanel>
+        </StackPanel>
+        <Grid x:Name="GridMedia"  Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" >
+                <Image x:Name="backgroundVideo"  Source="Assets/Screen169.png" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="UniformToFill"></Image>
+                <MediaElement x:Name="mediaElement" AutoPlay="True" AreTransportControlsEnabled="False"   HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform"   />
+                <Image x:Name="pictureElement"  Source="Assets/Screen169.png" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="UniformToFill"></Image>
+            </Grid>
+        <TextBox  x:Name="logs" Grid.Row="2" Grid.ColumnSpan="2" IsTabStop="True" Margin="2,2,2,2"   MaxHeight="640" MinHeight="100"  ScrollViewer.HorizontalScrollBarVisibility="Auto"  ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping="NoWrap" AcceptsReturn="True" FontSize="12" IsReadOnly="True"  Visibility="Visible" Text="" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" >
+        </TextBox>
+    </Grid>
+
+
+</Page>
