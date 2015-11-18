@@ -1858,6 +1858,9 @@ namespace AudioVideoPlayer
                             mediaElement.SetMediaStreamSource(adaptiveMediaSource);
                             return true;
                         }
+                        else
+                            LogMessage("Failed to create AdaptiveMediaSource: " + result.Status.ToString());
+
                     }
                 }
             }
