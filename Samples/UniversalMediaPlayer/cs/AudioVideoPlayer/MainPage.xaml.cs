@@ -151,6 +151,7 @@ namespace AudioVideoPlayer
             // Stat to play the first asset
             if (bAutoSkip)
                 PlayCurrentUrl();
+
         }
 
 
@@ -1691,6 +1692,18 @@ namespace AudioVideoPlayer
                     return result;
                 }
                 LogMessage("Start to play: " + content + (string.IsNullOrEmpty(poster)?"" : " with poster: " + poster) + (start>0?" from " + start.ToString() + "ms":"") + (start > 0 ? " during " + duration.ToString() + "ms" : "")) ;
+                // Display the PlayReady expiration date for this video (if protected)
+                if (PlayReadyUrlKeyIdDictionary.ContainsKey(content))
+                {
+                    // Get the expiration date of PlayReady license
+                    DateTime d = GetLicenseExpirationDate(PlayReadyUrlKeyIdDictionary[content]);
+                    if (d != DateTime.MinValue)
+                    {
+                        LogMessage("Video: " + content + " is protected with PlayReady and the license Expiration Date is: " + d.ToString());
+                    }
+                }
+
+
                 // Stop the current stream
                 mediaElement.Source = null;
                 mediaElement.PosterSource = null;
@@ -2052,6 +2065,9 @@ namespace AudioVideoPlayer
         #endregion
 
         #region PLAYREADY
+        // Dictionary used to store the KeyId associated with the video asset
+        // This dictionary is used to retrieve the PlayReady license Expiration date from the keyId
+        Dictionary<String, Guid> PlayReadyUrlKeyIdDictionary = new Dictionary<string, Guid>();
         Windows.Media.Protection.MediaProtectionManager protectionManager;
         private const int MSPR_E_CONTENT_ENABLING_ACTION_REQUIRED = -2147174251;
         public const int DRM_E_NOMORE_DATA = -2147024637; //( 0x80070103 )
@@ -2207,8 +2223,60 @@ namespace AudioVideoPlayer
             else if (e.Request is Windows.Media.Protection.PlayReady.PlayReadyLicenseAcquisitionServiceRequest)
             {
                 Windows.Media.Protection.PlayReady.PlayReadyLicenseAcquisitionServiceRequest licenseRequest = e.Request as Windows.Media.Protection.PlayReady.PlayReadyLicenseAcquisitionServiceRequest;
-                await LicenseAcquisitionRequest(licenseRequest, e.Completion, PlayReadyLicenseUrl, PlayReadyChallengeCustomData);
+                bool result = await LicenseAcquisitionRequest(licenseRequest, e.Completion, PlayReadyLicenseUrl, PlayReadyChallengeCustomData);
+                if(result==true)
+                {
+                    // Store the keyid of the current video
+                    // if the user wants to retrieve subsequently the PlayReady license Expiration date
+                    if(!PlayReadyUrlKeyIdDictionary.ContainsKey(CurrentMediaUrl))
+                        PlayReadyUrlKeyIdDictionary.Add(CurrentMediaUrl, licenseRequest.ContentHeader.KeyId);
+                    // Get the expiration date of PlayReady license
+                    DateTime d = GetLicenseExpirationDate(licenseRequest.ContentHeader.KeyId);
+                    if (d != DateTime.MinValue)
+                    {
+
+                        LogMessage("PlayReady license Expiration Date: " + d.ToString());
+                    }
+                }
             }
+        }
+
+        private void GetLicenseExpirationDate()
+        {
+            Guid VideoId1 = new Guid("6a3bdfef-9e3f-4b13-8195-78b437bdc043");
+            DateTime d = GetLicenseExpirationDate(VideoId1);
+            LogMessage("VideoId: " + VideoId1.ToString() +" Expiration Date: " + d.ToString());
+            Guid VideoId2 = new Guid("09e36702-8f33-436c-a5dd-60ffe6671e70");
+            d = GetLicenseExpirationDate(VideoId2);
+            LogMessage("VideoId: " + VideoId2.ToString() + " Expiration Date: " + d.ToString());
+        }
+        private DateTime GetLicenseExpirationDate(Guid videoId)
+        {
+            
+            var keyIdString = Convert.ToBase64String(videoId.ToByteArray());
+            try
+            {
+                var contentHeader = new Windows.Media.Protection.PlayReady.PlayReadyContentHeader(
+                    videoId,
+                    keyIdString,
+                    Windows.Media.Protection.PlayReady.PlayReadyEncryptionAlgorithm.Aes128Ctr,
+                    null,
+                    null,
+                    string.Empty,
+                    new Guid());
+                Windows.Media.Protection.PlayReady.IPlayReadyLicense[] licenses = new Windows.Media.Protection.PlayReady.PlayReadyLicenseIterable(contentHeader, true).ToArray();
+                foreach (var lic in licenses)
+                {
+                    DateTimeOffset? d = MediaHelpers.PlayReadyHelper.GetLicenseExpirationDate(lic);
+                    if((d!=null)&&(d.HasValue))
+                            return d.Value.DateTime;
+                }
+            }
+            catch(Exception e)
+            {
+                return DateTime.MinValue;
+            }
+            return DateTime.MinValue;
         }
         #endregion
 
