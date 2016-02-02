@@ -115,26 +115,30 @@ namespace AudioVideoPlayer.DataModel
 
         public static async Task<IEnumerable<MediaDataGroup>> GetGroupsAsync(string path)
         {
-            await _MediaDataSource.GetMediaDataAsync(path);
-
-            return _MediaDataSource.Groups;
+            if(await _MediaDataSource.GetMediaDataAsync(path)== true)
+                return _MediaDataSource.Groups;
+            return null;
         }
 
         public static async Task<MediaDataGroup> GetGroupAsync(string path, string uniqueId)
         {
-            await _MediaDataSource.GetMediaDataAsync(path);
-            // Simple linear search is acceptable for small data sets
-            var matches = _MediaDataSource.Groups.Where((group) => group.UniqueId.Equals(uniqueId));
-            if (matches.Count() == 1) return matches.First();
+            if (await _MediaDataSource.GetMediaDataAsync(path) == true)
+            {
+                // Simple linear search is acceptable for small data sets
+                var matches = _MediaDataSource.Groups.Where((group) => group.UniqueId.Equals(uniqueId));
+                if (matches.Count() == 1) return matches.First();
+            }
             return null;
         }
 
-        public static async Task<MediaItem> GetItemAsync(string path, string uniqueId)
+        public static async Task<MediaItem> GetItemAsync(string path,  string uniqueId)
         {
-            await _MediaDataSource.GetMediaDataAsync(path);
-            // Simple linear search is acceptable for small data sets
-            var matches = _MediaDataSource.Groups.SelectMany(group => group.Items).Where((item) => item.UniqueId.Equals(uniqueId));
-            if (matches.Count() == 1) return matches.First();
+            if (await _MediaDataSource.GetMediaDataAsync(path) == true)
+            {
+                // Simple linear search is acceptable for small data sets
+                var matches = _MediaDataSource.Groups.SelectMany(group => group.Items).Where((item) => item.UniqueId.Equals(uniqueId));
+                if (matches.Count() == 1) return matches.First();
+            }
             return null;
         }
         public static void Clear()
@@ -145,10 +149,10 @@ namespace AudioVideoPlayer.DataModel
             }
 
         }
-        private async Task GetMediaDataAsync(string path)
+        private async Task<bool> GetMediaDataAsync(string path)
         {
             if (this._groups.Count != 0)
-                return;
+                return false;
             string jsonText = string.Empty;
 
             if (string.IsNullOrEmpty(path))
@@ -161,12 +165,20 @@ namespace AudioVideoPlayer.DataModel
 
                     StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(dataUri);
                     jsonText = await FileIO.ReadTextAsync(file);
-                    MediaDataPath = "./DataModel/MediaData.json";
+                    MediaDataPath = "ms-appx:///DataModel/MediaData.json";
                 }
             }
             else
             {
-                if (path.StartsWith("http://"))
+                if (path.StartsWith("ms-appx://"))
+                {
+                    Uri dataUri = new Uri(path);
+
+                    StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(dataUri);
+                    jsonText = await FileIO.ReadTextAsync(file);
+                    MediaDataPath = path;
+                }
+                else if (path.StartsWith("http://"))
                 {
                     try
                     {
@@ -193,9 +205,9 @@ namespace AudioVideoPlayer.DataModel
                         //Download the json file from the server to configure what content will be dislayed.
                         //You can also modify the local MediaData.json file and delete this code block to test
                         //the local json file
-                        string MediaDataFile = path;
-
-                        var file = await Windows.Storage.StorageFile.GetFileFromPathAsync(path);
+                        string MediaDataFile = path;                        
+                        StorageFile file;
+                        file = await Windows.Storage.StorageFile.GetFileFromPathAsync(path);
                         if (file != null)
                         {
                             jsonText = await FileIO.ReadTextAsync(file);
@@ -209,6 +221,8 @@ namespace AudioVideoPlayer.DataModel
                 }
             }
 
+            if (string.IsNullOrEmpty(jsonText))
+                return false;
 
             try
             {
@@ -243,12 +257,14 @@ namespace AudioVideoPlayer.DataModel
                                                            itemObject["BackgroundAudio"].GetBoolean()));
                     }
                     this.Groups.Add(group);
+                    return true;
                 }
             }
             catch (Exception e)
             {
                 System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " Exception while opening the playlist: " + path + " Exception: " + e.Message);
             }
+            return false;
         }
 
     }

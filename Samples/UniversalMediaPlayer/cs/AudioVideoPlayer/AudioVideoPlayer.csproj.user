@@ -8,7 +8,7 @@
     <UseAuthentication>false</UseAuthentication>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DeviceId>8BDF218D-FDBB-4A97-90F9-3AA33B559A92</DeviceId>
+    <DeviceId>30F105C9-681E-420b-A277-7C086EAD8A4E</DeviceId>
     <UseEmulator>true</UseEmulator>
     <UseSimulator>false</UseSimulator>
   </PropertyGroup>
@@ -31,7 +31,7 @@
     <AuthenticationMode>Windows</AuthenticationMode>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <DeviceId>8BDF218D-FDBB-4A97-90F9-3AA33B559A92</DeviceId>
+    <DeviceId>30F105C9-681E-420b-A277-7C086EAD8A4E</DeviceId>
     <UseEmulator>true</UseEmulator>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">

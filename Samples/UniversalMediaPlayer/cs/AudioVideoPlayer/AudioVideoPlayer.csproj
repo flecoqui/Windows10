@@ -103,6 +103,7 @@
     </Compile>
     <Compile Include="CommonLicenseRequest.cs" />
     <Compile Include="DataModel\MediaDataSource.cs" />
+    <Compile Include="Information\SystemInformation.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>

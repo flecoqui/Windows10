@@ -58,16 +58,16 @@ namespace AudioVideoPlayer
             FullWindow,
             FullScreen
         };
-        private WindowMediaState windowMode;
+        private WindowMediaState windowState;
         // WindowMode define the way the Media is displayed: Window, Full Window, Full Screen mode
-        private WindowMediaState WindowMode {
-            get { return windowMode; }
+        private WindowMediaState WindowState {
+            get { return windowState; }
             set
             {
-                if(windowMode != value)
+                if(windowState != value)
                 {
-                    windowMode = value;
-                    LogMessage("Media in " + windowMode.ToString() + " mode");
+                    windowState = value;
+                    LogMessage("Media in " + windowState.ToString() + " state");
                 }
             }
         }
@@ -97,6 +97,11 @@ namespace AudioVideoPlayer
         private const string keyAutoSkip = "bAutoSkip";
         private const string keyMinBitRate = "MinBitRate";
         private const string keyMaxBitRate = "MaxBitRate";
+        private const string keyMediaDataPath = "MediaDataPath";
+        private const string keyMediaDataIndex = "MediaDataIndex";
+        private const string keyMediaUri = "MediaUri";
+        private const string keyWindowState = "WindowState";
+
         #endregion
 
         #region Initialization
@@ -123,7 +128,7 @@ namespace AudioVideoPlayer
             // If you are using the NavigationHelper provided by some templates,
             // this event is handled for you.
             LogMessage("MainPage OnNavigatedTo");
-            ReadSettings();
+            await ReadSettings();
 
             if (e.NavigationMode != NavigationMode.New)
                 RestoreState();
@@ -142,15 +147,21 @@ namespace AudioVideoPlayer
             await RegisterUI();
 
             // Load Data
-            LogMessage("MainPage Loading Data...");
-            await LoadingData(string.Empty);
+            if(string.IsNullOrEmpty(MediaDataSource.MediaDataPath))
+            {
+                LogMessage("MainPage Loading Data...");
+                await LoadingData(string.Empty,string.Empty);
+            }
 
             // Update control and play first video
             UpdateControls();
 
-            // Stat to play the first asset
+            // Start to play the first asset
             if (bAutoSkip)
                 PlayCurrentUrl();
+
+            // Display OS, Device information
+            LogMessage(Information.SystemInformation.GetString());
 
         }
 
@@ -223,12 +234,14 @@ namespace AudioVideoPlayer
             if (picturePopup == null)
                 CreatePicturePopup();
 
+            /*
             if (IsFullScreen())
-                WindowMode = WindowMediaState.FullScreen;
+                WindowState = WindowMediaState.FullScreen;
             else if (IsFullWindow())
-                WindowMode = WindowMediaState.FullWindow;
+                WindowState = WindowMediaState.FullWindow;
             else
-                WindowMode = WindowMediaState.WindowMode;
+                WindowState = WindowMediaState.WindowMode;
+            */
 
             // Initialize MediaElement events
             mediaElement.MediaOpened += MediaElement_MediaOpened;
@@ -327,7 +340,7 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Method LoadingData which loads the JSON playlist file
         /// </summary>
-        async System.Threading.Tasks.Task<bool> LoadingData(string path)
+        async System.Threading.Tasks.Task<bool> LoadingData(string path, string token)
         {
 
             MediaDataGroup audio_video = null;
@@ -336,14 +349,8 @@ namespace AudioVideoPlayer
             try
             {
                 MediaDataSource.Clear();
-                LogMessage("Loading playlist :" + path);
+                LogMessage(string.IsNullOrEmpty(path) ? "Loading default playlist" : "Loading playlist :" + path);
                 audio_video = await MediaDataSource.GetGroupAsync(path, "audio_video_picture");
-                if ((audio_video == null) && (!string.IsNullOrEmpty(path)))
-                {
-                    LogMessage("Loading Playlist " + path + " failed...");
-                    LogMessage("Loading default playlist ");
-                    audio_video = await MediaDataSource.GetGroupAsync(string.Empty, "audio_video");
-                }
                 if ((audio_video != null) && (audio_video.Items.Count > 0))
                 {
                     LogMessage("MainPage Loading Data successful");
@@ -709,6 +716,7 @@ namespace AudioVideoPlayer
         void SaveState()
         {
             var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
             localSettings.Values["PlayerPosition"] = mediaElement.Position;
             int i = (int)mediaElement.CurrentState;
             localSettings.Values["PlayerState"] = i;
@@ -722,6 +730,7 @@ namespace AudioVideoPlayer
         void RestoreState()
         {
             var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
             Object value = localSettings.Values["PlayerPosition"];
             if (value != null)
             {
@@ -749,7 +758,7 @@ namespace AudioVideoPlayer
         void Current_Resuming(object sender, object e)
         {
             LogMessage("Resuming");
-            ReadSettings();
+            //await ReadSettings();
             RestoreState();
             // Register for orientation change
             displayInformation.OrientationChanged += displayInformation_OrientationChanged;
@@ -1079,7 +1088,8 @@ namespace AudioVideoPlayer
                 {
 
                 }
-                await LoadingData(file.Path);
+                if (await LoadingData(file.Path, string.Empty) == false)
+                    await LoadingData(string.Empty, string.Empty);
                 //Update control and play first video
                 UpdateControls();
                 PlayCurrentUrl();
@@ -1098,7 +1108,12 @@ namespace AudioVideoPlayer
                 Index = (Index+1>=comboStream.Items.Count? 0: ++Index);
                 comboStream.SelectedIndex = Index;
                 MediaItem ms = comboStream.SelectedItem as MediaItem;
-                mediaUri.Text = ms.Content;
+                if(ms!=null)
+                {
+                    mediaUri.Text = ms.Content;
+                    PlayReadyLicenseUrl = ms.PlayReadyUrl;
+                    PlayReadyChallengeCustomData = ms.PlayReadyCustomData;
+                }
                 PlayCurrentUrl();
 
             }
@@ -1118,7 +1133,12 @@ namespace AudioVideoPlayer
                 Index = (Index - 1 >= 0 ? --Index : comboStream.Items.Count-1);
                 comboStream.SelectedIndex = Index;
                 MediaItem ms = comboStream.SelectedItem as MediaItem;
-                mediaUri.Text = ms.Content;
+                if(ms!=null)
+                {
+                    mediaUri.Text = ms.Content;
+                    PlayReadyLicenseUrl = ms.PlayReadyUrl;
+                    PlayReadyChallengeCustomData = ms.PlayReadyCustomData;
+                }
                 PlayCurrentUrl();
             }
             catch (Exception ex)
@@ -1240,20 +1260,20 @@ namespace AudioVideoPlayer
             {
                 if (mediaElement.AreTransportControlsEnabled == true)
                 {
-                    WindowMode = WindowMediaState.FullScreen;
+                    WindowState = WindowMediaState.FullScreen;
                     LogMessage("Media is in Full Screen mode");
                 }
                 else
                 {
-                    WindowMode = WindowMediaState.FullWindow;
+                    WindowState = WindowMediaState.FullWindow;
                     LogMessage("Media is in Full Window mode");
                 }
             }
             else
             {
                 mediaElement.AreTransportControlsEnabled = false;
-                WindowMode = WindowMediaState.WindowMode;
-                SetWindowMode(windowMode);
+                WindowState = WindowMediaState.WindowMode;
+                SetWindowMode(WindowState);
                 LogMessage("Media is in Window mode");
             }
         }
@@ -1350,7 +1370,7 @@ namespace AudioVideoPlayer
                         mediaElement.IsFullWindow = true;
                     DisplayPicturePopup(false);
                 }
-                WindowMode = WindowMediaState.FullWindow;
+                WindowState = WindowMediaState.FullWindow;
 
             }
             else if (state == WindowMediaState.FullScreen)
@@ -1372,7 +1392,7 @@ namespace AudioVideoPlayer
                         mediaElement.IsFullWindow = true;
                     DisplayPicturePopup(false);
                 }
-                WindowMode = WindowMediaState.FullScreen;
+                WindowState = WindowMediaState.FullScreen;
             }
             else
             {
@@ -1385,7 +1405,7 @@ namespace AudioVideoPlayer
                     mediaElement.IsFullWindow = false;
                 if (mediaElement.AreTransportControlsEnabled == true)
                     mediaElement.AreTransportControlsEnabled = false;
-                WindowMode = WindowMediaState.WindowMode;
+                WindowState = WindowMediaState.WindowMode;
             }
             return true;
         }
@@ -1743,7 +1763,7 @@ namespace AudioVideoPlayer
                     CurrentMediaUrl = content;
                     CurrentPosterUrl = poster;
                     // Set Window Mode
-                    SetWindowMode(WindowMode);
+                    SetWindowMode(WindowState);
                     return true;
                 }
             }
@@ -2241,15 +2261,11 @@ namespace AudioVideoPlayer
             }
         }
 
-        private void GetLicenseExpirationDate()
-        {
-            Guid VideoId1 = new Guid("6a3bdfef-9e3f-4b13-8195-78b437bdc043");
-            DateTime d = GetLicenseExpirationDate(VideoId1);
-            LogMessage("VideoId: " + VideoId1.ToString() +" Expiration Date: " + d.ToString());
-            Guid VideoId2 = new Guid("09e36702-8f33-436c-a5dd-60ffe6671e70");
-            d = GetLicenseExpirationDate(VideoId2);
-            LogMessage("VideoId: " + VideoId2.ToString() + " Expiration Date: " + d.ToString());
-        }
+        /// <summary>
+        /// Retrieve the PlayReady license expiration date based onthe video KeyID
+        /// This method uses the Windows Runtime library MediaHelpers to get the expiration date
+        /// The use of this library is a turn around to a PlayReady issue with .Net Native.
+        /// </summary>
         private DateTime GetLicenseExpirationDate(Guid videoId)
         {
             
@@ -2274,6 +2290,7 @@ namespace AudioVideoPlayer
             }
             catch(Exception e)
             {
+                System.Diagnostics.Debug.WriteLine("GetLicenseExpirationDate Exception: " + e.Message);
                 return DateTime.MinValue;
             }
             return DateTime.MinValue;
@@ -2287,7 +2304,7 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Function to read all the persistent attributes
         /// </summary>
-        public bool ReadSettings()
+        public async System.Threading.Tasks.Task<bool> ReadSettings()
         {
             string s = ReadSettingsValue(keyAutoSkip) as string;
             if (!string.IsNullOrEmpty(s))
@@ -2301,6 +2318,69 @@ namespace AudioVideoPlayer
             if (!string.IsNullOrEmpty(s))
                 uint.TryParse(s, out MaxBitRate);
 
+            // Restore PlayList path and index in the local settings
+            s = ReadSettingsValue(keyMediaDataPath) as string;
+            if (!string.IsNullOrEmpty(s))
+            {
+                LogMessage("MainPage Loading Data for path: " + s);
+                if (await LoadingData(s, string.Empty) == true)
+                {
+                    s = ReadSettingsValue(keyMediaDataIndex) as string;
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        int index;
+                        if (int.TryParse(s, out index))
+                        {
+
+                            comboStream.SelectedIndex = index;
+                            MediaItem ms = comboStream.SelectedItem as MediaItem;
+                            if (ms != null)
+                            {
+                                mediaUri.Text = ms.Content;
+                                PlayReadyLicenseUrl = ms.PlayReadyUrl;
+                                PlayReadyChallengeCustomData = ms.PlayReadyCustomData;
+                            }
+
+                        }
+                    }
+                    s = ReadSettingsValue(keyMediaUri) as string;
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        mediaUri.Text = s;
+                    }
+                }
+                else
+                {
+                    await LoadingData(string.Empty, string.Empty);
+                    comboStream.SelectedIndex = 0;
+                    MediaItem ms = comboStream.SelectedItem as MediaItem;
+                    if (ms != null)
+                    {
+                        mediaUri.Text = ms.Content;
+                        PlayReadyLicenseUrl = ms.PlayReadyUrl;
+                        PlayReadyChallengeCustomData = ms.PlayReadyCustomData;
+                    }
+                }
+            }
+            // Restore WindowState
+            s = ReadSettingsValue(keyWindowState) as string;
+            if (!string.IsNullOrEmpty(s))
+            {
+                int state ;
+                if (int.TryParse(s, out state))
+                {
+                    if(state==0)
+                        WindowState = WindowMediaState.WindowMode;
+                    else if ((state == 1)&&(bAutoSkip==true))
+                        WindowState = WindowMediaState.FullWindow;
+                    else if ((state == 2) && (bAutoSkip == true))
+                        WindowState = WindowMediaState.FullScreen;
+                    else
+                        WindowState = WindowMediaState.WindowMode;
+
+                    SetWindowMode(WindowState);
+                }
+            }
             return true;
         }
         /// <summary>
@@ -2311,6 +2391,15 @@ namespace AudioVideoPlayer
             SaveSettingsValue(keyAutoSkip, bAutoSkip.ToString());
             SaveSettingsValue(keyMinBitRate, MinBitRate.ToString());
             SaveSettingsValue(keyMaxBitRate, MaxBitRate.ToString());
+
+            // Save PlayList path and index in the local settings
+            SaveSettingsValue(keyMediaDataPath, MediaDataSource.MediaDataPath);
+            SaveSettingsValue(keyMediaDataIndex, comboStream.SelectedIndex.ToString());
+            SaveSettingsValue(keyMediaUri, mediaUri.Text);
+
+            // Save WindowState
+            int state = (int)WindowState;
+            SaveSettingsValue(keyWindowState, state.ToString());
             return true;
         }
         /// <summary>
