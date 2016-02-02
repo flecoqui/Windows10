@@ -439,6 +439,54 @@ namespace AdaptiveMediaCache
         }
 
         /// <summary>
+        /// GetPlayReadyExpirationDate
+        /// Return PlayReady Expiration date (return DateTimeOffset.MinValue if not available)
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns>true if protected</returns>
+        public DateTimeOffset GetPlayReadyExpirationDate()
+        {
+            DateTimeOffset d = DateTimeOffset.MinValue;
+            if (!string.IsNullOrEmpty(this.ProtectionData) &&
+                (this.ProtectionGuid != Guid.Empty))
+            {
+                Uri DefaultLicenseAcquistionUri;
+                Guid DefaultContentKeyId;
+                string DefaultContentKeyIdString;
+                Guid DefaultDomainServiceId;
+
+                if (GetPlayReadyParameters(this.ProtectionData, out DefaultLicenseAcquistionUri, out DefaultContentKeyId, out DefaultContentKeyIdString, out DefaultDomainServiceId))
+                {
+                    var keyIdString = Convert.ToBase64String(DefaultContentKeyId.ToByteArray());
+                    try
+                    {
+                        var contentHeader = new Windows.Media.Protection.PlayReady.PlayReadyContentHeader(
+                            DefaultContentKeyId,
+                            keyIdString,
+                            Windows.Media.Protection.PlayReady.PlayReadyEncryptionAlgorithm.Aes128Ctr,
+                            null,
+                            null,
+                            string.Empty,
+                            new Guid());
+                        Windows.Media.Protection.PlayReady.IPlayReadyLicense[] licenses = new Windows.Media.Protection.PlayReady.PlayReadyLicenseIterable(contentHeader, true).ToArray();
+                        foreach (var lic in licenses)
+                        {
+                            DateTimeOffset? dto = MediaHelpers.PlayReadyHelper.GetLicenseExpirationDate(lic);
+                            if ((dto != null) && (dto.HasValue))
+                                return dto.Value.DateTime;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("GetPlayReadyExpirationDate Exception: " + e.Message);
+                        return DateTimeOffset.MinValue;
+                    }
+                } 
+                return d;
+            }
+            return d;
+        }
+        /// <summary>
         /// Get KID and LicenseAcquisition Uri from the Protection Header
         /// </summary>
         private bool GetPlayReadyParameters(string ProtectionData, out Uri LicenseAcquisitionUri, out Guid ContentKeyId, out string ContentKeyIdString, out Guid DomainServiceId)

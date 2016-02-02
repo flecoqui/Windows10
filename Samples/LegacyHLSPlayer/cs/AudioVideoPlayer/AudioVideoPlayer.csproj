@@ -103,6 +103,7 @@
     </Compile>
     <Compile Include="CommonLicenseRequest.cs" />
     <Compile Include="DataModel\MediaDataSource.cs" />
+    <Compile Include="Information\SystemInformation.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -158,11 +159,16 @@
     </SDKReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MediaHelpers\MediaHelpers.vcxproj">
+      <Project>{110dedb3-f188-488e-b90b-c6f5deffca0b}</Project>
+      <Name>MediaHelpers</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.HLSClient\Microsoft.HLSClient.vcxproj">
       <Project>{5d1b2ca9-c3ff-4997-b91d-2b143c250042}</Project>
       <Name>Microsoft.HLSClient</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

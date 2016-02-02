@@ -103,6 +103,7 @@
     </Compile>
     <Compile Include="CommonLicenseRequest.cs" />
     <Compile Include="DataModel\MediaDataSource.cs" />
+    <Compile Include="Information\SystemInformation.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -161,6 +162,10 @@
     <ProjectReference Include="..\AdaptiveMediaCache\AdaptiveMediaCache.csproj">
       <Project>{acaf03ab-4e66-4e83-bbe5-bc30726687c3}</Project>
       <Name>AdaptiveMediaCache</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MediaHelpers\MediaHelpers.vcxproj">
+      <Project>{110dedb3-f188-488e-b90b-c6f5deffca0b}</Project>
+      <Name>MediaHelpers</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

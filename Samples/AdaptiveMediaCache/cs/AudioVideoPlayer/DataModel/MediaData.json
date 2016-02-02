@@ -102,7 +102,7 @@
           "PosterContent": "",
           "Start": "0",
           "Duration": "0",
-          "PlayReadyUrl": "",
+          "PlayReadyUrl": "http://playready.directtaps.net/pr/svc/rightsmanager.asmx?PlayRight=1&FirstPlayExpiration=600",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
         },
@@ -116,7 +116,7 @@
           "PosterContent": "",
           "Start": "0",
           "Duration": "0",
-          "PlayReadyUrl": "",
+          "PlayReadyUrl": "http://playready.directtaps.net/pr/svc/rightsmanager.asmx?PlayRight=1&FirstPlayExpiration=600",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
         },

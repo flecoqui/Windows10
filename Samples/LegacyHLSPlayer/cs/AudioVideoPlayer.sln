@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioVideoPlayer", "AudioVideoPlayer\AudioVideoPlayer.csproj", "{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.HLSClient", "Microsoft.HLSClient", "{7D5C7F66-6C5F-4EB7-B03B-565F411542A4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Microsoft.HLSClient", "Microsoft.HLSClient\Microsoft.HLSClient.vcxproj", "{5D1B2CA9-C3FF-4997-B91D-2B143C250042}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MediaHelpers", "MediaHelpers\MediaHelpers.vcxproj", "{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,20 @@ Global
 		{5D1B2CA9-C3FF-4997-B91D-2B143C250042}.Release|x64.Build.0 = Release|x64
 		{5D1B2CA9-C3FF-4997-B91D-2B143C250042}.Release|x86.ActiveCfg = Release|Win32
 		{5D1B2CA9-C3FF-4997-B91D-2B143C250042}.Release|x86.Build.0 = Release|Win32
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|ARM.ActiveCfg = Debug|ARM
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|ARM.Build.0 = Debug|ARM
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|x64.ActiveCfg = Debug|x64
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|x64.Build.0 = Debug|x64
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|x86.ActiveCfg = Debug|Win32
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|x86.Build.0 = Debug|Win32
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|Any CPU.ActiveCfg = Release|Win32
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|ARM.ActiveCfg = Release|ARM
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|ARM.Build.0 = Release|ARM
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|x64.ActiveCfg = Release|x64
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|x64.Build.0 = Release|x64
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|x86.ActiveCfg = Release|Win32
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

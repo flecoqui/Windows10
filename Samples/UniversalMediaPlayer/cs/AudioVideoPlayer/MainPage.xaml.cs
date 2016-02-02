@@ -150,7 +150,7 @@ namespace AudioVideoPlayer
             if(string.IsNullOrEmpty(MediaDataSource.MediaDataPath))
             {
                 LogMessage("MainPage Loading Data...");
-                await LoadingData(string.Empty,string.Empty);
+                await LoadingData(string.Empty);
             }
 
             // Update control and play first video
@@ -340,7 +340,7 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Method LoadingData which loads the JSON playlist file
         /// </summary>
-        async System.Threading.Tasks.Task<bool> LoadingData(string path, string token)
+        async System.Threading.Tasks.Task<bool> LoadingData(string path)
         {
 
             MediaDataGroup audio_video = null;
@@ -1088,8 +1088,8 @@ namespace AudioVideoPlayer
                 {
 
                 }
-                if (await LoadingData(file.Path, string.Empty) == false)
-                    await LoadingData(string.Empty, string.Empty);
+                if (await LoadingData(file.Path) == false)
+                    await LoadingData(string.Empty);
                 //Update control and play first video
                 UpdateControls();
                 PlayCurrentUrl();
@@ -2323,7 +2323,7 @@ namespace AudioVideoPlayer
             if (!string.IsNullOrEmpty(s))
             {
                 LogMessage("MainPage Loading Data for path: " + s);
-                if (await LoadingData(s, string.Empty) == true)
+                if (await LoadingData(s) == true)
                 {
                     s = ReadSettingsValue(keyMediaDataIndex) as string;
                     if (!string.IsNullOrEmpty(s))
@@ -2351,7 +2351,7 @@ namespace AudioVideoPlayer
                 }
                 else
                 {
-                    await LoadingData(string.Empty, string.Empty);
+                    await LoadingData(string.Empty);
                     comboStream.SelectedIndex = 0;
                     MediaItem ms = comboStream.SelectedItem as MediaItem;
                     if (ms != null)

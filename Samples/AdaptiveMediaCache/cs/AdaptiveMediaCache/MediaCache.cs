@@ -592,6 +592,20 @@ namespace AdaptiveMediaCache
             return bResult;
         }
         /// <summary>
+        /// Method: GetPlayReadyExpirationDate
+        /// return the Expiration Date for the PlayReady license (return DateTimeOffset.MinValue if not available)
+        /// Parameter: manifest Uri 
+        /// </summary>
+        public DateTimeOffset GetPlayReadyExpirationDate(Uri manifestUri)
+        {
+            DateTimeOffset d = DateTimeOffset.MinValue;
+            if (ManifestCacheList.ContainsKey(manifestUri))
+            {
+                d = ManifestCacheList[manifestUri].GetPlayReadyExpirationDate();
+            }
+            return d;
+        }
+        /// <summary>
         /// Method: GetPlayReadyLicense
         /// Get the PlayReady license for the asset 
         /// Parameter: manifest Uri 
