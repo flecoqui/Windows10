@@ -280,11 +280,15 @@ namespace AdaptiveMediaCache
         /// Add the asset associated with the manifestUri in the list of Assets managed by the cache 
         /// Return type enum AssetStatus, if the value is AssetStatus.Initialized the asset has been added correctly in the list
         /// Parameter: manifestUri Uri of the manifest (Smooth Streaming manifest so far)
+        /// Parameter: bDownloadToGo Download Scenario: Download-To-Go if true or Progressive Download if false
         /// Parameter: minBitrate minimum bitrate for the video track
         /// Parameter: maxBitrate maximum bitrate for the video track
         /// Parameter: audioIndex index of the audio track to select (usually = 0)
+        /// Parameter: Download Method: 0 Auto: The cache will create if necessary several threads to download audio and video chunks  
+        ///                             1 Default: The cache will download the audio and video chunks step by step in one single thread
+        ///                             N The cache will create N parallel threads to download the audio chunks and N parallel threads to downlaod video chunks 
         /// </summary>
-        public  AssetStatus Add(Uri manifestUri, bool bDownloadToGo, ulong minBitrate, ulong maxBitrate, int   audioIndex)
+        public AssetStatus Add(Uri manifestUri, bool bDownloadToGo, ulong minBitrate, ulong maxBitrate, int   audioIndex, int downloadMethod)
         {
             if ((ManifestCacheList != null) &&
                 (ManifestCacheList.Count + 1 > MaxDownloadedAssets))
@@ -294,7 +298,7 @@ namespace AdaptiveMediaCache
             if (!ManifestCacheList.ContainsKey(manifestUri))
             {
                 
-                ManifestCache mc = ManifestCache.CreateManifestCache(manifestUri, bDownloadToGo, minBitrate, maxBitrate, audioIndex, MaxMemoryBufferSizePerSession, MaxError);
+                ManifestCache mc = ManifestCache.CreateManifestCache(manifestUri, bDownloadToGo, minBitrate, maxBitrate, audioIndex, MaxMemoryBufferSizePerSession, MaxError, downloadMethod);
                 if (mc != null)
                 {
                     if (ManifestCacheList.TryAdd(manifestUri, mc))
@@ -315,10 +319,14 @@ namespace AdaptiveMediaCache
         /// Add the asset associated with the manifestUri in the list of Assets managed by the cache 
         /// Return type enum AssetStatus, if the value is AssetStatus.Initialized the asset has been added correctly in the list
         /// Parameter: manifestUri Uri of the manifest (Smooth Streaming manifest so far)
+        /// Parameter: bDownloadToGo Download Scenario: Download-To-Go if true or Progressive Download if false
         /// Parameter: videoIndex index of the video track to select (usually = 0)
         /// Parameter: audioIndex index of the audio track to select (usually = 0)
+        /// Parameter: Download Method: 0 Auto: The cache will create if necessary several threads to download audio and video chunks  
+        ///                             1 Default: The cache will download the audio and video chunks step by step in one single thread
+        ///                             N The cache will create N parallel threads to download the audio chunks and N parallel threads to downlaod video chunks 
         /// </summary>
-        public AssetStatus Add(Uri manifestUri, bool bDownloadToGo, int videoIndex, int audioIndex)
+        public AssetStatus Add(Uri manifestUri, bool bDownloadToGo, int videoIndex, int audioIndex, int downloadMethod)
         {
             if ((ManifestCacheList != null) &&
                 (ManifestCacheList.Count + 1 > MaxDownloadedAssets))
@@ -326,7 +334,7 @@ namespace AdaptiveMediaCache
             if (!ManifestCacheList.ContainsKey(manifestUri))
             {
 
-                ManifestCache mc = ManifestCache.CreateManifestCache(manifestUri, bDownloadToGo, videoIndex, audioIndex, MaxMemoryBufferSizePerSession, MaxError);
+                ManifestCache mc = ManifestCache.CreateManifestCache(manifestUri, bDownloadToGo, videoIndex, audioIndex, MaxMemoryBufferSizePerSession, MaxError, downloadMethod);
                 if (mc != null)
                 {
                     if (ManifestCacheList.TryAdd(manifestUri, mc))

@@ -233,6 +233,7 @@ namespace AdaptiveMediaCache
                                         cache.AudioSavedBytes += res;
                                         // Free buffer
                                         cc.chunkBuffer = null;
+                                      //  cache.AudioChunkList[Index].chunkBuffer = null;
                                     }
                                 }
                             }
@@ -294,6 +295,7 @@ namespace AdaptiveMediaCache
                                         cache.VideoSavedBytes += res;
                                         // free buffer
                                         cc.chunkBuffer = null;
+                                      //  cache.VideoChunkList[Index].chunkBuffer = null;
                                     }
                                 }
                             }

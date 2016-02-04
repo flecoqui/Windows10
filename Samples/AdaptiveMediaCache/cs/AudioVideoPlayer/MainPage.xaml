@@ -114,13 +114,17 @@
                 <CheckBox VerticalAlignment="Center" x:Name="AutoSkip" Checked="AutoSkip_Checked" Unchecked="AutoSkip_Unchecked" ToolTipService.ToolTip="Select automically the next stream at the end of the MediaElement"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="-55,0,0,0" Content="Auto:"  />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                <CheckBox VerticalAlignment="Center" x:Name="DownloadToGoCheckBox" ToolTipService.ToolTip="Select either the DownloadToGo or the ProgressiveDownload experience"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="-60,0,0,0" Content="DTG:"  />
-                <TextBlock VerticalAlignment="Center" Margin="5,0,5,0"  FontSize="12">Bitrate Min:</TextBlock>
+                    <CheckBox VerticalAlignment="Center" x:Name="DownloadToGoCheckBox" ToolTipService.ToolTip="Select either the DownloadToGo or the ProgressiveDownload experience"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="0,0,0,0"  FontSize="12" Content="Download-To-Go:"  />
+                <TextBlock VerticalAlignment="Center" Margin="5,0,5,0"  FontSize="12">Threads:</TextBlock>
+                <TextBox x:Name="nThreads" VerticalAlignment="Center" ToolTipService.ToolTip="Number of threads (0: Auto, 1: default, N: N threads)"   MinWidth="30" IsTabStop="True" InputScope="Number" TextChanged="BitrateTextChanged" FontSize="12"/>
+                </StackPanel>
+            <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
+                <TextBlock VerticalAlignment="Center" Margin="0,0,5,0"  FontSize="12">Minimum Bitrate:</TextBlock>
                 <TextBox x:Name="minBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Minimum bitrate in bit/s"   MinWidth="60" IsTabStop="True" InputScope="Number" TextChanged="BitrateTextChanged" FontSize="12"/>
-                <TextBlock VerticalAlignment="Center" Margin="5,0,5,0" FontSize="12">Max:</TextBlock>
+                <TextBlock VerticalAlignment="Center" Margin="5,0,5,0" FontSize="12">Maximum:</TextBlock>
                 <TextBox x:Name="maxBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Maximum bitrate in bit/s, (if value = 0, no maximum)" MinWidth="60" IsTabStop="True"  InputScope="Number" TextChanged="BitrateTextChanged"  FontSize="12"  />
             </StackPanel>
-            </StackPanel>
+        </StackPanel>
             <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
                 <Button IsEnabled="False" Content="&#xE896;" x:Name="downloadButton" ToolTipService.ToolTip="Download the current stream selecting the highest video bitrate in the bitrate range" FontFamily="Segoe MDL2 Assets"  IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="download_Click"/>
                 <Button IsEnabled="False" Content="&#xE894;" x:Name="removeButton" ToolTipService.ToolTip="Remove the stream already partially or completely stored on disk" FontFamily="Segoe MDL2 Assets"  IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="remove_Click"/>

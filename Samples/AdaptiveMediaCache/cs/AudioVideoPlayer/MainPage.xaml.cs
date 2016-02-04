@@ -97,6 +97,9 @@ namespace AudioVideoPlayer
         private uint MinBitRate = 100000;
         private uint MaxBitRate = 1000000;
 
+        // Default number of threads to download video and audio chunks
+        private int NThreads = 1;
+
         // Constant Keys used to store parameter in the isolate storage
         private const string keyAutoSkip = "bAutoSkip";
         private const string keyMinBitRate = "MinBitRate";
@@ -278,6 +281,11 @@ namespace AudioVideoPlayer
             maxBitrate.TextChanged += BitrateTextChanged;
             minBitrate.TextChanged += BitrateTextChanged;
 
+            // Initialize Number of Threads to download video and audio chunks
+            nThreads.Text = NThreads.ToString();
+            nThreads.TextChanged += NThreads_TextChanged;
+
+
             // Start timer
             timer = new DispatcherTimer();
             if (timer != null)
@@ -289,6 +297,9 @@ namespace AudioVideoPlayer
             }
             return bResult;
         }
+
+
+
         /// <summary>
         /// This method Unregister the UI components .
         /// </summary>
@@ -536,7 +547,7 @@ namespace AudioVideoPlayer
                             " - Audio track: " + AudioIndex.ToString() +
                             " Asset: " + newUrl.ToString());
 
-                        AssetStatus status = mediaCache.Add(newUrl, bDownloadToGo, MinBitRate, MaxBitRate, AudioIndex);
+                        AssetStatus status = mediaCache.Add(newUrl, bDownloadToGo, MinBitRate, MaxBitRate, AudioIndex,NThreads);
                         if (status == AssetStatus.Initialized)
                         {
                             LogMessage("Downloading the asset manifest : " + mediaUri.Text);
@@ -1237,6 +1248,24 @@ namespace AudioVideoPlayer
         #endregion
 
         #region UIEvents 
+        /// <summary>
+        /// This method is called when the content of the nThreads TextBox changed  
+        /// </summary>
+        private void NThreads_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            TextBox tb = sender as TextBox;
+            if (tb != null)
+            {
+                int n;
+                if (int.TryParse(tb.Text, out n))
+                {
+                    NThreads = n;
+                }
+                else
+                    tb.Text = "1";
+            }
+        }
+
         /// <summary>
         /// Check if the bitrates are consistent 
         /// </summary>

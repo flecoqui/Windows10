@@ -271,6 +271,16 @@ namespace AdaptiveMediaCache
         public ulong MaxBitrate { get; set; }
 
         /// <summary>
+        /// DownloadMethod 
+        /// Downlaod Method for audio and video chunks 
+        ///     0 Auto: The cache will create if necessary several threads to download audio and video chunks
+        ///     1 Default: The cache will download the audio and video chunks step by step in one single thread
+        ///     N The cache will create N parallel threads to download the audio chunks and N parallel threads to downlaod video chunks
+        /// </summary>
+        [DataMember]
+        public int DownloadMethod { get; set; }
+
+        /// <summary>
         /// SelectVideoTrackIndex 
         /// Index of the video track to select 
         /// </summary>
@@ -319,6 +329,7 @@ namespace AdaptiveMediaCache
             MinBitrate = 0;
             MaxBitrate = 0;
             MaxError = 20;
+            DownloadMethod = 1;
             MaxMemoryBufferSize = 256000;
             VideoChunkList = new List<ChunkCache>();
             AudioChunkList = new List<ChunkCache>();
@@ -359,7 +370,7 @@ namespace AdaptiveMediaCache
         /// ManifestCache 
         /// ManifestCache contructor 
         /// </summary>
-        public ManifestCache(Uri manifestUri, bool downloaddToGo, ulong minBitrate, ulong maxBitrate, int AudioIndex, ulong maxMemoryBufferSize, uint maxError)
+        public ManifestCache(Uri manifestUri, bool downloaddToGo, ulong minBitrate, ulong maxBitrate, int AudioIndex, ulong maxMemoryBufferSize, uint maxError, int downloadMethod = 1)
         {
             Initialize();
             ManifestUri = manifestUri;
@@ -371,12 +382,13 @@ namespace AdaptiveMediaCache
             MaxError = maxError;
             SelectVideoTrackIndex = -1;
             SelectAudioTrackIndex = AudioIndex;
+            DownloadMethod = downloadMethod;
         }
         /// <summary>
         /// ManifestCache 
         /// ManifestCache contructor 
         /// </summary>
-        public ManifestCache(Uri manifestUri, bool downloaddToGo, int VideoIndex, int AudioIndex, ulong maxMemoryBufferSize, uint maxError)
+        public ManifestCache(Uri manifestUri, bool downloaddToGo, int VideoIndex, int AudioIndex, ulong maxMemoryBufferSize, uint maxError, int downloadMethod = 1)
         {
             Initialize();
             ManifestUri = manifestUri;
@@ -388,6 +400,7 @@ namespace AdaptiveMediaCache
             MaxError = maxError;
             SelectVideoTrackIndex = VideoIndex;
             SelectAudioTrackIndex = AudioIndex;
+            DownloadMethod = downloadMethod;
         }
         /// <summary>
         /// Convert manifest timescale times to HNS for reporting
@@ -1170,11 +1183,14 @@ namespace AdaptiveMediaCache
         /// <param name="audioIndex">Index of the audio track to select (usually 0)</param>
         /// <param name="maxMemoryBufferSize">maximum memory buffer size</param>
         /// <param name="maxError">maximum http error while downloading the chunks</param>
+        /// <param name="downloadMethod"> 0 Auto: The cache will create if necessary several threads to download audio and video chunks  
+        ///                             1 Default: The cache will download the audio and video chunks step by step in one single thread
+        ///                             N The cache will create N parallel threads to download the audio chunks and N parallel threads to downlaod video chunks </param>
         /// <returns>return a ManifestCache (null if not successfull)</returns>
-        public static ManifestCache CreateManifestCache(Uri manifestUri, bool downloadToGo, ulong minBitrate, ulong maxBitrate, int audioIndex, ulong maxMemoryBufferSize, uint maxError)
+        public static ManifestCache CreateManifestCache(Uri manifestUri, bool downloadToGo, ulong minBitrate, ulong maxBitrate, int audioIndex, ulong maxMemoryBufferSize, uint maxError, int downloadMethod = 1)
         {
             // load the stream associated with the HLS, SMOOTH or DASH manifest
-            ManifestCache mc = new ManifestCache(manifestUri, downloadToGo, minBitrate, maxBitrate, audioIndex, maxMemoryBufferSize, maxError);
+            ManifestCache mc = new ManifestCache(manifestUri, downloadToGo, minBitrate, maxBitrate, audioIndex, maxMemoryBufferSize, maxError, downloadMethod);
             if (mc != null)
             {
                 mc.ManifestStatus = AssetStatus.Initialized;
@@ -1192,11 +1208,14 @@ namespace AdaptiveMediaCache
         /// <param name="audioIndex">Index of the audio track to select (usually 0)</param>
         /// <param name="maxMemoryBufferSize">maximum memory buffer size</param>
         /// <param name="maxError">maximum http error while downloading the chunks</param>
+        /// <param name="downloadMethod"> 0 Auto: The cache will create if necessary several threads to download audio and video chunks  
+        ///                             1 Default: The cache will download the audio and video chunks step by step in one single thread
+        ///                             N The cache will create N parallel threads to download the audio chunks and N parallel threads to downlaod video chunks </param>
         /// <returns>return a ManifestCache (null if not successfull)</returns>
-        public static ManifestCache CreateManifestCache(Uri manifestUri, bool downloadToGo, int videoIndex, int audioIndex, ulong maxMemoryBufferSize, uint maxError)
+        public static ManifestCache CreateManifestCache(Uri manifestUri, bool downloadToGo, int videoIndex, int audioIndex, ulong maxMemoryBufferSize, uint maxError, int downloadMethod = 1)
         {
             // load the stream associated with the HLS, SMOOTH or DASH manifest
-            ManifestCache mc = new ManifestCache(manifestUri, downloadToGo, videoIndex, audioIndex, maxMemoryBufferSize, maxError);
+            ManifestCache mc = new ManifestCache(manifestUri, downloadToGo, videoIndex, audioIndex, maxMemoryBufferSize, maxError, downloadMethod);
             if (mc != null)
             {
                 mc.ManifestStatus = AssetStatus.Initialized;
@@ -1314,6 +1333,7 @@ namespace AdaptiveMediaCache
             }
             return false;
         }
+
         /// <summary>
         /// DownloadChunkAsync
         /// Download asynchronously a chunk.
@@ -1324,7 +1344,7 @@ namespace AdaptiveMediaCache
         public virtual async Task<byte[]> DownloadChunkAsync(Uri chunkUri, bool forceNewDownload = true)
         {
             System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " DownloadChunk start for chunk: " + chunkUri.ToString() );
-
+            
             var client = new Windows.Web.Http.HttpClient();
             try
             {
@@ -1351,6 +1371,7 @@ namespace AdaptiveMediaCache
             }
 
             return null;
+            
         }
 
 
@@ -1393,6 +1414,222 @@ namespace AdaptiveMediaCache
                 AudioDownloadedChunks++;
             }
             return len;
+        }
+        Task StartVideoDowloadParallelThread(ulong i)
+        {
+            return Task.Run(async () =>
+            {
+                string url = (string.IsNullOrEmpty(RedirectBaseUrl) ? BaseUrl : RedirectBaseUrl) + "/" + VideoTemplateUrl.Replace("{start_time}", VideoChunkList[(int)i].Time.ToString());
+                System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread downloading video chunks for Uri: " + url.ToString());
+                VideoChunkList[(int)i].chunkBuffer = await DownloadChunkAsync(new Uri(url));
+                if (VideoChunkList[(int)i].IsChunkDownloaded())
+                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread downloading video chunks done for Uri: " + url.ToString());
+                else
+                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread downloading video chunks error for Uri: " + url.ToString());
+
+            }, downloadTaskCancellationtoken.Token);
+
+        }
+        Task StartAudioDowloadParallelThread(ulong i)
+        {
+            return Task.Run(async () =>
+            {
+                string url = (string.IsNullOrEmpty(RedirectBaseUrl) ? BaseUrl : RedirectBaseUrl) + "/" + AudioTemplateUrl.Replace("{start_time}", AudioChunkList[(int)i].Time.ToString());
+                System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread downloading audio chunks for Uri: " + url.ToString());
+                AudioChunkList[(int)i].chunkBuffer = await DownloadChunkAsync(new Uri(url));
+                if (AudioChunkList[(int)i].IsChunkDownloaded())
+                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread downloading audio chunks done for Uri: " + url.ToString());
+                else
+                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread downloading audio chunks error for Uri: " + url.ToString());
+
+            }, downloadTaskCancellationtoken.Token);
+
+        }
+
+
+        /// <summary>
+        /// downloadParallelThread
+        /// Download Parallel thread 
+        /// This thread download one by one the audio and video chunks
+        /// When the amount of chunks in memory is over a defined limit, the chunks are stored on disk and disposed
+        /// When the download is completed, the thread exits 
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns>return the length of the downloaded audio chunk</returns>
+        public async Task<bool> downloadParallelThread()
+        {
+
+            System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread started for Uri: " + ManifestUri.ToString());
+            downloadTaskRunning = true;
+            // Were we already canceled?
+            if (downloadTaskCancellationtoken != null)
+            {
+                System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread Cancellation Token throw for Uri: " + ManifestUri.ToString());
+                downloadTaskCancellationtoken.Token.ThrowIfCancellationRequested();
+            }
+
+            int VideoQueueSize = DownloadMethod;
+            Queue<ulong> videoQueue = new Queue<ulong>(VideoQueueSize);
+            int AudioQueueSize = DownloadMethod;
+            Queue<ulong> audioQueue = new Queue<ulong>(AudioQueueSize);
+
+            DownloadThreadStartTime = DateTime.Now;
+            DownloadThreadAudioCount = 0;
+            DownloadThreadVideoCount = 0;
+
+            VideoDownloadedChunks = VideoSavedChunks;
+            AudioDownloadedChunks = AudioSavedChunks;
+            VideoDownloadedBytes = VideoSavedBytes;
+            AudioDownloadedBytes = AudioSavedBytes;
+
+            ManifestStatus = AssetStatus.DownloadingChunks;
+            int error = 0;
+            while (downloadTaskRunning)
+            {
+                // Poll on this property if you have to do
+                // other cleanup before throwing.
+                if ((downloadTaskCancellationtoken != null) && (downloadTaskCancellationtoken.Token.IsCancellationRequested))
+                {
+                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread Cancellation Token throw for Uri: " + ManifestUri.ToString());
+                    // Clean up here, then...
+                    downloadTaskCancellationtoken.Token.ThrowIfCancellationRequested();
+                }
+                
+                bool result = false;
+                // Download Video Chunks
+                if ((VideoChunkList != null) && (VideoChunkList.Count > 0))
+                {
+                    result = true;
+                    // Something to download
+                    if (VideoDownloadedChunks < VideoChunks)
+                    {
+                        ulong i = VideoDownloadedChunks;
+                        while ((i < VideoChunks) && (videoQueue.Count < VideoQueueSize))
+                        {
+                            if (!videoQueue.Contains(i))
+                            {
+                                Task task = StartVideoDowloadParallelThread(i);
+                                if (task != null)
+                                    videoQueue.Enqueue(i);
+                            }
+                            i++;
+                        }
+                    }
+                    for (ulong i = VideoDownloadedChunks; i <  Math.Min(VideoDownloadedChunks + (ulong)VideoQueueSize, VideoChunks);i++)
+                    {
+                        if (VideoChunkList[(int)i].IsChunkDownloaded())
+                        {
+                            VideoDownloadedBytes += VideoChunkList[(int)i].GetLength();
+                            VideoDownloadedChunks++;
+                            DownloadThreadVideoCount += VideoChunkList[(int)i].GetLength();
+                            ulong res = videoQueue.Dequeue();
+                            if (res != i)
+                                System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " Video QueueError: ");
+                        }
+                        else
+                            break;
+                    }
+                }
+
+                if (downloadTaskRunning == false)
+                {
+                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread downloadTaskRunning == false for Uri: " + ManifestUri.ToString());
+                    break;
+                }
+
+                // Download Audio Chunks
+                if ((AudioChunkList != null) && (AudioChunkList.Count > 0))
+                {
+                    result = true;
+                    // Something to download
+                    if (AudioDownloadedChunks < AudioChunks)
+                    {
+                        ulong i = AudioDownloadedChunks;
+                        while ((i < AudioChunks) && (audioQueue.Count < AudioQueueSize))
+                        {
+                            if (!audioQueue.Contains(i))
+                            {
+                                Task task = StartAudioDowloadParallelThread(i);
+                                if (task != null)
+                                    audioQueue.Enqueue(i);
+                            }
+                            i++;
+                        }
+                    }
+                    for (ulong i = AudioDownloadedChunks; i < Math.Min(AudioDownloadedChunks + (ulong)AudioQueueSize, AudioChunks); i++)
+                    {
+                        if (AudioChunkList[(int)i].IsChunkDownloaded())
+                        {
+                            AudioDownloadedBytes += AudioChunkList[(int)i].GetLength();
+                            AudioDownloadedChunks++;
+                            DownloadThreadAudioCount += AudioChunkList[(int)i].GetLength();
+                            ulong res = audioQueue.Dequeue();
+                            if (res != i)
+                                System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " Audio QueueError: ");
+                        }
+                        else
+                            break;
+                    }
+                }
+                if (downloadTaskRunning == false)
+                {
+                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread downloadTaskRunning == false for Uri: " + ManifestUri.ToString());
+                    break;
+                }
+
+                if (result == false)
+                {
+                    error++;
+                    if (error > MaxError)
+                    {
+                        DateTime time = DateTime.Now;
+                        System.Diagnostics.Debug.WriteLine("Download stopped too many error at " + string.Format("{0:d/M/yyyy HH:mm:ss.fff}", time));
+                        System.Diagnostics.Debug.WriteLine("Current Media Size: " + this.CurrentMediaSize.ToString() + " Bytes");
+                        double bitrate = (this.DownloadThreadVideoCount + this.DownloadThreadAudioCount) * 8 / (time - DownloadThreadStartTime).TotalSeconds;
+                        System.Diagnostics.Debug.WriteLine("Download bitrate for the current session: " + bitrate.ToString() + " bps");
+                        ManifestStatus = AssetStatus.ErrorChunksDownload;
+                        downloadTaskRunning = false;
+                    }
+                }
+                if ((VideoDownloadedChunks >= VideoChunks) &&
+                    (AudioDownloadedChunks >= AudioChunks))
+                {
+                    DateTime time = DateTime.Now;
+                    System.Diagnostics.Debug.WriteLine("Download done at " + string.Format("{0:d/M/yyyy HH:mm:ss.fff}", time));
+                    System.Diagnostics.Debug.WriteLine("Current Media Size: " + this.CurrentMediaSize.ToString() + " Bytes");
+                    double bitrate = (this.DownloadThreadVideoCount + this.DownloadThreadAudioCount) * 8 / (time - DownloadThreadStartTime).TotalSeconds;
+                    System.Diagnostics.Debug.WriteLine("Download bitrate for the current session: " + bitrate.ToString() + " bps");
+                    System.Diagnostics.Debug.WriteLine("Download Thread Saving Asset");
+                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread Saving asset for Uri: " + ManifestUri.ToString());
+                    if (DiskCache != null)
+                        await DiskCache.SaveAsset(this);
+                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread Saving asset done for Uri: " + ManifestUri.ToString());
+                    DownloadedPercentage = (uint)(((VideoSavedChunks + AudioSavedChunks) * 100) / (VideoChunks + AudioChunks));
+                    ManifestStatus = AssetStatus.ChunksDownloaded;
+                    downloadTaskRunning = false;
+                    break;
+                }
+                ulong s = GetBufferSize();
+                if (s > MaxMemoryBufferSize)
+                {
+                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread Saving asset for Uri: " + ManifestUri.ToString());
+                    if (DiskCache != null)
+                        await DiskCache.SaveAsset(this);
+                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread Saving asset done for Uri: " + ManifestUri.ToString());
+
+                    if ((DownloadToGo == false) && (ManifestStatus != AssetStatus.AssetPlayable))
+                    {
+                        if (IsAssetEnoughDownloaded(DownloadToGo))
+                            ManifestStatus = AssetStatus.AssetPlayable;
+                    }
+                }
+
+                DownloadedPercentage = (uint)(((VideoSavedChunks + AudioSavedChunks) * 100) / (VideoChunks + AudioChunks));
+            }
+
+            downloadTaskRunning = false;
+            System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " downloadThread ended for Uri: " + ManifestUri.ToString());
+            return true;
         }
         /// <summary>
         /// downloadThread
@@ -1655,7 +1892,10 @@ namespace AdaptiveMediaCache
             {
                 downloadTaskRunning = false;
                 downloadTaskCancellationtoken = new System.Threading.CancellationTokenSource();
-                downloadTask = Task.Run(async () => { await downloadThread(); }, downloadTaskCancellationtoken.Token);
+                if(DownloadMethod == 1)
+                    downloadTask = Task.Run(async () => { await downloadThread(); }, downloadTaskCancellationtoken.Token);
+                else
+                    downloadTask = Task.Run(async () => { await downloadParallelThread(); }, downloadTaskCancellationtoken.Token);
                 if (downloadTask != null)
                     return true;
             }
