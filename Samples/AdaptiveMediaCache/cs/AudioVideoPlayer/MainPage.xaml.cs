@@ -469,6 +469,7 @@ namespace AudioVideoPlayer
             ulong duration = mediaCache.GetDuration(manifestUri) / 10000000;
 
             LogMessage("Download progress: " + percent.ToString() + "%" +
+                " Download bitrate: " + sender.GetCurrentBitrate(manifestUri).ToString() + "b/s " + 
                 " Audio chunks: " + sender.GetSavedAudioChunksCount(manifestUri).ToString() + "/" + sender.GetAudioChunksCount(manifestUri).ToString() +
                 " Video chunks: " + sender.GetSavedVideoChunksCount(manifestUri).ToString() + "/" + sender.GetVideoChunksCount(manifestUri).ToString() +
                 " Size on disk: " + sender.GetCurrentMediaCacheSize(manifestUri).ToString() + "/" + sender.GetExpectedSize(manifestUri).ToString() +
@@ -947,9 +948,6 @@ namespace AudioVideoPlayer
                 Windows.Foundation.Collections.PropertySet cpSystems = new Windows.Foundation.Collections.PropertySet();
                 //Indicate to the MF pipeline to use PlayReady's TrustedInput
                 cpSystems.Add("{F4637010-03C3-42CD-B932-B48ADF3A6A54}", "Windows.Media.Protection.PlayReady.PlayReadyWinRTTrustedInput");
-                //            protectionManager.Properties.Add("Windows.Media.Protection.MediaProtectionSystemIdMapping", cpSystems);
-
-                //            cpSystems.Add("{F4637010-03C3-42CD-B932-B48ADF3A6A54}", "Microsoft.Media.PlayReadyClient.PlayReadyWinRTTrustedInput"); //Playready
                 protectionManager.Properties.Add("Windows.Media.Protection.MediaProtectionSystemIdMapping", cpSystems);
                 //Use by the media stream source about how to create ITA InitData.
                 //See here for more detai: https://msdn.microsoft.com/en-us/library/windows/desktop/aa376846%28v=vs.85%29.aspx
@@ -959,6 +957,17 @@ namespace AudioVideoPlayer
 
                 Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
+                // Force Software DRM useful for VC1 content which doesn't support Hardware DRM
+                try
+                {
+                    if (!localSettings.Containers.ContainsKey("PlayReady"))
+                        localSettings.CreateContainer("PlayReady", Windows.Storage.ApplicationDataCreateDisposition.Always);
+                    localSettings.Containers["PlayReady"].Values["SoftwareOverride"] = 1;
+                }
+                catch (Exception e)
+                {
+                    LogMessage("Exception while forcing software DRM: " + e.Message);
+                }
                 //Setup Software Override based on app setting
                 //By default, PlayReady uses Hardware DRM if the machine support it. However, in case the app still want
                 //software behavior, they can set localSettings.Containers["PlayReady"].Values["SoftwareOverride"]=1. 
@@ -974,6 +983,7 @@ namespace AudioVideoPlayer
                         protectionManager.Properties.Add("Windows.Media.Protection.UseSoftwareProtectionLayer", true);
                     }
                 }
+                
                 // Associate the MediaElement with the protection manager
                 mediaElement.ProtectionManager = protectionManager;
                 mediaElement.ProtectionManager.ComponentLoadFailed += ProtectionManager_ComponentLoadFailed;

@@ -581,6 +581,17 @@ namespace AudioVideoPlayer
 
                 Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
+                // Force Software DRM useful for VC1 content which doesn't support Hardware DRM
+                try
+                {
+                    if (!localSettings.Containers.ContainsKey("PlayReady"))
+                        localSettings.CreateContainer("PlayReady", Windows.Storage.ApplicationDataCreateDisposition.Always);
+                    localSettings.Containers["PlayReady"].Values["SoftwareOverride"] = 1;
+                }
+                catch (Exception e)
+                {
+                    LogMessage("Exception while forcing software DRM: " + e.Message);
+                }
                 //Setup Software Override based on app setting
                 //By default, PlayReady uses Hardware DRM if the machine support it. However, in case the app still want
                 //software behavior, they can set localSettings.Containers["PlayReady"].Values["SoftwareOverride"]=1. 

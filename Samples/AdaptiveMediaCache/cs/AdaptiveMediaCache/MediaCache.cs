@@ -838,7 +838,24 @@ namespace AdaptiveMediaCache
             }
             return 0;
         }
-
+        /// <summary>
+        /// GetCurrentBitrate
+        /// return the estimated download bitrate.
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns>return the estimated download bitrate in bit/seconds</returns>
+        public double GetCurrentBitrate(Uri manifestUri)
+        {
+            if (ManifestCacheList.ContainsKey(manifestUri))
+            {
+                ManifestCache mc;
+                if (ManifestCacheList.TryGetValue(manifestUri, out mc))
+                {
+                    return mc.GetCurrentBitrate();
+                }
+            }
+            return 0;
+        }
         /// <summary>
         /// Method: GetCurrentAudioCacheSize
         /// Return the current size of the saved audio chunks on disk for the asset 

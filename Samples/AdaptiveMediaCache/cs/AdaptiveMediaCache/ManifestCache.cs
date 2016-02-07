@@ -1306,6 +1306,21 @@ namespace AdaptiveMediaCache
             return 0;
         }
         /// <summary>
+        /// GetCurrentBitrate
+        /// return the estimated download bitrate.
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns>return the estimated download bitrate in seconds</returns>
+        public double GetCurrentBitrate()
+        {
+            if ((VideoSavedChunks >= VideoChunks) &&
+                (AudioSavedChunks >= AudioChunks))
+                return 0;
+            DateTime time = DateTime.Now;
+            double currentBitrate = (this.DownloadThreadVideoCount + this.DownloadThreadAudioCount) * 8 / (time - DownloadThreadStartTime).TotalSeconds;
+            return currentBitrate;
+        }
+        /// <summary>
         /// IsAssetEnoughDownloaded
         /// return true if the asset is ready to play for both scenarios Download To Go and Progressive Download.
         /// </summary>
