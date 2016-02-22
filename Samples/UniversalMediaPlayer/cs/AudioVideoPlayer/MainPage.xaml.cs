@@ -572,32 +572,9 @@ namespace AudioVideoPlayer
 
                 Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-                // Force Software DRM useful for VC1 content which doesn't support Hardware DRM
-                try
-                {
-                    if (!localSettings.Containers.ContainsKey("PlayReady"))
-                        localSettings.CreateContainer("PlayReady", Windows.Storage.ApplicationDataCreateDisposition.Always);
-                    localSettings.Containers["PlayReady"].Values["SoftwareOverride"] = 1;                    
-                }
-                catch (Exception e)
-                {
-                    LogMessage("Exception while forcing software DRM: " + e.Message);
-                }
-                //Setup Software Override based on app setting
-                //By default, PlayReady uses Hardware DRM if the machine support it. However, in case the app still want
-                //software behavior, they can set localSettings.Containers["PlayReady"].Values["SoftwareOverride"]=1. 
-                //This code tells MF to use software override as well
-                if (localSettings.Containers.ContainsKey("PlayReady") &&
-                    localSettings.Containers["PlayReady"].Values.ContainsKey("SoftwareOverride"))
-                {
-                    int UseSoftwareProtectionLayer = (int)localSettings.Containers["PlayReady"].Values["SoftwareOverride"];
+                // Check if the platform does support hardware DRM 
+                LogMessage((IsHardwareDRMSupported() == true ? "Hardware DRM is supported on this platform" : "Hardware DRM is not supported on this platform"));
 
-                    if (UseSoftwareProtectionLayer == 1)
-                    {
-                        LogMessage("***** Use Software Protection Layer ******");
-                        protectionManager.Properties.Add("Windows.Media.Protection.UseSoftwareProtectionLayer", true);
-                    }
-                }
                 // Associate the MediaElement with the protection manager
                 mediaElement.ProtectionManager = protectionManager;
                 mediaElement.ProtectionManager.ComponentLoadFailed += ProtectionManager_ComponentLoadFailed;
@@ -1730,7 +1707,12 @@ namespace AudioVideoPlayer
                         LogMessage("Video: " + content + " is protected with PlayReady and the license Expiration Date is: " + d.ToString());
                     }
                 }
-
+                // The application does restore the default DRM configuration hardware DRM or software DRM
+                // before playing the asset
+                // if the content to play is based on VC1 codec and the hardware DRM is enabled,
+                // the software DRM will be enabled on event Manifest Ready
+                LogMessage("Restoring the DRM configuration: " + (IsHardwareDRMSupported() == true? "Hardware DRM": "Software DRM"));
+                EnableSoftwareDRM(!IsHardwareDRMSupported());
 
                 // Stop the current stream
                 mediaElement.Source = null;
@@ -1922,16 +1904,20 @@ namespace AudioVideoPlayer
         /// </summary>
         private void SmoothStreamingManager_ManifestReadyEvent(Microsoft.Media.AdaptiveStreaming.AdaptiveSource sender, Microsoft.Media.AdaptiveStreaming.ManifestReadyEventArgs args)
         {
+            // VC1 Codec flag: true if VC1 codec is used for this Smooth Streaming content
+            bool bVC1CodecDetected = false;            
             LogMessage("Manifest Ready for uri: " + sender.Uri.ToString());
             foreach (var stream in args.AdaptiveSource.Manifest.SelectedStreams)
             {
 
                 if (stream.Type == Microsoft.Media.AdaptiveStreaming.MediaStreamType.Video)
                 {
+                    
                     foreach (var track in stream.SelectedTracks)
                     {
-                        LogMessage("  Bitrate: " + track.Bitrate.ToString() + " Width: " + track.MaxWidth.ToString() + " Height: " + track.MaxHeight.ToString());
-
+                        LogMessage("  Bitrate: " + track.Bitrate.ToString() + " Width: " + track.MaxWidth.ToString() + " Height: " + track.MaxHeight.ToString() + " FourCC: " + track.FourCC) ;
+                        if ((bVC1CodecDetected == false) && ((track.FourCC == 0x31435657/*WVC1*/) || (track.FourCC == 0x31435641 /*AVC1*/)))
+                            bVC1CodecDetected = true;
                     }
 
                     IReadOnlyList<Microsoft.Media.AdaptiveStreaming.IManifestTrack> list = null;
@@ -1965,6 +1951,13 @@ namespace AudioVideoPlayer
                         }
                     }
                 }
+            }
+            // if the platform does support Hardware DRM and VC1 codec is used by this content
+            // the application will force the Software DRM  as current Hardware DRM implementation doesn't support VC1 codec 
+            if((bVC1CodecDetected == true)&&(IsHardwareDRMEnabled()))
+            {
+                LogMessage("Enable Software DRM as VC1 content has been detected");
+                EnableSoftwareDRM(true);
             }
         }
         /// <summary>
@@ -2102,6 +2095,71 @@ namespace AudioVideoPlayer
         public const int MSPR_E_NEEDS_INDIVIDUALIZATION = -2147174366; // (0x8004B822)
         private string PlayReadyLicenseUrl;
         private string PlayReadyChallengeCustomData;
+
+        /// <summary>
+        /// HardwareDRMInitialized
+        /// True if HardwareDRMSupported has been set following a call to MediaHelpers.PlayReadyHelper.IsHardwareDRMSupported()
+        /// </summary>
+        private bool HardwareDRMInitialized = false;
+        /// <summary>
+        /// True if hardware DRM is supported on the platform
+        /// This variable is initialized when the ProtectionManager is initialized
+        /// </summary>
+        private bool HardwareDRMSupported = false;
+        /// <summary>
+        /// Return true if the Windows 10 platform does support Hardware DRM 
+        /// </summary>
+        bool IsHardwareDRMSupported()
+        {
+            if (HardwareDRMInitialized == false)
+            {
+                HardwareDRMSupported = MediaHelpers.PlayReadyHelper.IsHardwareDRMSupported();
+                HardwareDRMInitialized = true;
+            }
+            return HardwareDRMSupported;
+        }
+        /// <summary>
+        /// Return true if the application is configured to support Hardware DRM
+        /// Return true if the Windows 10 platform does support Hardware DRM 
+        /// </summary>
+        bool IsHardwareDRMEnabled()
+        {
+            return Windows.Media.Protection.PlayReady.PlayReadyStatics.CheckSupportedHardware(Windows.Media.Protection.PlayReady.PlayReadyHardwareDRMFeatures.HardwareDRM);
+        }
+        /// <summary>
+        /// Enable or Disable Software DRM
+        /// Software DRM must be enabled when the MediaElement is playing VC1 protected content on platform supporting Hardware DRM
+        /// </summary>
+        bool EnableSoftwareDRM(bool bEnable)
+        {
+            Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            // Force Software DRM useful for VC1 content which doesn't support Hardware DRM
+            try
+            {
+                if (!localSettings.Containers.ContainsKey("PlayReady"))
+                    localSettings.CreateContainer("PlayReady", Windows.Storage.ApplicationDataCreateDisposition.Always);
+                localSettings.Containers["PlayReady"].Values["SoftwareOverride"] = (bEnable==true ? 1: 0);
+            }
+            catch (Exception e)
+            {
+                LogMessage("Exception while forcing software DRM: " + e.Message);
+            }
+            //Setup Software Override based on app setting
+            //By default, PlayReady uses Hardware DRM if the machine support it. However, in case the app still want
+            //software behavior, they can set localSettings.Containers["PlayReady"].Values["SoftwareOverride"]=1. 
+            //This code tells MF to use software override as well
+            if (localSettings.Containers.ContainsKey("PlayReady") &&
+                localSettings.Containers["PlayReady"].Values.ContainsKey("SoftwareOverride"))
+            {
+                int UseSoftwareProtectionLayer = (int)localSettings.Containers["PlayReady"].Values["SoftwareOverride"];
+
+                if(protectionManager.Properties.ContainsKey("Windows.Media.Protection.UseSoftwareProtectionLayer"))
+                    protectionManager.Properties["Windows.Media.Protection.UseSoftwareProtectionLayer"] = (UseSoftwareProtectionLayer == 1? true : false);
+                else  
+                    protectionManager.Properties.Add("Windows.Media.Protection.UseSoftwareProtectionLayer", (UseSoftwareProtectionLayer == 1 ? true : false));
+            }
+            return true;
+        }
         /// <summary>
         /// Invoked when the Protection Manager can't load some components
         /// </summary>
@@ -2242,7 +2300,7 @@ namespace AudioVideoPlayer
         /// </summary>
         private async void ProtectionManager_ServiceRequested(Windows.Media.Protection.MediaProtectionManager sender, Windows.Media.Protection.ServiceRequestedEventArgs e)
         {
-            LogMessage("ProtectionManager ServiceRequested");
+            LogMessage("ProtectionManager ServiceRequested - Current DRM Configuration: " + (IsHardwareDRMEnabled()?"Hardware":"Software"));
             if (e.Request is Windows.Media.Protection.PlayReady.PlayReadyIndividualizationServiceRequest)
             {
                 Windows.Media.Protection.PlayReady.PlayReadyIndividualizationServiceRequest IndivRequest = e.Request as Windows.Media.Protection.PlayReady.PlayReadyIndividualizationServiceRequest;

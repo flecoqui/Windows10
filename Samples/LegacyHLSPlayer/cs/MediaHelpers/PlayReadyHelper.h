@@ -7,5 +7,7 @@ namespace MediaHelpers
     public:
 		PlayReadyHelper();
 		static Platform::IBox<Windows::Foundation::DateTime>^ GetLicenseExpirationDate(IPlayReadyLicense^ license);
+		static bool IsHardwareDRMSupported(void);
+
     };
 }
