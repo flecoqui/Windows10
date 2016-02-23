@@ -2199,9 +2199,11 @@ namespace AudioVideoPlayer
 
                     if (!string.IsNullOrEmpty(ChallengeCustomData))
                     {
-                        System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
-                        byte[] b = encoding.GetBytes(ChallengeCustomData);
-                        licenseRequest.ChallengeCustomData = Convert.ToBase64String(b, 0, b.Length);
+                        // disable Base64String encoding
+                        //System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
+                        //byte[] b = encoding.GetBytes(ChallengeCustomData);
+                        //licenseRequest.ChallengeCustomData = Convert.ToBase64String(b, 0, b.Length);
+                        licenseRequest.ChallengeCustomData = ChallengeCustomData;
                     }
 
                     Windows.Media.Protection.PlayReady.PlayReadySoapMessage soapMessage = licenseRequest.GenerateManualEnablingChallenge();

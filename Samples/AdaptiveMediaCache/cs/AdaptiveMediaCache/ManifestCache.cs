@@ -620,9 +620,11 @@ namespace AdaptiveMediaCache
             {
                 if (!string.IsNullOrEmpty(PlayReadyChallengeCustomData))
                 {
-                    System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
-                    byte[] b = encoding.GetBytes(PlayReadyChallengeCustomData);
-                    licenseRequest.ChallengeCustomData = Convert.ToBase64String(b, 0, b.Length);
+                    // disable Base64String encoding
+                    //System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
+                    //byte[] b = encoding.GetBytes(PlayReadyChallengeCustomData);
+                    //licenseRequest.ChallengeCustomData = Convert.ToBase64String(b, 0, b.Length);
+                    licenseRequest.ChallengeCustomData = PlayReadyChallengeCustomData;
                 }
                 licenseRequest.ContentHeader = new Windows.Media.Protection.PlayReady.PlayReadyContentHeader(
                                             DefaultContentKeyId,
