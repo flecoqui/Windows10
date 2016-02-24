@@ -3,42 +3,47 @@
   samplefwlink: http://go.microsoft.com/fwlink/p/?LinkId=620563&clcid=0x409
 --->
 
-# Universal Media Player sample
+# Universal Media Player C# sample application
 
-How to create an Universal Media Player playing auio, video and pictures files from a JSON file.
-
-This sample only supports the following profiles:
-
--   Video: VMV, MP4, MPEG2-TS, HLS, MPEG-DASH, Smooth Streaming... 
--   Audio: WMA, MP3, FLAC,...
--   Pictures: JPG, PNG...
-
-Related topics
+Overview
 --------------
+This Universal Windows 10 application can play video files and audio files, display pictures as well.
+This sample application does support the following containers:
+-   **Video**: VMV, MP4, MPEG2-TS, HLS, MPEG-DASH, Smooth Streaming 
+-   **Audio**: WMA, MP3, FLAC
+-   **Picture**: JPG, PNG
+If the MPEG-DASH assets or the Smooth Streaming assets are protected with PlayReady, the application could play those assets. 
+When the application is launched, it opens a JSON playlist which contains the list of files to play.
+This JSON playlist is by default embedded within the application, the user could select another playlist to play your own content. 
 
-To be completed
 
-System requirements
------------------------------
+Installing the application
+----------------------------
+You can install the application on:
+- **Personal Computer Platform**: a desktop running Windows 10
+- **Windows 10 Mobile Platform**: a phone running Windows 10
+- **IOT Platform**: a IOT device running Windows 10
+The applications packages for x86, x64 and ARM are available there:
 
-**Client:** Windows 10
+Using the application
+----------------------------
 
-Build the sample
+
+Building the application
 ----------------
-To be completed
 
 1. If you download the samples ZIP, be sure to unzip the entire archive, not just the folder with the sample you want to build. 
 2. Start Microsoft Visual Studio 2015 and select **File** \> **Open** \> **Project/Solution**.
 3. Starting in the folder where you unzipped the samples, go to the Samples subfolder, then the subfolder for this specific sample, then the subfolder for your preferred language (C++, C#, or JavaScript). Double-click the Visual Studio 2015 Solution (.sln) file.
 4. Press Ctrl+Shift+B, or select **Build** \> **Build Solution**.
 
-Run the sample
+Next steps
 --------------
 
-The next steps depend on whether you just want to deploy the sample or you want to both deploy and run it.
-
-**Deploying the sample**
-1.  Select **Build** \> **Deploy Solution**.
+The Universal Media Player C# Sample Applicaton could be improved to support the following features:
+1.  Support of Windows 10 Background Audio to play your music and your favorite radios
+2.  Support of XBOX One Platform (WWindows 10 Background Audio to play your music and your favorite radios
+ 
 
 **Deploying and running the sample**
 1.  To debug the sample and then run it, press F5 or select **Debug** \> **Start Debugging**. To run the sample without debugging, press Ctrl+F5 or select**Debug** \> **Start Without Debugging**.
