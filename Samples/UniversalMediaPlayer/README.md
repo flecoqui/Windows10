@@ -123,8 +123,92 @@ If you checked the check box `Auto` before closing the application, the applicat
 
 
 ### Selecting another JSON Playlist
+By defaut the application uses the [JSON Playlist](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/AudioVideoPlayer/DataModel/MediaData.json) embedded within the application.
+However you can select another JSON Playlist by selecting another JSON file stored on the device storage. To select another JSON file click on the button below:
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/open.png)
+
+<p/>
+- **UniqueId** :
+- **Comment** :
+- **Title** :
+- **ImagePath** :
+- **Description** :
+- **Content** :
+- **PosterContent** :
+- **Start** :
+- **Duration** :
+- **PlayReadyUrl** :
+- **PlayReadyCustomData** :
+- **BackgroundAudio** :
+
+Sample item for a WMV video over HTTP:
+
+        {
+          "UniqueId": "video_wmv_http_1",
+          "Comment": "#1",
+          "Title": "WMV Video over HTTP 1",
+          "ImagePath": "ms-appx:///Assets/WMV.png",
+          "Description": "WMV Video over HTTP 1",
+          "Content": "http://VMBasicA1.cloudapp.net/testwmv/test1.wmv",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        },
+
+Sample item for a Smooth Streaming video protected with PlayReady over HTTP:
+
+        {
+          "UniqueId": "video_playready_http_1",
+          "Comment": "#101",
+          "Title": "SMOOTH PlayReady VC1 Video (Expiration Date)",
+          "ImagePath": "ms-appx:///Assets/SMOOTH.png",
+          "Description": "SMOOTH Video over HTTP 1",
+          "Content": "http://playready.directtaps.net/smoothstreaming/TTLSS720VC1PR/To_The_Limit_720.ism/Manifest",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "PlayReadyUrl": " http://playready.directtaps.net/pr/svc/rightsmanager.asmx?PlayRight=1&FirstPlayExpiration=600",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        },
+
+Sample item for a photo over HTTP which will be displayed during 10 seconds:
+
+        {
+          "UniqueId": "photo_http_2",
+          "Comment": "#112",
+          "Title": "Photo over HTTP 2",
+          "ImagePath": "ms-appx:///Assets/PHOTO.png",
+          "Description": "Photo over HTTP 2",
+          "Content": "http://ia.media-imdb.com/images/M/MV5BMzc5NTUzNTgzMF5BMl5BanBnXkFtZTcwODcwMzQ5Mw@@._V1_SY317_CR5,0,214,317_AL_.jpg",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "10000",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        },
+
+Sample item for a photo stored in the MyPictures folder on the device running Windows 10:
+
+        {
+          "UniqueId": "photo_file_3",
+          "Comment": "#113",
+          "Title": "Photo local file",
+          "ImagePath": "ms-appx:///Assets/PHOTO.png",
+          "Description": "Photo over HTTP 3",
+          "Content": "picture://MyFolder\\poster1.jpg",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "10000",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        }
 
 Building the application
 ----------------
@@ -139,6 +223,12 @@ Building the application
 
 **Deploying and running the sample**
 1.  To debug the sample and then run it, press F5 or select **Debug** \> **Start Debugging**. To run the sample without debugging, press Ctrl+F5 or select**Debug** \> **Start Without Debugging**.
+
+
+
+Building the application
+----------------
+
 
 
 Next steps
