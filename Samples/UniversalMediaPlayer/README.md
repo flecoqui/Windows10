@@ -33,10 +33,10 @@ The applications packages for x86, x64 and ARM are available there :
 
 **Personal Computer installation:**
 
-<p/>
-1. Download the ZIP file on your computer harddrive
-2. Unzip the ZIP file
-3. Launch the PowerShell file Add-AppPackage.ps1. The PowerShell script will install the application on your computer running Windows 10
+1.  Download the ZIP file on your computer harddrive
+2.  Unzip the ZIP file
+3.  Launch the PowerShell file Add-AppPackage.ps1. The PowerShell script will install the application on your computer running Windows 10
+
 
 **Phone installation:**
 <p/>
