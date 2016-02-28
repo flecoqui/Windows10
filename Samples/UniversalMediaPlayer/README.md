@@ -41,12 +41,19 @@ The applications packages for x86, x64 and ARM are available there :
 **Phone installation:**
 <p/>
 1. Connect the phone running Windows 10 Mobile to your computer with a USB Cable.
+<p/>
 2. After few seconds, you should see the phone storage with Windows Explorer running on your computer
+<p/>
 3. Copy the application packages on your phone storage, for instance inthe Downloads folder
+<p/>
 4. On the phone install a File Explorer application from Windows Store
+<p/>
 5. With File Explorer on the phone navigate to the folder where the packages have been copied
+<p/>
 6. Tap on the file AudioVideoPlayer_1.0.XX.O_x86_x64_arm.cer to install the certificate.
+<p/>
 7. Tap on the file AudioVideoPlayer_1.0.XX.O_x86_x64_arm.appxbundle to install the application
+<p/>
 
 **IOT installation:**
 <p/>
