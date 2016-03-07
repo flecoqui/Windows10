@@ -2139,7 +2139,16 @@ namespace AudioVideoPlayer
         /// </summary>
         bool IsHardwareDRMEnabled()
         {
-            return Windows.Media.Protection.PlayReady.PlayReadyStatics.CheckSupportedHardware(Windows.Media.Protection.PlayReady.PlayReadyHardwareDRMFeatures.HardwareDRM);
+            bool bResult = false;
+            try
+            {
+                bResult = Windows.Media.Protection.PlayReady.PlayReadyStatics.CheckSupportedHardware(Windows.Media.Protection.PlayReady.PlayReadyHardwareDRMFeatures.HardwareDRM);
+            }
+            catch (Exception e)
+            {
+                LogMessage("Exception in IsHardwareDRMEnabled: " + e.Message);
+            }
+            return bResult;
         }
         /// <summary>
         /// Enable or Disable Software DRM

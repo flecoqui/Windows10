@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioVideoPlayer", "AudioVideoPlayer\AudioVideoPlayer.csproj", "{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MediaHelpers", "MediaHelpers\MediaHelpers.vcxproj", "{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|ARM = Debug|ARM
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|ARM = Release|ARM
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Debug|ARM.ActiveCfg = Debug|ARM
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Debug|ARM.Build.0 = Debug|ARM
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Debug|ARM.Deploy.0 = Debug|ARM
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Debug|x64.ActiveCfg = Debug|x64
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Debug|x64.Build.0 = Debug|x64
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Debug|x64.Deploy.0 = Debug|x64
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Debug|x86.ActiveCfg = Debug|x86
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Debug|x86.Build.0 = Debug|x86
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Debug|x86.Deploy.0 = Debug|x86
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Release|Any CPU.ActiveCfg = Release|x86
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Release|ARM.ActiveCfg = Release|ARM
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Release|ARM.Build.0 = Release|ARM
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Release|ARM.Deploy.0 = Release|ARM
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Release|x64.ActiveCfg = Release|x64
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Release|x64.Build.0 = Release|x64
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Release|x64.Deploy.0 = Release|x64
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Release|x86.ActiveCfg = Release|x86
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Release|x86.Build.0 = Release|x86
+		{C5B6373F-8F4C-4A56-9FBA-2BE20A5574FE}.Release|x86.Deploy.0 = Release|x86
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|ARM.ActiveCfg = Debug|ARM
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|ARM.Build.0 = Debug|ARM
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|x64.ActiveCfg = Debug|x64
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|x64.Build.0 = Debug|x64
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|x86.ActiveCfg = Debug|Win32
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Debug|x86.Build.0 = Debug|Win32
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|Any CPU.ActiveCfg = Release|Win32
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|ARM.ActiveCfg = Release|ARM
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|ARM.Build.0 = Release|ARM
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|x64.ActiveCfg = Release|x64
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|x64.Build.0 = Release|x64
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|x86.ActiveCfg = Release|Win32
+		{110DEDB3-F188-488E-B90B-C6F5DEFFCA0B}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -74,15 +74,22 @@ namespace AudioVideoPlayer.Information
         private static string GetAppSpecificHardwareID()
         {
             Windows.System.Profile.HardwareToken packageSpecificToken;
-            packageSpecificToken = Windows.System.Profile.HardwareIdentification.GetPackageSpecificToken(null);
-            if (packageSpecificToken != null)
+            try
             {
+                packageSpecificToken = Windows.System.Profile.HardwareIdentification.GetPackageSpecificToken(null);
+                if (packageSpecificToken != null)
+                {
 
-                Windows.Storage.Streams.DataReader dataReader = Windows.Storage.Streams.DataReader.FromBuffer(packageSpecificToken.Id);
+                    Windows.Storage.Streams.DataReader dataReader = Windows.Storage.Streams.DataReader.FromBuffer(packageSpecificToken.Id);
 
-                byte[] bytes = new byte[packageSpecificToken.Id.Length];
-                dataReader.ReadBytes(bytes);
-                return BitConverter.ToString(bytes);
+                    byte[] bytes = new byte[packageSpecificToken.Id.Length];
+                    dataReader.ReadBytes(bytes);
+                    return BitConverter.ToString(bytes);
+                }
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("Exception in GetAppSpecificHardwareID: " + e.Message);
             }
             return "UNKNOWN";
         }

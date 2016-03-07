@@ -130,18 +130,18 @@ However you can select another JSON Playlist by selecting another JSON file stor
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/open.png)
 
 <p/>
-- **UniqueId** :
-- **Comment** :
-- **Title** :
-- **ImagePath** :
-- **Description** :
-- **Content** :
-- **PosterContent** :
-- **Start** :
-- **Duration** :
-- **PlayReadyUrl** :
-- **PlayReadyCustomData** :
-- **BackgroundAudio** :
+- **UniqueId** : a unique ID associated with the item
+- **Comment** : a comment associated with the item
+- **Title** : the title of the item which will be displayed
+- **ImagePath** : the path to the image which describes the type of item, for instance: MP4, HLS, .... It can be an http uri or a local uri with the prefix: "ms-appx://" for instance: "ms-appx:///Assets/WMV.png".
+- **Description** : the description of this item
+- **Content** : the path to the item, it can an http uri, a local file uri for instance: "picture://myfolder/myposter.jpg" for a jpg file in the picture folder of your device. You can use the following prefixes: "file://",  "picture://", "music://", "video://".   
+- **PosterContent** : the path to an image associated with the item. For instance, if the content is an audio file, a radio uri the poster will be displayed while playing the audio item.  
+- **Start** : the start position to play the video or audio item in milliseconds.
+- **Duration** : the play duration for the item in milliseconds.
+- **PlayReadyUrl** : the PlayReady license acquisition url if the content is protected with PlayReady.
+- **PlayReadyCustomData** : the PlayReady custom data if the content is protected with PlayReady.
+- **BackgroundAudio** : "true" if the audio item must be played in background audio mode (not implemented yet)
 
 Sample item for a WMV video over HTTP:
 
@@ -210,6 +210,22 @@ Sample item for a photo stored in the MyPictures folder on the device running Wi
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
         }
+Under the Surface
+----------------
+
+### Getting System Information
+
+to be completed
+
+### PlayReady: Getting license expiration date 
+
+to be completed
+
+### PlayReady: Forcing Software DRM
+
+to be completed
+
+
 
 Building the application
 ----------------
@@ -227,8 +243,6 @@ Building the application
 
 
 
-Building the application
-----------------
 
 
 
@@ -238,7 +252,8 @@ Next steps
 The Universal Media Player C# Sample Applicaton could be improved to support the following features:
 <p/>
 1.  Support of Windows 10 Background Audio to play your music and your favorite radios in background mode
-2.  Support of XBOX One Platform (Windows 10 Background Audio to play your music and your favorite radios
+2.  Support of XBOX One Platform 
+3.  Support of Azure Media 
  
 
 
