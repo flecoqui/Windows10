@@ -25,7 +25,7 @@ namespace Companion
     {
         
         const string cMulticastAddress = "239.11.11.11";
-        const string cPort = "1901";
+        const string cPort = "1919";
         const string cQUESTION = "??";
         const string cEQUAL = "=";
         const string cMULTICASTCOMMAND = "M-COMMAND";

@@ -3,12 +3,12 @@
   samplefwlink: http://go.microsoft.com/fwlink/p/?LinkId=620563&clcid=0x409
 --->
 
-# Universal Media Player C# Sample Application
+# Companion Media Player C# Sample Application
 
 Overview
 --------------
 This Universal Windows 10 application can play video files and audio files, display pictures as well.
-This sample application does support the following containers:
+This sample application does support Companion scenarios with the following containers:
 <p/>
 -   **Video**: VMV, MP4, MPEG2-TS, HLS, MPEG-DASH, Smooth Streaming 
 -   **Audio**: WMA, MP3, FLAC
@@ -28,7 +28,7 @@ You can install the application on:
 - **IOT Platform**: a IOT device running Windows 10
 
 The applications packages for x86, x64 and ARM are available there :
-[ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/UniversalMediaPlayer/cs/Releases/LatestRelease.zip)
+[ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/CompanionMediaPlayer/Releases/LatestRelease.zip)
 
 
 **Personal Computer installation:**
@@ -62,21 +62,21 @@ Once the application is installed on your device, you can launch it and the main
 
 ### Main page
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/mainpage.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/CompanionMediaPlayer/Docs/mainpage.png)
 
 The application is used to play videos, audios and photos. By default you can select in the combo box `Select a stream` the asset you can to play.   
 
 ### Selecting the asset
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/listassets.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/CompanionMediaPlayer/Docs/listassets.png)
 
 You can also the 2 buttons below to navigate in the list of assets and select a new asset:
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/select.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/CompanionMediaPlayer/Docs/select.png)
 
 ### Entering the asset's url
 Once the asset is selected the `URL` field is updated with the url associated with the asset. You can update manually this field beofre playing the asset if you want to test a specific url. 
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/url.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/CompanionMediaPlayer/Docs/url.png)
 
 
 ### Fullscreen mode
@@ -92,13 +92,13 @@ With the first button below, you can switch to Fullscreen mode. Press a key or d
 
 With the second button below, you can switch to Full Window mode. Press a key or double tap to switch back to Window Mode.
  
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/windowmode.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/CompanionMediaPlayer/Docs/windowmode.png)
 
 ### Mute and Audio level
 
 Once the application is playing an audio asset or a video asset it's possible to switch off the audio (`Mute` button) or change the audio output level (`Audio+` and `Audio-` button)
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/audio.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/CompanionMediaPlayer/Docs/audio.png)
 
 
 ### Start over, play, pause and stop 
@@ -109,25 +109,25 @@ Once the application is playing an audio asset or a video asset it's possible to
 - start over the current asset
 - stop the current asset 
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/playpause.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/CompanionMediaPlayer/Docs/playpause.png)
 
 ### Bitrate selection
 Before playing a Smooth Streaming asset, an HLS asset and an MPEG DASH asset you can select the bitrate using the fields `Bitrate Min` and `Bitrate Max`, the unit is bit per second.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/bitrate.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/CompanionMediaPlayer/Docs/bitrate.png)
 
 ### Auto mode
 By default when you launch the application, the application will load the JSON playlist used before closing the application and select the asset selected before closing the application.
 If you checked the check box `Auto` before closing the application, the application will automatically start to play the selected asset in the window mode used before closing the application.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/auto.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/CompanionMediaPlayer/Docs/auto.png)
 
 
 ### Selecting another JSON Playlist
-By defaut the application uses the [JSON Playlist](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/AudioVideoPlayer/DataModel/MediaData.json) embedded within the application.
+By defaut the application uses the [JSON Playlist](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/CompanionMediaPlayer/cs/AudioVideoPlayer/DataModel/MediaData.json) embedded within the application.
 However you can select another JSON Playlist by selecting another JSON file stored on the device storage. To select another JSON file click on the button below:
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/open.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/CompanionMediaPlayer/Docs/open.png)
 
 <p/>
 - **UniqueId** :

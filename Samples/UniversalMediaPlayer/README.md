@@ -28,7 +28,7 @@ You can install the application on:
 - **IOT Platform**: a IOT device running Windows 10
 
 The applications packages for x86, x64 and ARM are available there :
-[ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/UniversalMediaPlayer/cs/Releases/LatestRelease.zip)
+[ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/UniversalMediaPlayer/Releases/LatestRelease.zip)
 
 
 **Personal Computer installation:**
@@ -62,21 +62,21 @@ Once the application is installed on your device, you can launch it and the main
 
 ### Main page
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/mainpage.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/Docs/mainpage.png)
 
 The application is used to play videos, audios and photos. By default you can select in the combo box `Select a stream` the asset you can to play.   
 
 ### Selecting the asset
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/listassets.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/Docs/listassets.png)
 
 You can also the 2 buttons below to navigate in the list of assets and select a new asset:
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/select.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/Docs/select.png)
 
 ### Entering the asset's url
 Once the asset is selected the `URL` field is updated with the url associated with the asset. You can update manually this field beofre playing the asset if you want to test a specific url. 
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/url.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/Docs/url.png)
 
 
 ### Fullscreen mode
@@ -92,13 +92,13 @@ With the first button below, you can switch to Fullscreen mode. Press a key or d
 
 With the second button below, you can switch to Full Window mode. Press a key or double tap to switch back to Window Mode.
  
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/windowmode.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/Docs/windowmode.png)
 
 ### Mute and Audio level
 
 Once the application is playing an audio asset or a video asset it's possible to switch off the audio (`Mute` button) or change the audio output level (`Audio+` and `Audio-` button)
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/audio.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/Docs/audio.png)
 
 
 ### Start over, play, pause and stop 
@@ -109,12 +109,12 @@ Once the application is playing an audio asset or a video asset it's possible to
 - start over the current asset
 - stop the current asset 
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/playpause.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/Docs/playpause.png)
 
 ### Bitrate selection
 Before playing a Smooth Streaming asset, an HLS asset and an MPEG DASH asset you can select the bitrate using the fields `Bitrate Min` and `Bitrate Max`, the unit is bit per second.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/bitrate.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/Docs/bitrate.png)
 
 ### Auto mode
 By default when you launch the application, the application will load the JSON playlist used before closing the application and select the asset selected before closing the application.
@@ -127,7 +127,7 @@ If you checked the check box `Auto` before closing the application, the applicat
 By defaut the application uses the [JSON Playlist](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/AudioVideoPlayer/DataModel/MediaData.json) embedded within the application.
 However you can select another JSON Playlist by selecting another JSON file stored on the device storage. To select another JSON file click on the button below:
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/open.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/Docs/open.png)
 
 <p/>
 - **UniqueId** : a unique ID associated with the item
