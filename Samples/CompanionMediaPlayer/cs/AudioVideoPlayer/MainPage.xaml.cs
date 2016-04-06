@@ -2179,11 +2179,13 @@ namespace AudioVideoPlayer
         /// </summary>
         bool IsHardwareDRMSupported()
         {
+            
             if (HardwareDRMInitialized == false)
             {
                 HardwareDRMSupported = MediaHelpers.PlayReadyHelper.IsHardwareDRMSupported();
                 HardwareDRMInitialized = true;
             }
+            
             return HardwareDRMSupported;
         }
         /// <summary>
@@ -2193,6 +2195,7 @@ namespace AudioVideoPlayer
         bool IsHardwareDRMEnabled()
         {
             bool bResult = false;
+            
             try {
                 bResult = Windows.Media.Protection.PlayReady.PlayReadyStatics.CheckSupportedHardware(Windows.Media.Protection.PlayReady.PlayReadyHardwareDRMFeatures.HardwareDRM);
             }
@@ -2200,6 +2203,7 @@ namespace AudioVideoPlayer
             {
                 LogMessage("Exception in IsHardwareDRMEnabled: " + e.Message);
             }
+            
             return bResult;
         }
         /// <summary>
@@ -2208,6 +2212,7 @@ namespace AudioVideoPlayer
         /// </summary>
         bool EnableSoftwareDRM(bool bEnable)
         {
+            
             Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
             // Force Software DRM useful for VC1 content which doesn't support Hardware DRM
             try
@@ -2234,6 +2239,7 @@ namespace AudioVideoPlayer
                 else  
                     protectionManager.Properties.Add("Windows.Media.Protection.UseSoftwareProtectionLayer", (UseSoftwareProtectionLayer == 1 ? true : false));
             }
+            
             return true;
         }
         /// <summary>
