@@ -1,0 +1,58 @@
+﻿<Page
+    x:Class="TestLocalization.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TestLocalization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1" Grid.Row="0" >
+            <TextBlock>Manifest languages:</TextBlock>
+            <TextBlock x:Name="ManifestLanguages"  />
+            <TextBlock>Preferred languages:</TextBlock>
+            <TextBlock x:Name="MachineLanguages" />
+            <TextBlock>Select your language:</TextBlock>
+            <ComboBox x:Name="LanguageCombo" MinWidth="300"></ComboBox>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Grid.Row="1" >
+            <TextBlock>x:Uid DisplayName:</TextBlock>
+        <TextBlock x:Uid="DisplayName" Style="{StaticResource HeaderTextBlockStyle}"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Grid.Row="2" >
+                <TextBlock>x:Uid Description:</TextBlock>
+        <TextBlock x:Uid="Description" Style="{StaticResource HeaderTextBlockStyle}"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Grid.Row="3" >
+                    <TextBlock>AppDescription using GetString:</TextBlock>
+        <TextBlock x:Name="AppDescription" Style="{StaticResource HeaderTextBlockStyle}"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Grid.Row="4" >
+                        <TextBlock>x:Uid TestLogo:</TextBlock>
+        <Image x:Uid="TestForLogo" Width="100" Height="100"/>
+        </StackPanel>
+
+        <!--        <Image x:Name="Logo"  Width="100" Height="100" Grid.Column="1" Grid.Row="6"/>
+        -->
+        <StackPanel Grid.Column="1" Grid.Row="5">
+        <Button x:Name="buttonRefreshAll" Click="buttonRefreshAll_Click">Refresh All</Button>
+        </StackPanel>
+    </Grid>
+</Page>

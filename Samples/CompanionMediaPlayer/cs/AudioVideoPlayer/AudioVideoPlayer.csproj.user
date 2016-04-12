@@ -31,4 +31,9 @@
     <UseEmulator>false</UseEmulator>
     <CreateCleanLayout>true</CreateCleanLayout>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <AuthenticationMode>Universal</AuthenticationMode>
+    <RemoteDebugMachine>192.168.1.17</RemoteDebugMachine>
+    <RemoteDebugEnabled>true</RemoteDebugEnabled>
+  </PropertyGroup>
 </Project>
