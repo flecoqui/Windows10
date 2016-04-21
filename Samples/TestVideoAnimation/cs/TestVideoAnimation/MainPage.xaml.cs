@@ -39,5 +39,19 @@ namespace TestVideoAnimation
             }
             bMin = !bMin;
         }
+
+        private void MediaElement_MediaOpened(object sender, RoutedEventArgs e)
+        {
+            if (bMin == true)
+            {
+                MyStoryboardMax.Begin();
+            }
+            else
+            {
+                MyStoryboardMin.Begin();
+            }
+            bMin = !bMin;
+        }
+
     }
 }

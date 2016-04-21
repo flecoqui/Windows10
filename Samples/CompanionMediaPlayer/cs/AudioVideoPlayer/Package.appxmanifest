@@ -34,5 +34,6 @@
     <uap:Capability Name="picturesLibrary" />
     <uap:Capability Name="musicLibrary" />
     <uap:Capability Name="removableStorage" />
+    <DeviceCapability Name="6a7e5907-885c-4bcb-b40a-073c067bd3d5" />
   </Capabilities>
 </Package>

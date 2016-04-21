@@ -5,7 +5,7 @@
     xmlns:local="using:TestVideoAnimation"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d" >
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Margin="0,0,0,0">
         <Grid.RowDefinitions>
@@ -20,8 +20,8 @@
         </Grid.ColumnDefinitions>
         <Image Margin="0,0,0,0" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="3"  Source="Assets/Tunnel.JPG" Stretch="UniformToFill">
         </Image>
-        <MediaElement Margin="0,0,0,0" Grid.Row="0" Grid.Column="0" Source="http://b028.wpc.azureedge.net/80B028/Samples/a38e6323-95e9-4f1f-9b38-75eba91704e4/5f2ce531-d508-49fb-8152-647eba422aec.ism/Manifest(format=m3u8-aapl-v3)" 
-                      Tapped="Player_Tapped" RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignTopWithPanel="True"
+        <MediaElement IsTapEnabled="True" Margin="0,0,0,0" Grid.Row="0" Grid.Column="0" Source="http://b028.wpc.azureedge.net/80B028/Samples/a38e6323-95e9-4f1f-9b38-75eba91704e4/5f2ce531-d508-49fb-8152-647eba422aec.ism/Manifest(format=m3u8-aapl-v3)" 
+                      Tapped="Player_Tapped" MediaOpened="MediaElement_MediaOpened" RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignTopWithPanel="True"
                                    RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignRightWithPanel="True"
                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
             <MediaElement.RenderTransform>
