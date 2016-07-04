@@ -1255,8 +1255,12 @@ namespace AdaptiveMediaCache
             string refstring = baseUri.ToString().ToLower();
             foreach (var mc in ManifestCacheList)
             {
-                if (refstring.StartsWith(mc.Value.BaseUrl,StringComparison.OrdinalIgnoreCase))
-                    return mc.Value;
+                // fix potential issue 
+                if (!string.IsNullOrEmpty(mc.Value.BaseUrl))
+                {
+                    if (refstring.StartsWith(mc.Value.BaseUrl, StringComparison.OrdinalIgnoreCase))
+                        return mc.Value;
+                }
             }
             return null;
         }
