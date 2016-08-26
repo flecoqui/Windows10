@@ -457,11 +457,11 @@ namespace AudioVideoPlayer
                      if ((sender != null) &&
                          ((m = (Windows.Media.Playback.MediaPlayer)sender) != null))
                      {
-                         LogMessage("Media CurrentState Changed: " + m.CurrentState.ToString());
-                         if ((m.CurrentState == Windows.Media.Playback.MediaPlayerState.Stopped) ||
-                             (m.CurrentState == Windows.Media.Playback.MediaPlayerState.Paused))
+                         LogMessage("Media CurrentState Changed: " + m.PlaybackSession.PlaybackState.ToString());
+                         if ((m.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.None) ||
+                             (m.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused))
                              ReleaseDisplay();
-                         if (m.CurrentState == Windows.Media.Playback.MediaPlayerState.Playing)
+                         if (m.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
                              RequestDisplay();
                      }
                      else
@@ -476,9 +476,9 @@ namespace AudioVideoPlayer
         private void MediaElement_MediaOpened(Windows.Media.Playback.MediaPlayer sender, object e)
         {
             LogMessage("Media opened");
-            if (mediaPlayer.CanSeek)
+            if((mediaPlayer.PlaybackSession!=null) && (mediaPlayer.PlaybackSession.CanSeek))
             {
-                mediaPlayer.Position = CurrentStartPosition;
+                mediaPlayer.PlaybackSession.Position = CurrentStartPosition;
             }
             UpdateControls();
         }
@@ -630,7 +630,7 @@ namespace AudioVideoPlayer
             {
                 if (!IsPicture(CurrentMediaUrl))
                 {
-                    TimeSpan t = mediaPlayer.Position - CurrentStartPosition;
+                    TimeSpan t = mediaPlayer.PlaybackSession.Position - CurrentStartPosition;
                     if (t > CurrentDuration)
                     {
                         if (bAutoSkip)
@@ -725,10 +725,10 @@ namespace AudioVideoPlayer
         {
             var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-            localSettings.Values["PlayerPosition"] = mediaPlayer.Position;
-            int i = (int)mediaPlayer.CurrentState;
+            localSettings.Values["PlayerPosition"] = mediaPlayer.PlaybackSession.Position;
+            int i = (int)mediaPlayer.PlaybackSession.PlaybackState;
             localSettings.Values["PlayerState"] = i;
-            LogMessage("SaveState - Position: " + mediaPlayer.Position.ToString() + " State: " + mediaPlayer.CurrentState.ToString());
+            LogMessage("SaveState - Position: " + mediaPlayer.PlaybackSession.Position.ToString() + " State: " + mediaPlayer.PlaybackSession.PlaybackState.ToString());
             mediaPlayer.Pause();
         }
         /// <summary>
@@ -745,21 +745,21 @@ namespace AudioVideoPlayer
                 TimeSpan t = (TimeSpan)value;
                 if (t != null)
                 {
-                    mediaPlayer.Position = t;
+                    mediaPlayer.PlaybackSession.Position = t;
                 }
             }
             value = localSettings.Values["PlayerState"];
             if (value != null)
             {
                 int i = (int)value;
-                MediaElementState t = (MediaElementState)i;
-                if (t != MediaElementState.Paused)
+                Windows.Media.Playback.MediaPlaybackState t = (Windows.Media.Playback.MediaPlaybackState)i;
+                if (t != Windows.Media.Playback.MediaPlaybackState.Paused)
                     mediaPlayer.Play();
                 else
                     mediaPlayer.Pause();
             }
             
-            LogMessage("RestoreState - Position: " + mediaPlayer.Position.ToString() + " State: " + mediaPlayer.CurrentState.ToString());
+            LogMessage("RestoreState - Position: " + mediaPlayer.PlaybackSession.Position.ToString() + " State: " + mediaPlayer.PlaybackSession.PlaybackState.ToString());
         }
         /// <summary>
         /// This method is called when the application is resuming
@@ -773,8 +773,8 @@ namespace AudioVideoPlayer
             displayInformation.OrientationChanged += displayInformation_OrientationChanged;
 
             // Resotre Playback Rate
-            if (mediaPlayer.PlaybackRate != 1)
-                mediaPlayer.PlaybackRate = 1;
+            if (mediaPlayer.PlaybackSession.PlaybackRate != 1)
+                mediaPlayer.PlaybackSession.PlaybackRate = 1;
         }
         /// <summary>
         /// This method is called when the application is suspending
@@ -965,12 +965,12 @@ namespace AudioVideoPlayer
                          }
                          else
                          {
-                             if (mediaPlayer.CurrentState == Windows.Media.Playback.MediaPlayerState.Opening)
+                             if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Opening)
                              {
                                  fullscreenButton.IsEnabled = true;
                                  fullwindowButton.IsEnabled = true;
                              }
-                             else if (mediaPlayer.CurrentState == Windows.Media.Playback.MediaPlayerState.Playing)
+                             else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
                              {
                                  if (string.Equals(mediaUri.Text, CurrentMediaUrl))
                                  {
@@ -979,13 +979,12 @@ namespace AudioVideoPlayer
                                      stopButton.IsEnabled = true;
                                  }
                              }
-                             else if (mediaPlayer.CurrentState == Windows.Media.Playback.MediaPlayerState.Paused)
+                             else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
                              {
                                  playPauseButton.IsEnabled = true;
                                  stopButton.IsEnabled = true;
                              }
-                             else if ((mediaPlayer.CurrentState == Windows.Media.Playback.MediaPlayerState.Stopped) ||
-                                 (mediaPlayer.CurrentState == Windows.Media.Playback.MediaPlayerState.Closed))
+                             else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.None)
                              {
                               //   mediaPlayerElement.AreTransportControlsEnabled = false;
                                  fullscreenButton.IsEnabled = false;
@@ -1436,7 +1435,7 @@ namespace AudioVideoPlayer
             {
 
                 var view = ApplicationView.GetForCurrentView();
-                if ((view.IsFullScreenMode) || (view.IsFullScreen))
+                if ((view.IsFullScreenMode) || (view.AdjacentToLeftDisplayEdge && view.AdjacentToRightDisplayEdge))
                     view.ExitFullScreenMode();
                 DisplayPicturePopup(false);
                 if (mediaPlayerElement.IsFullWindow == true)
@@ -1667,6 +1666,25 @@ namespace AudioVideoPlayer
             return result;
         }
         /// <summary>
+        /// This method checks if the url is a music url 
+        /// </summary>
+        private bool IsMusic(string url)
+        {
+            bool result = false;
+            if (!string.IsNullOrEmpty(url))
+            {
+                if ((url.ToLower().EndsWith(".mp3")) ||
+                    (url.ToLower().EndsWith(".wma")) ||
+                    (url.ToLower().EndsWith(".aac")) ||
+                    (url.ToLower().EndsWith(".m4a")) ||
+                    (url.ToLower().EndsWith(".flac")))
+                {
+                    result = true;
+                }
+            }
+            return result;
+        }
+        /// <summary>
         /// This method checks if the url is the url of a local file 
         /// </summary>
         private bool IsLocalFile(string url)
@@ -1726,10 +1744,42 @@ namespace AudioVideoPlayer
             MediaItem item = comboStream.SelectedItem as MediaItem;
             if (item != null)
             {
-                await StartPlay(mediaUri.Text, item.PosterContent, item.Start, item.Duration);
+                await StartPlay(item.Title, mediaUri.Text, item.PosterContent, item.Start, item.Duration);
                 UpdateControls();
             }
         }
+        /// <summary>
+        /// This method Update the SystemControls Display information
+        /// </summary>
+        private void UpdateControlsDisplayUpdater(string title, string content, string poster)
+        {
+//            SystemControls.DisplayUpdater.ClearAll();
+            if (IsPicture(content))
+            {
+                SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Image;
+                SystemControls.DisplayUpdater.ImageProperties.Title = title;
+                SystemControls.DisplayUpdater.ImageProperties.Subtitle = content;
+                SystemControls.DisplayUpdater.Update();               
+            }
+            //else { 
+            else if(IsMusic(content)){
+            //    SystemControls.DisplayUpdater.ClearAll();
+                SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Music;
+                SystemControls.DisplayUpdater.MusicProperties.Title = title;
+                SystemControls.DisplayUpdater.MusicProperties.Artist = content;
+               SystemControls.DisplayUpdater.Update();
+            }
+            
+            else
+            {
+              //  SystemControls.DisplayUpdater.ClearAll();
+                SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Video;
+                SystemControls.DisplayUpdater.VideoProperties.Title = title;
+                SystemControls.DisplayUpdater.VideoProperties.Subtitle = content;
+                SystemControls.DisplayUpdater.Update();
+            }
+        }
+
         /// <summary>
         /// This method set the poster source for the MediaElement 
         /// </summary>
@@ -1812,7 +1862,7 @@ namespace AudioVideoPlayer
         /// <param name="start">start position of the content to play in milliseconds</param>
         /// <param name="duration">duration of the content to play in milliseconds</param>
         /// <returns>true if success</returns>
-        private async System.Threading.Tasks.Task<bool> StartPlay(string content, string poster, long start, long duration)
+        private async System.Threading.Tasks.Task<bool> StartPlay(string title, string content, string poster, long start, long duration)
         {
 
             try
@@ -1852,7 +1902,10 @@ namespace AudioVideoPlayer
                 CurrentDuration = new TimeSpan(0);
                 StartPictureTime = DateTime.MinValue;
                 if (IsPicture(content))
+                {
                     result = await SetPosterUrl(content);
+
+                }
                 else if (IsPicture(poster))
                     result = await SetPosterUrl(poster);
                 // if a picture will be displayed
@@ -1875,6 +1928,7 @@ namespace AudioVideoPlayer
                     result = await SetAudioVideoUrl(content);
                     if (result == true)
                         mediaPlayer.Play();
+
                 }
                 if (result == true)
                 {
@@ -1882,6 +1936,8 @@ namespace AudioVideoPlayer
                     CurrentDuration = new TimeSpan(duration * 10000);
                     CurrentMediaUrl = content;
                     CurrentPosterUrl = poster;
+
+                    UpdateControlsDisplayUpdater(title, content, poster);
                     // Set Window Mode
                     SetWindowMode(WindowState);
                     return true;
@@ -1992,7 +2048,7 @@ namespace AudioVideoPlayer
                     Windows.Storage.StorageFile file = await GetFileFromLocalPathUrl(Content);
                     if (file != null)
                     {
-                        mediaPlayer.SetFileSource(file);
+                        mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromStorageFile(file);
                         /*
                         var fileStream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read);
                         if (fileStream != null)
@@ -2028,7 +2084,7 @@ namespace AudioVideoPlayer
                                 var memStream = new MemoryStream();
                                 await inputStream.AsStreamForRead().CopyToAsync(memStream);
 
-                                mediaPlayer.SetStreamSource(memStream.AsRandomAccessStream());
+                                mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromStream(memStream.AsRandomAccessStream(), contentType);
                             }
                             else
                                 LogMessage("DownloadRequested for uri: " + Content.ToString() + " error: " + response.StatusCode.ToString());
@@ -2041,9 +2097,7 @@ namespace AudioVideoPlayer
                     }
                     else
                     {
-                        var list = new Windows.Media.Playback.MediaPlaybackList();
-                        list.Items.Add(new Windows.Media.Playback.MediaPlaybackItem(Windows.Media.Core.MediaSource.CreateFromUri(new Uri(Content))));
-                        mediaPlayer.Source = list;
+                        mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(Content));
                     }
                     return true;
                 }
@@ -2053,9 +2107,7 @@ namespace AudioVideoPlayer
                     // If SMOOTH stream
                     if (IsSmoothStreaming(Content))
                     {
-                        var list = new Windows.Media.Playback.MediaPlaybackList();
-                        list.Items.Add(new Windows.Media.Playback.MediaPlaybackItem(Windows.Media.Core.MediaSource.CreateFromUri(new Uri(Content))));
-                        mediaPlayer.Source = list;
+                        mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(Content));
                         return true;
                     }
                     else
@@ -2111,7 +2163,7 @@ namespace AudioVideoPlayer
                             adaptiveMediaSource.DesiredMaxBitrate = MaxBitRate;
                             adaptiveMediaSource.DesiredMinBitrate = MinBitRate;
 
-                            mediaPlayer.SetMediaSource(adaptiveMediaSource);
+                            mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromAdaptiveMediaSource(adaptiveMediaSource);
                             return true;
                         }
                         else
