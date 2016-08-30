@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>9b3d4b2e-f04b-402a-9ae0-52464ab7ccc7</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>AudioVideoPlayer</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="$(MSBuildThisFileDirectory)App.xaml">
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="$(MSBuildThisFileDirectory)App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)ApplicationSettingsConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ApplicationSettingsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AppState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AudioDiscoveryTaskManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BackgroundTaskState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommonLicenseRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DataModel\MediaDataSource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EnumHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Information\SystemInformation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Model\Album.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Model\Artist.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Model\MediaFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Model\Track.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)DataModel\MediaData.json" />
+  </ItemGroup>
+</Project>
