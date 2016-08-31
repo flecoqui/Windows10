@@ -33,4 +33,12 @@
     <Capability Name="videosLibrary" />
     <Capability Name="privateNetworkClientServer" />
   </Capabilities>
+  <Extensions>
+    <Extension Category="windows.activatableClass.inProcessServer">
+      <InProcessServer>
+        <Path>Microsoft.HLSClient.dll</Path>
+        <ActivatableClass ActivatableClassId="Microsoft.HLSClient.HLSPlaylistHandler" ThreadingModel="both" />
+      </InProcessServer>
+    </Extension>
+  </Extensions>  
 </Package>

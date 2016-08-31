@@ -414,10 +414,10 @@ namespace AudioVideoPlayer
             RegisterSmoothStreaming();
             // Register Dash component
             RegisterDash();
-            // Register HLS component
-            RegisterHLS();
             // Register PlayReady component
             RegisterPlayReady();
+            // Register HLS component
+            RegisterHLS();
 
             // Register UI components and events
             await RegisterUI();
@@ -755,7 +755,7 @@ namespace AudioVideoPlayer
         {
             bool bResult = false;
             bResult = true;
-            /*
+            
             // Smooth Streaming initialization
             // Init SMOOTH Manager
             if (smoothStreamingManager != null)
@@ -765,7 +765,8 @@ namespace AudioVideoPlayer
                 smoothStreamingManager = null;
             }
             smoothStreamingManager = Microsoft.Media.AdaptiveStreaming.AdaptiveSourceManager.GetDefault() as Microsoft.Media.AdaptiveStreaming.AdaptiveSourceManager;
-            extension = new Windows.Media.MediaExtensionManager();
+            if(extension==null)
+                extension = new Windows.Media.MediaExtensionManager();
             if ((smoothStreamingManager != null) &&
                 (extension != null))
             {
@@ -785,7 +786,7 @@ namespace AudioVideoPlayer
                 smoothStreamingManager.ManifestReadyEvent += SmoothStreamingManager_ManifestReadyEvent;
                 smoothStreamingManager.AdaptiveSourceStatusUpdatedEvent += SmoothStreamingManager_AdaptiveSourceStatusUpdatedEvent;
                 bResult = true;
-            }*/
+            }
             
             return bResult;
         }
@@ -813,10 +814,32 @@ namespace AudioVideoPlayer
         public bool RegisterHLS()
         {
             bool bResult = false;
+            if (extension == null)
+                extension = new Windows.Media.MediaExtensionManager();
+
             if (hlsPlugin == null)
                 hlsPlugin = new Microsoft.PlayerFramework.Adaptive.HLS.HLSPlugin();
-            if (hlsPlugin != null)
+            if ((hlsPlugin != null)&&
+                (extension != null))
             {
+                if (HLSControllerFactory != null)
+                {
+                    HLSControllerFactory.HLSControllerReady -= ControllerFactory_HLSControllerReady;
+                    HLSControllerFactory = null;
+                }
+                HLSControllerFactory = (hlsPlugin as Microsoft.PlayerFramework.Adaptive.HLS.HLSPlugin).ControllerFactory;  
+                //new Microsoft.HLSClient.HLSControllerFactory();
+                HLSControllerFactory.HLSControllerReady += ControllerFactory_HLSControllerReady;
+
+                PropertySet hlsps = new PropertySet();
+                hlsps.Add("MimeType", "application/x-mpegurl");
+                hlsps.Add("ControllerFactory", HLSControllerFactory);
+
+                extension.RegisterSchemeHandler("Microsoft.HLSClient.HLSPlaylistHandler", "ms-hls:", hlsps);
+                extension.RegisterSchemeHandler("Microsoft.HLSClient.HLSPlaylistHandler", "ms-hls-s:", hlsps);
+                extension.RegisterByteStreamHandler("Microsoft.HLSClient.HLSPlaylistHandler", ".m3u8", "application/x-mpegurl", hlsps);
+                extension.RegisterByteStreamHandler("Microsoft.HLSClient.HLSPlaylistHandler", ".ism/manifest(format=m3u8-aapl)", "application/x-mpegurl", hlsps);
+
                 mediaElement.Plugins.Add(hlsPlugin);
                 bResult = true;
             }
@@ -841,6 +864,11 @@ namespace AudioVideoPlayer
         public bool UnregisterHLS()
         {
             bool bResult = false;
+            if (HLSControllerFactory != null)
+            {
+                HLSControllerFactory.HLSControllerReady -= ControllerFactory_HLSControllerReady;
+                HLSControllerFactory = null;
+            }
             if (hlsPlugin != null)
             {
                 mediaElement.Plugins.Remove(hlsPlugin);
@@ -932,20 +960,24 @@ namespace AudioVideoPlayer
         /// <param name="Message">String to display</param>
         void RegisterDashPlugin(bool bRegister)
         {
-            Microsoft.PlayerFramework.Adaptive.AdaptivePlugin plugin = mediaElement.Plugins.OfType<Microsoft.PlayerFramework.Adaptive.AdaptivePlugin>().First();
-            if (plugin != null)
+            var list = mediaElement.Plugins.OfType<Microsoft.PlayerFramework.Adaptive.AdaptivePlugin>();
+            if ((list != null)&&(list.Count()>0))
             {
-                if (bRegister == true)
+                Microsoft.PlayerFramework.Adaptive.AdaptivePlugin plugin = list.First();
+                if (plugin != null)
                 {
-                    LogMessage("Register DASH plugin");
-                    if (dashDownloaderPlugin == null)
-                        dashDownloaderPlugin = new Microsoft.Media.AdaptiveStreaming.Dash.DashDownloaderPlugin();
-                    plugin.DownloaderPlugin = dashDownloaderPlugin;
-                }
-                else
-                {
-                    LogMessage("Unregister DASH plugin");
-                    plugin.DownloaderPlugin = null;
+                    if (bRegister == true)
+                    {
+                        LogMessage("Register DASH plugin");
+                        if (dashDownloaderPlugin == null)
+                            dashDownloaderPlugin = new Microsoft.Media.AdaptiveStreaming.Dash.DashDownloaderPlugin();
+                        plugin.DownloaderPlugin = dashDownloaderPlugin;
+                    }
+                    else
+                    {
+                        LogMessage("Unregister DASH plugin");
+                        plugin.DownloaderPlugin = null;
+                    }
                 }
             }
         }
@@ -2217,7 +2249,10 @@ namespace AudioVideoPlayer
                     }
                     else
                     {
-                        RegisterDashPlugin(IsDash(Content));
+                      RegisterDashPlugin(IsDash(Content));
+
+                        if (IsHLSUrl(Content))
+                            Content = UpdateHLSUrl(Content);
                         mediaElement.Source = new Uri(Content);
                         return true;
                     }
@@ -2345,10 +2380,187 @@ namespace AudioVideoPlayer
 
         #region DASH_HLS
 
+        Microsoft.HLSClient.IHLSControllerFactory HLSControllerFactory;
+        Microsoft.HLSClient.IHLSController HLSController;
+        /// <summary>
+        /// Check whether it's a HLS Url
+        /// </summary>
+        /// <param name="url">Url </param>
+        bool IsHLSUrl(string url)
+        {
+            url = url.ToLower();
+            if (url.EndsWith(".m3u8") == true)
+                return true;
+            else if (url.IndexOf("manifest(format=m3u8") > 0)
+                return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Update HLS url and return an url associated with the HLS Plugin
+        /// </summary>
+        /// <param name="url">HLS Url </param>
+        /// <return >New HLS Url </param>
+        string UpdateHLSUrl(string url)
+        {
+            if (url.StartsWith("http:"))
+                url = url.Replace("http:", "ms-hls:");
+            else if (url.StartsWith("https:"))
+                url = url.Replace("https:", "ms-hls-s:");
+            return url;
+        }
+
+        /// <summary>
+        /// HLSControllerReady event raised when the HLS Controller is ready 
+        /// </summary>
+        void ControllerFactory_HLSControllerReady(Microsoft.HLSClient.IHLSControllerFactory sender, Microsoft.HLSClient.IHLSController args)
+        {
+            if ((HLSController != null) && (HLSController.IsValid == true) && (HLSController.Playlist != null))
+            {
+                HLSController.Playlist.StreamSelectionChanged -= Playlist_StreamSelectionChanged;
+                HLSController.Playlist.BitrateSwitchCompleted -= Playlist_BitrateSwitchCompleted;
+                HLSController.Playlist.SlidingWindowChanged -= Playlist_SlidingWindowChanged;
+                HLSController = null;
+            }
+            HLSController = args;
+            if ((HLSController != null) && (HLSController.IsValid == true) && (HLSController.Playlist != null))
+            {
+
+                HLSController.EnableAdaptiveBitrateMonitor = true;
+
+                HLSController.PrefetchDuration = TimeSpan.FromMilliseconds(6000);
+                HLSController.MinimumBufferLength = TimeSpan.FromMilliseconds(30000);
+                HLSController.MinimumLiveLatency = TimeSpan.FromMilliseconds(24000);
+
+                HLSController.UseTimeAveragedNetworkMeasure = false;
+                HLSController.BitrateChangeNotificationInterval = TimeSpan.FromMilliseconds(5000);
+                HLSController.SegmentTryLimitOnBitrateSwitch = 2;
+
+                HLSController.ForceKeyFrameMatchOnSeek = true;
+                HLSController.AllowSegmentSkipOnSegmentFailure = true;
+                HLSController.MaximumToleranceForBitrateDownshift = (20 / 100 <= 1 ? 20 / 100 : 0);
+                HLSController.MinimumPaddingForBitrateUpshift = (30 / 100 <= 1 ? 30 / 100 : 0);
+
+                HLSController.UseTimeAveragedNetworkMeasure = false;
 
 
+                HLSController.Playlist.StreamSelectionChanged += Playlist_StreamSelectionChanged;
+                HLSController.Playlist.BitrateSwitchCompleted += Playlist_BitrateSwitchCompleted;
+                HLSController.Playlist.SlidingWindowChanged += Playlist_SlidingWindowChanged;
+                LogMessage("HLS PlayList Ready for uri: " + HLSController.Playlist.Url.ToString());
+
+                var Streams = HLSController.Playlist.GetVariantStreams();
+                uint startupBitrate = 0;
+                if (Streams != null)
+                {
+                    foreach (var track in Streams)
+                    {
+                        if ((startupBitrate == 0) &&
+                            (track.Bitrate >= MinBitRate) &&
+                            (track.Bitrate <= MaxBitRate))
+                            startupBitrate = track.Bitrate;
+                        if (track.HasResolution == true)
+                            LogMessage("  Bitrate: " + track.Bitrate.ToString() + " Width: " + track.HorizontalResolution.ToString() + " Height: " + track.VerticalResolution.ToString());
+                        else
+                            LogMessage("  Bitrate: " + track.Bitrate.ToString());
+                    }
+                }
+                if (HLSController.Playlist.IsMaster)
+                {
+
+                    // Set bitrate range for HLS 
+                    if (startupBitrate > 0)
+                    {
+                        HLSController.Playlist.StartBitrate = startupBitrate;
+                        LogMessage("  StartupBitrate: " + startupBitrate.ToString());
+                    }
+                    if (MaxBitRate != 0 && MaxBitRate >= HLSController.Playlist.GetVariantStreams().First().Bitrate)
+                    {
+                        HLSController.Playlist.MaximumAllowedBitrate = MaxBitRate;
+                        LogMessage("  MaxBitrate: " + MaxBitRate.ToString());
+                    }
+                    if (MinBitRate != 0 && MinBitRate <= HLSController.Playlist.GetVariantStreams().Last().Bitrate)
+                    {
+                        HLSController.Playlist.MinimumAllowedBitrate = MinBitRate;
+                        LogMessage("  MinBitrate: " + MinBitRate.ToString());
+                    }
+
+                }
+            }
+
+            /*
+                        var settings = App.ViewModel.hlsSettings;
+                        //Controller.MinimumBufferLength = settings.MinimumBufferLength;
+                        Controller.EnableAdaptiveBitrateMonitor = settings.EnableAdaptiveBitrateMonitor;
+                        //Controller.MinimumBufferLength = settings.MinimumBufferLength;
+                        Controller.UseTimeAveragedNetworkMeasure = settings.UseTimeAveragedNetworkMeasure;
+                        //          Controller.BitrateChangeNotificationInterval = settings.BitrateChangeNotificationInterval;
+                        //Controller.KeyFrameMatchTryLimitOnBitrateSwitch = settings.KeyFrameMatchTryLimitOnBitrateSwitch;
+                        Controller.SegmentTryLimitOnBitrateSwitch = settings.SegmentTryLimitOnBitrateSwitch;
+                        //Controller.BitrateSwitchOnSegmentBoundaryOnly = settings.BitrateSwitchOnSegmentBoundaryOnly;
+                        //Controller.AllowParallelDownloadsForBitrateSwitch = settings.AllowParallelDownloadsForBitrateSwitch;
+                        Controller.Playlist.StreamSelectionChanged += Playlist_StreamSelectionChanged;
+                        Controller.Playlist.SegmentSwitched += Playlist_SegmentSwitched;
+                        Controller.Playlist.SegmentDataLoaded += Playlist_SegmentDataLoaded;
+                        Controller.ForceKeyFrameMatchOnSeek = settings.ForceKeyframeMatchOnSeek;
+                        Controller.AllowSegmentSkipOnSegmentFailure = settings.AllowSegmentSkipOnSegmentFailure;
+                        //Controller.BitrateToleranceMarginInPercentage = settings.BitrateToleranceMarginInPercentage;
+                        Controller.UseTimeAveragedNetworkMeasure = settings.UseTimeAveragedNetworkMeasure;
+                        if (Controller.Playlist.IsMaster)
+                        {
+                            if (settings.StartBitrate != 0 && settings.StartBitrate * 1024 <= Controller.Playlist.GetVariantStreams().Last().Bitrate && settings.StartBitrate * 1024 >= Controller.Playlist.GetVariantStreams().First().Bitrate)
+                                Controller.Playlist.StartBitrate = settings.StartBitrate * 1024;
+                            if (settings.MaximumBitrate != 0 && settings.MaximumBitrate * 1024 >= Controller.Playlist.GetVariantStreams().First().Bitrate)
+                                Controller.Playlist.MaximumAllowedBitrate = settings.MaximumBitrate * 1024;
+                            if (settings.MinimumBitrate != 0 && settings.MinimumBitrate * 1024 <= Controller.Playlist.GetVariantStreams().Last().Bitrate)
+                                Controller.Playlist.MinimumAllowedBitrate = settings.MinimumBitrate * 1024;
+                        }
+            */
 
 
+        }
+        /// <summary>
+        /// RunOnProtectedUIThread method used to run action on the UI Thread 
+        /// </summary>
+        private async void RunOnProtectedUIThread(Action action)
+        {
+            if (!Windows.ApplicationModel.DesignMode.DesignModeEnabled && Dispatcher != null)
+            {
+                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                {
+                    action();
+                });
+            }
+        }
+        /// <summary>
+        /// Playlist_SlidingWindowChanged event raised when the Sliding Window changed (for Live streams) 
+        /// </summary>
+        private void Playlist_SlidingWindowChanged(Microsoft.HLSClient.IHLSPlaylist sender, Microsoft.HLSClient.IHLSSlidingWindow args)
+        {
+
+            RunOnProtectedUIThread(
+                () =>
+                {
+                    LogMessage("HLS Time changed - Start " + args.StartTimestamp.ToString() + " End: " + args.EndTimestamp.ToString() + " Live: " + args.LivePosition.ToString() + " Position: " + mediaElement.Position.ToString());
+                });
+        }
+        /// <summary>
+        /// Playlist_StreamSelectionChanged event raised when the Stream selection changed  
+        /// </summary>
+
+        void Playlist_StreamSelectionChanged(Microsoft.HLSClient.IHLSPlaylist sender, Microsoft.HLSClient.IHLSStreamSelectionChangedEventArgs args)
+        {
+            LogMessage("Stream Selection changed for uri: " + sender.Url.ToString());
+        }
+
+        /// <summary>
+        /// Playlist_BitrateSwitchCompleted event raised when the bitrate changed 
+        /// </summary>
+        void Playlist_BitrateSwitchCompleted(Microsoft.HLSClient.IHLSPlaylist sender, Microsoft.HLSClient.IHLSBitrateSwitchEventArgs args)
+        {
+            LogMessage("Bitrate changed for uri: " + sender.Url.ToString());
+            LogMessage(" New bitrate: " + args.ToBitrate.ToString());
+        }
         #endregion
 
         #region PLAYREADY

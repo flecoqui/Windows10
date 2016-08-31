@@ -50,8 +50,8 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
                     <Button IsEnabled="False" Content="&#xE102;" x:Name="playButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="play_Click" BorderThickness="1"/>
-                    <Button IsEnabled="False" Content="&#xE103;" x:Name="playPauseButton" ToolTipService.ToolTip="Pause the stream currently played by the MediaElement"  FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playPause_Click" BorderThickness="1" />
-                    <Button IsEnabled="False" Content="&#xE102;" x:Name="pausePlayButton" ToolTipService.ToolTip="Resume the stream currently puased by the MediaElement"   FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="pausePlay_Click" BorderThickness="1"/>
+                    <Button IsEnabled="False" Content="&#xE102;" x:Name="playPauseButton" ToolTipService.ToolTip="Pause the stream currently played by the MediaElement"  FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playPause_Click" BorderThickness="1" />
+                    <Button IsEnabled="False" Content="&#xE103;" x:Name="pausePlayButton" ToolTipService.ToolTip="Resume the stream currently puased by the MediaElement"   FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="pausePlay_Click" BorderThickness="1"/>
                     <Button IsEnabled="False" Content="&#xE20D;" x:Name="stopButton" ToolTipService.ToolTip="Stop the stream currently played by the MediaElement"   FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="stop_Click" BorderThickness="1"/>
                     <Image x:Name="streamLogo" Width="40" Height="40" VerticalAlignment="Center" Margin="1,1,1,1" />
                 </StackPanel>

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>a1ce4f3a-5d45-4635-8b19-9a3ecfaf4258</ProjectGuid>
+    <ProjectGuid>{A1CE4F3A-5D45-4635-8B19-9A3ECFAF4258}</ProjectGuid>
     <OutputType>AppContainerExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AudioVideoPlayer</RootNamespace>
