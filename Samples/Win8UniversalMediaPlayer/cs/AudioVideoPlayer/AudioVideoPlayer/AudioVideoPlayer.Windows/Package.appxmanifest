@@ -22,6 +22,20 @@
           <m2:Rotation Preference="landscape" />
         </m2:InitialRotationPreference>
       </m2:VisualElements>
+      <Extensions>
+        <Extension Category="windows.fileTypeAssociation">
+          <FileTypeAssociation Name="avp">
+            <DisplayName>AVP</DisplayName>
+            <SupportedFileTypes>
+              <FileType>.wma</FileType>
+              <FileType>.m4a</FileType>
+              <FileType>.aac</FileType>
+              <FileType>.mp4</FileType>
+              <FileType>.mp3</FileType>
+            </SupportedFileTypes>
+          </FileTypeAssociation>
+        </Extension>
+      </Extensions>
     </Application>
   </Applications>
   <Capabilities>
@@ -40,5 +54,5 @@
         <ActivatableClass ActivatableClassId="Microsoft.HLSClient.HLSPlaylistHandler" ThreadingModel="both" />
       </InProcessServer>
     </Extension>
-  </Extensions>  
+  </Extensions>
 </Package>

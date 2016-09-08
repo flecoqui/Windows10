@@ -1013,6 +1013,7 @@ namespace AudioVideoPlayer
                     }
                 }
             }
+            UpdateUI();
         }
 
         /// <summary>
@@ -1331,9 +1332,9 @@ namespace AudioVideoPlayer
                 }
                 // Volume buttons control
                 if (mediaElement.IsMuted)
-                    muteButton.Content = "\xE767";
+                    muteButton.Content = "\xE247";
                 else
-                    muteButton.Content = "\xE74F";
+                    muteButton.Content = "\xE246";
                 if (mediaElement.Volume == 0)
                 {
                     volumeDownButton.IsEnabled = false;
@@ -1350,6 +1351,7 @@ namespace AudioVideoPlayer
                     volumeUpButton.IsEnabled = true;
                 }
             }
+            UpdateUI();
         }
 
         /// <summary>
@@ -1737,10 +1739,13 @@ namespace AudioVideoPlayer
                 {
                     if (mediaElement.InteractiveActivationMode != Microsoft.PlayerFramework.InteractionType.None)
                         mediaElement.InteractiveActivationMode = Microsoft.PlayerFramework.InteractionType.None;
-//                    if (mediaElement.AreTransportControlsEnabled == true)
-//                        mediaElement.AreTransportControlsEnabled = false;
+                    //                    if (mediaElement.AreTransportControlsEnabled == true)
+                    //                        mediaElement.AreTransportControlsEnabled = false;
                     if (mediaElement.IsFullWindow == false)
+                    {
                         mediaElement.IsFullWindow = true;
+                        mediaElement.IsFullScreen = false;
+                    }
                     DisplayPicturePopup(false);
                 }
                 WindowState = WindowMediaState.FullWindow;
@@ -1760,10 +1765,13 @@ namespace AudioVideoPlayer
                     //if (mediaElement.AreTransportControlsEnabled == false)
                     //    mediaElement.AreTransportControlsEnabled = true;
                     if (mediaElement.InteractiveActivationMode == Microsoft.PlayerFramework.InteractionType.None)
-                        mediaElement.InteractiveActivationMode = Microsoft.PlayerFramework.InteractionType.All; 
+                        mediaElement.InteractiveActivationMode = Microsoft.PlayerFramework.InteractionType.All;
 
                     if (mediaElement.IsFullWindow == false)
+                    {
                         mediaElement.IsFullWindow = true;
+                        mediaElement.IsFullScreen = true;                        
+                    }
                     DisplayPicturePopup(false);
                 }
                 WindowState = WindowMediaState.FullScreen;
@@ -3004,8 +3012,7 @@ namespace AudioVideoPlayer
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
                 () =>
                 {
-
-                    CounterText.Text = "Files discovered: " + fileDiscovered.ToString();
+                    counterValue.Text = "Files discovered: " + fileDiscovered.ToString();
                 });
         }
 
@@ -3054,12 +3061,15 @@ namespace AudioVideoPlayer
                     foreach (string e in extensionArray)
                     {
                         if (extension.EndsWith(e, StringComparison.CurrentCultureIgnoreCase))
+                        {
                             fileDiscovered++;
+                            UpdateUI();
+                            //statusValue.Text = fileDiscovered.ToString() + " files discovered";
+                          //  LogMessage("Discover file name: " + f.Name + " path: " + path);
+                            break;
+                        }
 
                     }
-                    //  if (path.EndsWith(".m4a",StringComparison.CurrentCultureIgnoreCase)) 
-                    //    LogMessage("Discover file name: " + f.Name + " path: "  + path);
-                    //    fileDiscovered++;
                 }
             }
             catch (Exception e)
@@ -3118,10 +3128,12 @@ namespace AudioVideoPlayer
                 LogMessage("Exception while discoverting Removable devices: " + e.Message);
 
             }
-            if (CompletedEvent != null)
-                CompletedEvent();
+
             LogMessage("Discover Thread: " + fileDiscovered + " files discovered");
             LogMessage("Ending discover thread");
+
+            if (CompletedEvent != null)
+                CompletedEvent();
             return fileDiscovered;
         }
         private void StartDiscoveryButton_Click(object sender, RoutedEventArgs e)
@@ -3201,10 +3213,11 @@ namespace AudioVideoPlayer
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
             () =>
             {
-                StartDiscoveryButton.IsEnabled = (discoverTask == null ? true : discoverTask.IsCompleted);
-                StopDiscoveryButton.IsEnabled = (discoverTask == null ? false : !discoverTask.IsCompleted);
-                Progress.Text = AudioDiscoveryTaskManager.DiscoveryTaskProgress;
-                Status.Text = AudioDiscoveryTaskManager.GetBackgroundTaskStatus(AudioDiscoveryTaskManager.DiscoveryTaskName);
+                startDiscoveryButton.IsEnabled = (discoverTask == null ? true : discoverTask.IsCompleted);
+                stopDiscoveryButton.IsEnabled = (discoverTask == null ? false : !discoverTask.IsCompleted);
+                //progressValue.Text = AudioDiscoveryTaskManager.DiscoveryTaskProgress;
+                statusValue.Text = ((discoverTask != null) && (discoverTask.Status == System.Threading.Tasks.TaskStatus.Running) ? "-Discovering-" : "-Stopped-");
+               // statusValue.Text = AudioDiscoveryTaskManager.GetBackgroundTaskStatus(AudioDiscoveryTaskManager.DiscoveryTaskName);
             });
         }
         #endregion

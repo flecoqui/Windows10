@@ -20,8 +20,8 @@
         </Grid.ColumnDefinitions>
         <StackPanel x:Name="TitlePanel" Grid.Row="0" Grid.RowSpan="1" Grid.Column="0" Grid.ColumnSpan="2"  >
             <StackPanel Orientation="Horizontal" VerticalAlignment="Top" >
-                <Button IsEnabled="True" ToolTipService.ToolTip="Open anotherJSON playlist on the disk" Content="&#xE1A0;" x:Name="playlistButton" FontFamily="Segoe UI Symbol" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playlist_Click"/>
-                <Image x:Name="TestLogo" Source="Assets/AudioVideo.png" VerticalAlignment="Center" Margin="3,3,3,3" Stretch="Fill" Width="40" Height="40" />
+                <Button IsEnabled="True" ToolTipService.ToolTip="Open anotherJSON playlist on the disk" Content="&#xE1A0;" x:Name="playlistButton" FontFamily="Segoe UI Symbol" IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" BorderThickness="1" Click="playlist_Click"/>
+                <Image x:Name="TestLogo" Source="Assets/AudioVideo.png" VerticalAlignment="Center" Margin="3,3,3,3" Stretch="Fill" Width="50" Height="50" />
                 <TextBlock x:Name="TestTitle" VerticalAlignment="Center" TextWrapping="Wrap">Windows 10 Universal Media Player Test</TextBlock>
             </StackPanel>
             <StackPanel x:Name="ButtonPanel" VerticalAlignment="Top"  >
@@ -40,36 +40,37 @@
                     <TextBox x:Name="mediaUri" ToolTipService.ToolTip="Uri of the current selected stream (edit)" IsTabStop="True"  />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                    <Button IsEnabled="False" Content="&#xE100;" x:Name="minusButton" ToolTipService.ToolTip="Select the previous stream in the playlist" FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="minus_Click" BorderThickness="1"/>
-                    <Button IsEnabled="False" Content="&#xE101;" x:Name="plusButton" ToolTipService.ToolTip="Select the next stream in the playlist" FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="plus_Click" BorderThickness="1"/>
-                    <Button IsEnabled="False" Content="&#xE143;" x:Name="fullscreenButton" ToolTipService.ToolTip="Switch to full screen resolution with transport control" FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="fullscreen_Click"  BorderThickness="1"/>
-                    <Button IsEnabled="False" Content="&#xE173;" x:Name="fullwindowButton" ToolTipService.ToolTip="Switch to full window resolution without transport control" FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="fullwindow_Click"  BorderThickness="1" />
-                    <Button IsEnabled="False" Content="&#xE246;" x:Name="muteButton" ToolTipService.ToolTip="Mute the audio" FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="mute_Click"  BorderThickness="1"   />
-                    <Button IsEnabled="False" Content="&#xE247;" x:Name="volumeUpButton" ToolTipService.ToolTip="Volume up" FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="volumeUp_Click"  BorderThickness="1"/>
-                    <Button IsEnabled="False" Content="&#xE247;" x:Name="volumeDownButton" ToolTipService.ToolTip="Volume down"  FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="volumeDown_Click"  BorderThickness="1"/>
+                    <Button IsEnabled="False" Content="&#xE100;" x:Name="minusButton" ToolTipService.ToolTip="Select the previous stream in the playlist" FontFamily="Segoe UI Symbol" FontSize="16"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="minus_Click" BorderThickness="1"/>
+                    <Button IsEnabled="False" Content="&#xE101;" x:Name="plusButton" ToolTipService.ToolTip="Select the next stream in the playlist" FontFamily="Segoe UI Symbol" FontSize="16"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="plus_Click" BorderThickness="1"/>
+                    <Button IsEnabled="False" Content="&#xE143;" x:Name="fullscreenButton" ToolTipService.ToolTip="Switch to full screen resolution with transport control" FontFamily="Segoe UI Symbol" FontSize="16"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="fullscreen_Click"  BorderThickness="1"/>
+                    <Button IsEnabled="False" Content="&#xE147;" x:Name="fullwindowButton" ToolTipService.ToolTip="Switch to full window resolution without transport control" FontFamily="Segoe UI Symbol" FontSize="16"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="fullwindow_Click"  BorderThickness="1" />
+                    <Button IsEnabled="False" Content="&#xE198;" x:Name="muteButton" ToolTipService.ToolTip="Mute the audio" FontFamily="Segoe UI Symbol" FontSize="16"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="mute_Click"  BorderThickness="1"   />
+                    <Button IsEnabled="False" Content="&#xE247;" x:Name="volumeUpButton" ToolTipService.ToolTip="Volume up" FontFamily="Segoe UI Symbol" FontSize="18"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="volumeUp_Click"  BorderThickness="1"/>
+                    <Button IsEnabled="False" Content="&#xE247;" x:Name="volumeDownButton" ToolTipService.ToolTip="Volume down"  FontFamily="Segoe UI Symbol" FontSize="10"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="volumeDown_Click"  BorderThickness="1"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                    <Button IsEnabled="False" Content="&#xE102;" x:Name="playButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="play_Click" BorderThickness="1"/>
-                    <Button IsEnabled="False" Content="&#xE102;" x:Name="playPauseButton" ToolTipService.ToolTip="Pause the stream currently played by the MediaElement"  FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playPause_Click" BorderThickness="1" />
-                    <Button IsEnabled="False" Content="&#xE103;" x:Name="pausePlayButton" ToolTipService.ToolTip="Resume the stream currently puased by the MediaElement"   FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="pausePlay_Click" BorderThickness="1"/>
-                    <Button IsEnabled="False" Content="&#xE20D;" x:Name="stopButton" ToolTipService.ToolTip="Stop the stream currently played by the MediaElement"   FontFamily="Segoe UI Symbol" FontSize="8" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="stop_Click" BorderThickness="1"/>
-                    <Image x:Name="streamLogo" Width="40" Height="40" VerticalAlignment="Center" Margin="1,1,1,1" />
+                    <Button IsEnabled="False" Content="&#xE102;" x:Name="playButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe UI Symbol" FontSize="16"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="play_Click" BorderThickness="1"/>
+                    <Button IsEnabled="False" Content="&#xE102;" x:Name="playPauseButton" ToolTipService.ToolTip="Pause the stream currently played by the MediaElement"  FontFamily="Segoe UI Symbol" FontSize="16"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="playPause_Click" BorderThickness="1" />
+                    <Button IsEnabled="False" Content="&#xE103;" x:Name="pausePlayButton" ToolTipService.ToolTip="Resume the stream currently puased by the MediaElement"   FontFamily="Segoe UI Symbol" FontSize="16"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="pausePlay_Click" BorderThickness="1"/>
+                    <Button IsEnabled="False" Content="&#xE15B;" x:Name="stopButton" ToolTipService.ToolTip="Stop the stream currently played by the MediaElement"   FontFamily="Segoe UI Symbol" FontSize="16"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="stop_Click" BorderThickness="1"/>
+                    <Image x:Name="streamLogo" Width="50" Height="50" VerticalAlignment="Center" Margin="1,1,1,1" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Top" >
-                    <Button x:Name="StartDiscoveryButton" Click="StartDiscoveryButton_Click" >Start</Button>
-                    <Button x:Name="StopDiscoveryButton" Click="StopDiscoveryButton_Click" >Stop</Button>
-                    <TextBlock>Status:</TextBlock>
-                    <TextBlock x:Name="Status"></TextBlock>
-                    <TextBlock>Progress:</TextBlock>
-                    <TextBlock x:Name="Progress"></TextBlock>
-                    <TextBlock x:Name="CounterText"></TextBlock>
+                    <Button IsEnabled="False" Content="&#xE0F2;" x:Name="startDiscoveryButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe UI Symbol" FontSize="14"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="StartDiscoveryButton_Click" BorderThickness="1"/>
+                    <Button IsEnabled="False" Content="&#xE0F1;" x:Name="stopDiscoveryButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe UI Symbol" FontSize="14"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="StopDiscoveryButton_Click" BorderThickness="1"/>
+                    <TextBlock VerticalAlignment="Center">Status:</TextBlock>
+                    <TextBlock VerticalAlignment="Center" x:Name="statusValue"></TextBlock>
+                    <TextBlock VerticalAlignment="Center">Progress:</TextBlock>
+                    <TextBlock x:Name="progressValue" VerticalAlignment="Center"></TextBlock>
+                    <TextBlock x:Name="counterValue" VerticalAlignment="Center"></TextBlock>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                    <CheckBox VerticalAlignment="Center" x:Name="AutoSkip" Checked="AutoSkip_Checked" Unchecked="AutoSkip_Unchecked" ToolTipService.ToolTip="Select automically the next stream at the end of the MediaElement"   FlowDirection="RightToLeft" HorizontalAlignment="Left"  Content="Auto:"  />
+                    <TextBlock VerticalAlignment="Center" Margin="5,0,5,0"  FontSize="12">Auto:</TextBlock>
+                    <CheckBox VerticalAlignment="Center" x:Name="AutoSkip" FontSize="12" Checked="AutoSkip_Checked" Unchecked="AutoSkip_Unchecked" ToolTipService.ToolTip="Select automically the next stream at the end of the MediaElement"    />
                     <TextBlock VerticalAlignment="Center" Margin="5,0,5,0"  FontSize="12">Bitrate Min:</TextBlock>
                     <TextBox x:Name="minBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Minimum bitrate in bit/s"   MinWidth="60" IsTabStop="True" InputScope="Number" TextChanged="BitrateTextChanged" FontSize="12"/>
                     <TextBlock VerticalAlignment="Center" Margin="5,0,5,0" FontSize="12">Max:</TextBlock>
-                    <TextBox x:Name="maxBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Maximum bitrate in bit/s, (if value = 0, no maximum)" MinWidth="60" IsTabStop="True"  InputScope="Number" TextChanged="BitrateTextChanged"  FontSize="12"  />
+                    <TextBox x:Name="maxBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Maximum bitrate in bit/s, (if value = 0, no maximum)" MinWidth="60" IsTabStop="True"  InputScope="Number" TextChanged="BitrateTextChanged"  FontSize="16"   />
                 </StackPanel>
             </StackPanel>
         </StackPanel>
@@ -84,7 +85,7 @@
 
             <Image x:Name="pictureElement"  Source="Assets/Screen169.png" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="UniformToFill"></Image>
         </Grid>
-        <TextBox  x:Name="logs" Grid.Row="2" Grid.ColumnSpan="2" IsTabStop="True" Margin="2,2,2,2"   MaxHeight="640" MinHeight="100"  ScrollViewer.HorizontalScrollBarVisibility="Auto"  ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping="NoWrap" AcceptsReturn="True" FontSize="12" IsReadOnly="True"  Visibility="Visible" Text="" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" >
+        <TextBox  x:Name="logs" Grid.Row="2" Grid.ColumnSpan="2" IsTabStop="True" Margin="2,2,2,2"   MaxHeight="640" MinHeight="100"  ScrollViewer.HorizontalScrollBarVisibility="Auto"  ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping="NoWrap" AcceptsReturn="True" FontSize="16"  IsReadOnly="True"  Visibility="Visible" Text="" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" >
         </TextBox>
     </Grid>
 </Page>
