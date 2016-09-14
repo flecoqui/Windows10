@@ -56,8 +56,11 @@
                     <Image x:Name="streamLogo" Width="50" Height="50" VerticalAlignment="Center" Margin="1,1,1,1" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Top" >
-                    <Button IsEnabled="False" Content="&#xE0F2;" x:Name="startDiscoveryButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe UI Symbol" FontSize="14"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="StartDiscoveryButton_Click" BorderThickness="1"/>
+                    <Button IsEnabled="False" Content="&#xE149;" x:Name="startDiscoveryButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe UI Symbol" FontSize="14"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="StartDiscoveryButton_Click" BorderThickness="1"/>
                     <Button IsEnabled="False" Content="&#xE0F1;" x:Name="stopDiscoveryButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe UI Symbol" FontSize="14"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="StopDiscoveryButton_Click" BorderThickness="1"/>
+                    <Button IsEnabled="True" Content="&#xE118;" x:Name="saveMediaFilesButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe UI Symbol" FontSize="14"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="saveMediaFilesButton_Click" BorderThickness="1"/>
+                    <Button IsEnabled="True" Content="&#xE11C;" x:Name="restoreMediaFilesButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe UI Symbol" FontSize="14"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="restoreMediaFilesButton_Click" BorderThickness="1"/>
+                    <Button IsEnabled="True" Content="&#xE106;" x:Name="clearMediaFilesButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe UI Symbol" FontSize="14"  IsTabStop="True" Height="50" Width="50" Margin="1,1,1,1" Click="clearMediaFilesButton_Click" BorderThickness="1"/>
                     <TextBlock VerticalAlignment="Center">Status:</TextBlock>
                     <TextBlock VerticalAlignment="Center" x:Name="statusValue"></TextBlock>
                     <TextBlock VerticalAlignment="Center">Progress:</TextBlock>

@@ -57,6 +57,120 @@ namespace AudioVideoPlayer
         ErrorDiscoveryProcessStorageLimit,
         ErrorDiscoveryProcessParameters
     }
+    public class MediaLibraryItem
+    {
+        private string _path;
+        private string _title;
+        private string _artist;
+        private string _album;
+        private int _trackID;
+        private TimeSpan _duration;
+        private bool setInformationFromPath(string path)
+        {
+            _path = path;
+            if(!string.IsNullOrEmpty(path))
+            {
+                char[] sep = { '\\', '/' };
+                string filename = path;
+                string[] sa = path.Split(sep);
+                if((sa!=null)&&(sa.Length>0))
+                {
+                    filename = sa[sa.Length - 1];
+                }
+                char[] sepemdia = { '-','.'};
+                string[] samedia = filename.Split(sepemdia);
+                if ((samedia != null) && (samedia.Length > 0))
+                {
+                    // "06 - Emiliana Torrini - Me And Armini-Big Jumps.m4a""
+                    if (samedia.Length == 5)
+                    {
+                        int t = 1;
+                        int.TryParse(samedia[0], out t);
+                        _trackID = t;
+                        _artist = samedia[1];
+                        _album = samedia[2];
+                        _title = samedia[3];
+                        return true;
+                    }
+                }
+            }
+            _trackID = 1;
+            _artist = string.Empty;
+            _album = string.Empty;
+            _title = string.Empty;
+            _duration = new TimeSpan(0);
+            return false;
+        }
+        private string  getArtistFromPath(string Path)
+        {
+            string artist = string.Empty;
+            return artist;
+        }
+        private string getTitleFromPath(string Path)
+        {
+            string title = string.Empty;
+            return title;
+        }
+        private string getAlbumFromPath(string Path)
+        {
+            string album = string.Empty;
+            return album;
+        }
+        private int getTrackIDFromPath(string Path)
+        {
+            int trackID = 0;
+            return trackID;
+        }
+        private TimeSpan getDurationFromPath(string Path)
+        {
+            TimeSpan duration = new TimeSpan(0);
+            return duration;
+        }
+        public static MediaLibraryItem GetMediaIteamFromPath(string path)
+        {
+            MediaLibraryItem mi = new MediaLibraryItem(path);
+            return mi;
+        }
+        public MediaLibraryItem()
+        {
+
+        }
+        public MediaLibraryItem(string path)
+        {
+            setInformationFromPath(path);
+        }
+        public string Path
+        {
+            get { return _path; }
+            set { _path = value; }
+        }
+        public string Title
+        {
+            get { return _title; }
+            set { _title = value; }
+        }
+        public string Artist
+        {
+            get { return _artist; }
+            set { _title = value; }
+        }
+        public string Album
+        { 
+            get { return _album; }
+            set { _album = value; }
+        }
+        public int GetTraskID
+        { 
+            get { return _trackID; }
+            set { _trackID = value; }
+        }
+        public TimeSpan GetDuration
+        {
+            get { return _duration; }
+            set { _duration = value; }
+        }
+
+    }
     public class MediaDiscoveryProcess
     {
         private string Path;
@@ -311,6 +425,13 @@ namespace AudioVideoPlayer
     public sealed partial class MainPage : Page
     {
         #region Attributes
+        // Dictionnary of Media files
+        private Dictionary<string, MediaLibraryItem> defaultMediaDictionary = new Dictionary<string, MediaLibraryItem>();
+        public Dictionary<string, MediaLibraryItem> DefaultMediaDictionary
+        {
+            get { return this.defaultMediaDictionary; }
+        }
+
         // Collection of smooth streaming urls 
         private ObservableCollection<MediaItem> defaultViewModel = new ObservableCollection<MediaItem>();
         public ObservableCollection<MediaItem> DefaultViewModel
@@ -1075,7 +1196,141 @@ namespace AudioVideoPlayer
 
         #region SuspendResume
 
+        private async void saveMediaFilesButton_Click(object sender, RoutedEventArgs e)
+        {
+            await SaveMediaFilesAsync();
+            UpdateCounter();
+        }
+        private async void restoreMediaFilesButton_Click(object sender, RoutedEventArgs e)
+        {
+            await RestoreMediaFilesAsync();
+            UpdateCounter();
+        }
+        private async void clearMediaFilesButton_Click(object sender, RoutedEventArgs e)
+        {
+            await RemoveMediaFilesAsync();
+            UpdateCounter();
+        }
+        /// <summary>
+        /// deletes the specified file
+        /// </summary>
+        /// <param name="fullPath"></param>        
+        public async Task<bool> DeleteFile(string fullPath)
+        {
+            bool bRes = await FileExists(fullPath);
+            if (bRes != true)
+                return true;
+            try
+            {
+                var file = await ApplicationData.Current.LocalFolder.GetFileAsync(fullPath);
+                if (file != null)
+                {
+                    try
+                    {
+                        await file.DeleteAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " DeleteFile for path: " + fullPath + " exception 1: " + ex.Message);
 
+                    }
+                }
+                System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " DeleteFile Delete done for path: " + fullPath);
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " DeleteFile for path: " + fullPath + " exception 2: " + e.Message);
+            }
+            return true;
+        }
+
+        public async Task<bool> FileExists(string fullPath)
+        {
+            bool bResult = false;
+            try
+            {
+                var directory = await ApplicationData.Current.LocalFolder.GetFileAsync(fullPath);
+                if (directory != null)
+                {
+                    bResult = true;
+                }
+            }
+            catch (Exception)
+            {
+                bResult = false;
+            }
+            return bResult;
+        }
+        async private Task SaveMediaFilesAsync()
+        {
+            string fullPath = "mediafiles.xml";
+            try
+            { 
+                Windows.Storage.StorageFile file;
+                bool bRes = await DeleteFile(fullPath);
+                file = await ApplicationData.Current.LocalFolder.CreateFileAsync(fullPath);
+                if (file != null)
+                {
+                    using (var stream = await file.OpenStreamForWriteAsync())
+                    {
+                        if (stream != null)
+                        {
+                            System.Runtime.Serialization.DataContractSerializer sessionSerializer = new System.Runtime.Serialization.DataContractSerializer(typeof(Dictionary<string, MediaLibraryItem>));
+                            sessionSerializer.WriteObject(stream, defaultMediaDictionary);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                LogMessage("Exception while saving mediafiles:" + e.Message);
+            }
+
+        }
+        async private Task RemoveMediaFilesAsync()
+        {
+            string fullPath = "mediafiles.xml";
+            try
+            {
+                await DeleteFile(fullPath);
+                defaultMediaDictionary.Clear();
+                fileDiscovered = (uint) defaultMediaDictionary.Count();
+            }
+            catch (Exception e)
+            {
+                LogMessage("Exception while removing mediafiles:" + e.Message);
+            }
+        }
+
+        async private Task RestoreMediaFilesAsync()
+        {
+            string fullPath = "mediafiles.xml";
+            ulong size = 0;
+            try
+            {
+                Windows.Storage.StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(fullPath);
+                if (file != null)
+                {
+                    var prop = await file.GetBasicPropertiesAsync();
+                    if (prop != null)
+                        size = prop.Size;
+                }
+                var stream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read);
+                if (stream != null)
+                {
+                    using (var inputStream = stream.GetInputStreamAt(0))
+                    {
+                        System.Runtime.Serialization.DataContractSerializer sessionSerializer = new System.Runtime.Serialization.DataContractSerializer(typeof(Dictionary<string, MediaLibraryItem>));
+                        defaultMediaDictionary = (Dictionary<string, MediaLibraryItem>)sessionSerializer.ReadObject(inputStream.AsStreamForRead());
+                        fileDiscovered = (uint)defaultMediaDictionary.Count();
+                    }
+                }            
+            }
+            catch (Exception e)
+            {
+                LogMessage("Exception while restoring mediafiles:" + e.Message);
+            }
+        }
 
         /// <summary>
         /// This method saves the MediaElement position and the media state 
@@ -3062,7 +3317,12 @@ namespace AudioVideoPlayer
                     {
                         if (extension.EndsWith(e, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            fileDiscovered++;
+                            if (!defaultMediaDictionary.ContainsKey(path))
+                            {
+                                MediaLibraryItem mli = new MediaLibraryItem(path);
+                                defaultMediaDictionary.Add(path, mli);
+                                fileDiscovered = (uint)defaultMediaDictionary.Count;
+                            }
                             UpdateUI();
                             //statusValue.Text = fileDiscovered.ToString() + " files discovered";
                           //  LogMessage("Discover file name: " + f.Name + " path: " + path);
@@ -3106,7 +3366,7 @@ namespace AudioVideoPlayer
         uint DiscoverThread()
         {
             LogMessage("Starting discover thread");
-            fileDiscovered = 0;
+            fileDiscovered = (uint)defaultMediaDictionary.Count;
             try
             {
                 var result = Windows.Storage.KnownFolders.RemovableDevices.GetFoldersAsync();
