@@ -228,22 +228,123 @@ Under the Surface
 
 ### Getting System Information
 
-to be completed
+Check SystemInformation constructor in the file SystemInformation.cs:
+
+        static SystemInformation()
+        {
+            // get the system family name
+            AnalyticsVersionInfo ai = AnalyticsInfo.VersionInfo;
+            SystemFamily = ai.DeviceFamily;
+
+            // get the system version number
+            string sv = AnalyticsInfo.VersionInfo.DeviceFamilyVersion;
+            ulong v = ulong.Parse(sv);
+            ulong v1 = (v & 0xFFFF000000000000L) >> 48;
+            ulong v2 = (v & 0x0000FFFF00000000L) >> 32;
+            ulong v3 = (v & 0x00000000FFFF0000L) >> 16;
+            ulong v4 = (v & 0x000000000000FFFFL);
+            SystemVersion = $"{v1}.{v2}.{v3}.{v4}";
+
+            // get the package architecure
+            Package package = Package.Current;
+            SystemArchitecture = package.Id.Architecture.ToString();
+
+            // get the user friendly app name
+            ApplicationName = package.DisplayName;
+
+            // get the app version
+            PackageVersion pv = package.Id.Version;
+            ApplicationVersion = $"{pv.Major}.{pv.Minor}.{pv.Build}.{pv.Revision}";
+
+            // get the device manufacturer and model name
+            EasClientDeviceInformation eas = new EasClientDeviceInformation();
+            DeviceManufacturer = eas.SystemManufacturer;
+            DeviceModel = eas.SystemProductName;
+
+            // get App Specific Hardware ID
+            AppSpecificHardwareID = GetAppSpecificHardwareID();
+        }
 
 ### PlayReady: Getting license expiration date 
 
-to be completed
+Check method GetLicenseExpirationDate in the file MainPage.xaml.cs:
+
+        private DateTime GetLicenseExpirationDate(Guid videoId)
+        {
+            
+            var keyIdString = Convert.ToBase64String(videoId.ToByteArray());
+            try
+            {
+                var contentHeader = new Windows.Media.Protection.PlayReady.PlayReadyContentHeader(
+                    videoId,
+                    keyIdString,
+                    Windows.Media.Protection.PlayReady.PlayReadyEncryptionAlgorithm.Aes128Ctr,
+                    null,
+                    null,
+                    string.Empty,
+                    new Guid());
+                Windows.Media.Protection.PlayReady.IPlayReadyLicense[] licenses = new Windows.Media.Protection.PlayReady.PlayReadyLicenseIterable(contentHeader, true).ToArray();
+                foreach (var lic in licenses)
+                {
+                    DateTimeOffset? d = MediaHelpers.PlayReadyHelper.GetLicenseExpirationDate(lic);
+                    if((d!=null)&&(d.HasValue))
+                            return d.Value.DateTime;
+                }
+            }
+            catch(Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("GetLicenseExpirationDate Exception: " + e.Message);
+                return DateTime.MinValue;
+            }
+            return DateTime.MinValue;
+        }
+
 
 ### PlayReady: Forcing Software DRM
 
-to be completed
+By default the UWP App using PlayReady do support Hardware DRM if the platform does support DRM.
+Unfortunately, Hardware DRM is not supported for VC-1 codec. If your UWP application needs to play a VC-1 stream protected with PlayReady the hardware DRM needs to be disable for this stream.
+Moreover, the hardware DRM needs to be enabled if the content is an H.264 or H.265 stream.
 
+Check method EnableSoftwareDRM in the file MAinPage.xaml.cs:
+
+        bool EnableSoftwareDRM(bool bEnable)
+        {
+            Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            // Force Software DRM useful for VC1 content which doesn't support Hardware DRM
+            try
+            {
+                if (!localSettings.Containers.ContainsKey("PlayReady"))
+                    localSettings.CreateContainer("PlayReady", Windows.Storage.ApplicationDataCreateDisposition.Always);
+                localSettings.Containers["PlayReady"].Values["SoftwareOverride"] = (bEnable==true ? 1: 0);
+            }
+            catch (Exception e)
+            {
+                LogMessage("Exception while forcing software DRM: " + e.Message);
+            }
+            //Setup Software Override based on app setting
+            //By default, PlayReady uses Hardware DRM if the machine support it. However, in case the app still want
+            //software behavior, they can set localSettings.Containers["PlayReady"].Values["SoftwareOverride"]=1. 
+            //This code tells MF to use software override as well
+            if (localSettings.Containers.ContainsKey("PlayReady") &&
+                localSettings.Containers["PlayReady"].Values.ContainsKey("SoftwareOverride"))
+            {
+                int UseSoftwareProtectionLayer = (int)localSettings.Containers["PlayReady"].Values["SoftwareOverride"];
+
+                if(protectionManager.Properties.ContainsKey("Windows.Media.Protection.UseSoftwareProtectionLayer"))
+                    protectionManager.Properties["Windows.Media.Protection.UseSoftwareProtectionLayer"] = (UseSoftwareProtectionLayer == 1? true : false);
+                else  
+                    protectionManager.Properties.Add("Windows.Media.Protection.UseSoftwareProtectionLayer", (UseSoftwareProtectionLayer == 1 ? true : false));
+            }
+            return true;
+        }
 
 
 Building the application
 ----------------
 
 **Prerequisite: Windows Smooth Streaming Client SDK**
+This version is based on the latest [Universal Smooth Streaming Client SDK](https://visualstudiogallery.msdn.microsoft.com/1e7d4700-7fa8-49b6-8a7b-8d8666685459)
 
 1. If you download the samples ZIP, be sure to unzip the entire archive, not just the folder with the sample you want to build. 
 2. Ensure the Red Stone 1 (RS1) Windows 10 SDK is installed on your machine
