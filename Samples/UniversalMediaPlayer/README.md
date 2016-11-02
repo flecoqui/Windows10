@@ -120,7 +120,7 @@ Before playing a Smooth Streaming asset, an HLS asset and an MPEG DASH asset you
 By default when you launch the application, the application will load the JSON playlist used before closing the application and select the asset selected before closing the application.
 If you checked the check box `Auto` before closing the application, the application will automatically start to play the selected asset in the window mode used before closing the application.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/cs/Docs/auto.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/UniversalMediaPlayer/Docs/auto.png)
 
 
 ### Selecting another JSON Playlist
