@@ -111,7 +111,6 @@ namespace AudioVideoPlayer.Information
 #else
             // get os version
             SystemVersion = GetWindowsVersion();
-
 #endif
             // get the package architecure
             Package package = Package.Current;
@@ -128,7 +127,6 @@ namespace AudioVideoPlayer.Information
             EasClientDeviceInformation eas = new EasClientDeviceInformation();
             DeviceManufacturer = eas.SystemManufacturer;
             DeviceModel = eas.SystemProductName;
-
 
             // get App Specific Hardware ID
             AppSpecificHardwareID = GetAppSpecificHardwareID();
