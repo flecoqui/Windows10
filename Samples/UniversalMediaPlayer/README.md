@@ -224,7 +224,6 @@ Check SystemInformation constructor in the file SystemInformation.cs:
             SystemFamily = ai.DeviceFamily;
 
             // get the system version number
-#if WINDOWS_UWP
             string sv = AnalyticsInfo.VersionInfo.DeviceFamilyVersion;
             ulong v = ulong.Parse(sv);
             ulong v1 = (v & 0xFFFF000000000000L) >> 48;
@@ -232,10 +231,7 @@ Check SystemInformation constructor in the file SystemInformation.cs:
             ulong v3 = (v & 0x00000000FFFF0000L) >> 16;
             ulong v4 = (v & 0x000000000000FFFFL);
             SystemVersion = $"{v1}.{v2}.{v3}.{v4}";
-#else
-            // get os version
-            SystemVersion = GetWindowsVersion();
-#endif
+
             // get the package architecure
             Package package = Package.Current;
             SystemArchitecture = package.Id.Architecture.ToString();
