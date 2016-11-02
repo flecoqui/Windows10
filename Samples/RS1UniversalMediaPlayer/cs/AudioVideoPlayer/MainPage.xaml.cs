@@ -92,8 +92,8 @@ namespace AudioVideoPlayer
         private DateTime StartPictureTime;
 
         // Default values for MinBitRate and MaxBitRate
-        private uint MinBitRate = 100000;
-        private uint MaxBitRate = 1000000;
+        private uint MinBitRate = 0;
+        private uint MaxBitRate = 0;
 
         // Constant Keys used to store parameter in the isolate storage
         private const string keyAutoSkip = "bAutoSkip";
@@ -2195,7 +2195,7 @@ namespace AudioVideoPlayer
             foreach (var stream in args.AdaptiveSource.Manifest.SelectedStreams)
             {
 
-                if (stream.Type == Microsoft.Media.AdaptiveStreaming.MediaStreamType.Video)
+                if (stream.Type == Microsoft.Media.AdaptiveStreaming.StreamingMediaStreamType.Video)
                 {
                     
                     foreach (var track in stream.SelectedTracks)
@@ -2259,7 +2259,7 @@ namespace AudioVideoPlayer
                     LogMessage("Bitrate changed for uri: " + sender.Uri.ToString());
                     foreach (var stream in args.AdaptiveSource.Manifest.SelectedStreams)
                     {
-                        if (stream.Type == Microsoft.Media.AdaptiveStreaming.MediaStreamType.Video)
+                        if (stream.Type == Microsoft.Media.AdaptiveStreaming.StreamingMediaStreamType.Video)
                         {
                             if (!string.IsNullOrEmpty(args.AdditionalInfo))
                             {
