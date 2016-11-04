@@ -91,8 +91,8 @@ namespace AudioVideoPlayer
         private DateTime StartPictureTime;
 
         // Default values for MinBitRate and MaxBitRate
-        private uint MinBitRate = 100000;
-        private uint MaxBitRate = 1000000;
+        private uint MinBitRate = 0;
+        private uint MaxBitRate = 0;
 
         // Constant Keys used to store parameter in the isolate storage
         private const string keyAutoSkip = "bAutoSkip";
@@ -1080,9 +1080,11 @@ namespace AudioVideoPlayer
         {
             try
             {
-                if ((!string.IsNullOrEmpty(CurrentMediaUrl)) &&
+                if (!string.IsNullOrEmpty(CurrentMediaUrl)) 
+                    /*&&
                     (!string.IsNullOrEmpty(mediaUri.Text)) &&
                     (string.Equals(mediaUri.Text, CurrentMediaUrl)))
+                    */
                 {
                     LogMessage("Play " + CurrentMediaUrl.ToString());
                     mediaElement.Play();
@@ -1100,11 +1102,12 @@ namespace AudioVideoPlayer
         {
             try
             {
-                if ((!string.IsNullOrEmpty(CurrentMediaUrl)) &&
+                if (!string.IsNullOrEmpty(CurrentMediaUrl))
+                    /*&&
                     (!string.IsNullOrEmpty(mediaUri.Text)) &&
-                    (string.Equals(mediaUri.Text, CurrentMediaUrl)))
+                    (string.Equals(mediaUri.Text, CurrentMediaUrl)))*/
                 {
-                    LogMessage("Play " + CurrentMediaUrl.ToString());
+                    LogMessage("Pause " + CurrentMediaUrl.ToString());
                     mediaElement.Pause();
                 }
             }
