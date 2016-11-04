@@ -2195,7 +2195,7 @@ namespace AudioVideoPlayer
             foreach (var stream in args.AdaptiveSource.Manifest.SelectedStreams)
             {
 
-                if (stream.Type == Microsoft.Media.AdaptiveStreaming.StreamingMediaStreamType.Video)
+                if (stream.Type == Microsoft.Media.AdaptiveStreaming.MediaStreamType.Video)
                 {
                     
                     foreach (var track in stream.SelectedTracks)
@@ -2259,7 +2259,7 @@ namespace AudioVideoPlayer
                     LogMessage("Bitrate changed for uri: " + sender.Uri.ToString());
                     foreach (var stream in args.AdaptiveSource.Manifest.SelectedStreams)
                     {
-                        if (stream.Type == Microsoft.Media.AdaptiveStreaming.StreamingMediaStreamType.Video)
+                        if (stream.Type == Microsoft.Media.AdaptiveStreaming.MediaStreamType.Video)
                         {
                             if (!string.IsNullOrEmpty(args.AdditionalInfo))
                             {
