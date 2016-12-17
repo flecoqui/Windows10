@@ -1,5 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" IgnorableNamespaces="uap uap3 mp">
+<Package 
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" 
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" 
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" 
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" 
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap3 mp rescap">
   <Identity Name="05e68787-2114-4574-bb0d-000000000001" Publisher="CN=flecoqui" Version="1.0.21.0" />
   <mp:PhoneIdentity PhoneProductId="05e68787-2114-4574-bb0d-000000000001" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
@@ -57,6 +63,8 @@
     <uap:Capability Name="musicLibrary" />
     <uap:Capability Name="removableStorage" />
     <uap3:Capability Name="backgroundMediaPlayback" />
+    <rescap:Capability Name="hevcPlayback" />
     <DeviceCapability Name="6a7e5907-885c-4bcb-b40a-073c067bd3d5" />
+     <rescap:Capability Name="hevcPlayback" />
   </Capabilities>
 </Package>
