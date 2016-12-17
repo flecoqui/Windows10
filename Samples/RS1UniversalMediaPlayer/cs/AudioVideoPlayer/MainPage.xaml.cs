@@ -837,10 +837,16 @@ namespace AudioVideoPlayer
                             while (LocalString.Length > 12000)
                             {
                                 int pos = LocalString.IndexOf('\n');
-                                if ((pos > 0) && (pos < LocalString.Length))
+                                if(pos == -1)
+                                    pos = LocalString.IndexOf('\r');
+
+
+                                if ((pos >= 0) && (pos < LocalString.Length))
                                 {
                                     LocalString = LocalString.Substring(pos + 1);
                                 }
+                                else
+                                    break;
                             }
                             logs.Text = LocalString;
                         }

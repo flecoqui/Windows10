@@ -65,6 +65,5 @@
     <uap3:Capability Name="backgroundMediaPlayback" />
     <rescap:Capability Name="hevcPlayback" />
     <DeviceCapability Name="6a7e5907-885c-4bcb-b40a-073c067bd3d5" />
-     <rescap:Capability Name="hevcPlayback" />
   </Capabilities>
 </Package>
