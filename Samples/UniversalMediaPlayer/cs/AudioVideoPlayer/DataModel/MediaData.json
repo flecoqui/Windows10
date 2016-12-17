@@ -64,6 +64,52 @@
           "BackgroundAudio": false
         },
         {
+          "UniqueId": "video_hevc_http_1",
+          "Comment": "#41",
+          "Title": "MP4 HEVC 1080 Video over HTTP 1",
+          "ImagePath": "ms-appx:///Assets/MP4.png",
+          "Description": "MP4 HEVC Video over HTTP 1",
+          "Content": "http://VMBasicA1.cloudapp.net/testhevc/testhevchd1.mp4",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "HttpHeaders": "",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        },
+        {
+          "UniqueId": "video_hevc_http_2",
+          "Comment": "#42",
+          "Title": "MP4 HEVC 1080 Video over HTTP 2",
+          "ImagePath": "ms-appx:///Assets/MP4.png",
+          "Description": "MP4 HEVC Video over HTTP 2",
+          "Content": "http://VMBasicA1.cloudapp.net/testhevc/testhevchd2.mp4",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "HttpHeaders": "",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        },
+        {
+          "UniqueId": "video_hevc_http_3",
+          "Comment": "#43",
+          "Title": "MP4 HEVC 4K Video over HTTP 3",
+          "ImagePath": "ms-appx:///Assets/MP4.png",
+          "Description": "MP4 HEVC Video over HTTP 3",
+          "Content": "http://VMBasicA1.cloudapp.net/testhevc/testhevc4K1.mp4",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "HttpHeaders": "",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        },
+
+        {
           "UniqueId": "video_ts_http_1",
           "Comment": "#21",
           "Title": "MPEG2-TS Video over HTTP 1",
