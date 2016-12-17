@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="05e68787-2114-4574-bb0d-000000000004" Publisher="CN=flecoqui" Version="1.0.18.0" />
+  <Identity Name="05e68787-2114-4574-bb0d-000000000004" Publisher="CN=FRED" Version="1.0.18.0" />
   <mp:PhoneIdentity PhoneProductId="05e68787-2114-4574-bb0d-000000000004" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Companion Media Player</DisplayName>
