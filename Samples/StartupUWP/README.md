@@ -23,6 +23,7 @@ The application requires the runFullTrust capability:
      .
   </Capabilities>
 
+
 Moreover, the desktop Extension category "windows.startupTask" will define the location of the Win32 application in the package.
 The Win32 application must be stored in a subfolder, below in the subfolder "Win32".
 
@@ -69,47 +70,52 @@ This version is based on the latest [Universal Smooth Streaming Client SDK](http
 
 **Publishing the application**
 
+The publication of these packages on Windows Store will require a manual generation of the file appxupload.
+To generate the new appxupload file follow those steps:
 
-### Entering the asset's url
-Once the asset is selected the `URL` field is updated with the url associated with the asset. You can update manually this field beofre playing the asset if you want to test a specific url. 
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/appname.png)
-
-
+1. Select the project associated with the UWP Application, right-click on the project, select "Store" on the popup menu and "Create App package...":
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/createapppackages.png)
 
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/createapppackagespage.png)
-
-
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/createapppackagespagecompleted.png)
-
-
+2. Select "Yes (using a new name)" on the first "Create App Package" page 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/storepackage.png)
 
+3. Create or Select the name of the new application 
 
-The appxbundle inside the appxupload contains the CoreCLR assemblies, not the .NET native ones.
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/appname.png)
 
-You should have a folder named (in your example) at the same directory level as your appxupload
+4. Select "Release" configuration and x86, x64 flavor and click on Create button
 
-StartUpTask_1.1.4.0_Test
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/createapppackagespage.png)
 
-Pick the appxsym and appxbundle from that folder to create the new appxupload.
+5. After few seconds, the packages are ready and click on the Output location link.
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/createapppackagespagecompleted.png)
+
+6. The File Explorer opens the folder which contains the new appxupload file and the folder ending with "_test" associated to the new pachage
+
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files1.png)
+
+Unfortunately, the appxbundle inside the new appxupload files contains the CoreCLR assemblies, not the .NET native ones.
+We need to create a new appxupload with .Net native. The appxbundle file inside the folder ending with "_test" does contains the .Net native assemblies.
+
+7. Navigate into the folder ending with "_test" 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files2.png)
 
+7. Select the files appxbundle and appxsym and create a zip file with those files. 
+
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files3.png)
+
+8. Rename the new zip file (newpackages.zip) into appxupload file.
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files4.png)
 
+9. The new appxupload file can be uplaoded on the Windows Store to deploy your UWP Application.
+
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files5.png)
  
-
-
 
 
 
