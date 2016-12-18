@@ -9,23 +9,28 @@ Overview
 --------------
 This sample UWP application is automatically launched when the user is logged.
 This application uses Desktop Bridge Extension to include a Win32 application (Launcher) in the application package.
-This sample application does support the following containers:
-<p/>
--   **Video**: VMV, MP4, MPEG2-TS, HLS, MPEG-DASH, Smooth Streaming 
--   **Audio**: WMA, MP3, FLAC
--   **Picture**: JPG, PNG
+The Win32 StartupHelper.exe application will launch the UWP Application StartupTask while the user is logging in.
+This feature is suported with the Anniversary Update of Windows 10 (10.0.14393.X) x86 and x64 flavor.
+In order to include the Win32 application in the UWP package, the Application manifest needs to be updated:
 
-If the MPEG-DASH assets or the Smooth Streaming assets are protected with PlayReady, the application could play those assets. 
-When the application is launched, it opens a JSON playlist which contains the list of files to play.
-This JSON playlist is by default embedded within the application, the user could select another playlist to play his own content. 
+The application requires the runFullTrust capability:
 
-This RS1 Universal Media Player Windows 10 application is an evolution of the [TH2 Universal Media Player Windows 10 application](https://github.com/flecoqui/Windows10/raw/master/Samples/UniversalMediaPlayer/).
-This version of the application introduce new features related to Windows 10 Red Stone 1:
-- the support of single process background audio
-and new features like:
-- the support of playback of content stored on a USB devices connected to your desktop or to your XBOX One.
-- the support of custom http header while downloading on-line video 
+  <Capabilities>
+     .
+     .
+    <rescap:Capability Name="runFullTrust" />
+     .
+     .
+  </Capabilities>
 
+Moreover, the desktop Extension category "windows.startupTask" will define the location of the Win32 application in the package.
+The Win32 application must be stored in a subfolder, below in the subfolder "Win32".
+
+  <Extensions>
+        <desktop:Extension Category="windows.startupTask" Executable="Win32\StartupHelper.exe" EntryPoint="Windows.FullTrustApplication">
+          <desktop:StartupTask TaskId="MyStartupTask" Enabled="true" DisplayName="My Startup Helper" />
+        </desktop:Extension>
+  </Extensions>
 
 
 Installing the application
@@ -35,7 +40,7 @@ You can install the application on:
 - **Personal Computer Platform**: a desktop running Windows 10 RS1
 
 The applications packages for x86, x64 are available there :
-[ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/RS1UniversalMediaPlayer/Releases/LatestRelease.zip)
+[ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/StartupUWP/Releases/LatestRelease.zip)
 
 
 **Personal Computer installation:**
@@ -62,15 +67,48 @@ This version is based on the latest [Universal Smooth Streaming Client SDK](http
 1.  To debug the sample and then run it, press F5 or select **Debug** \> **Start Debugging**. To run the sample without debugging, press Ctrl+F5 or select**Debug** \> **Start Without Debugging**.
 
 
+**Publishing the application**
 
 
-Next steps
---------------
+### Entering the asset's url
+Once the asset is selected the `URL` field is updated with the url associated with the asset. You can update manually this field beofre playing the asset if you want to test a specific url. 
 
-The Universal Media Player C# Sample Applicaton could be improved to support the following features:
-<p/>
-1.  Support of Azure Media 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/appname.png)
+
+
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/createapppackages.png)
+
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/createapppackagespage.png)
+
+
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/createapppackagespagecompleted.png)
+
+
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/storepackage.png)
+
+
+The appxbundle inside the appxupload contains the CoreCLR assemblies, not the .NET native ones.
+
+You should have a folder named (in your example) at the same directory level as your appxupload
+
+StartUpTask_1.1.4.0_Test
+
+Pick the appxsym and appxbundle from that folder to create the new appxupload.
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files1.png)
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files2.png)
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files3.png)
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files4.png)
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files5.png)
  
+
 
 
 

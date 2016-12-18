@@ -1,1 +1,1 @@
-C:\Temp\StartupTask\StartupTask\StartupTask\AppPackages\StartupTask_1.1.2.0\StartupTask_1.1.2.0_x86_x64.appxbundle
+C:\git\flecoqui\Windows10\Samples\StartupUWP\cs\StartupTask\AppPackages\StartupTask_1.1.4.0\StartupTask_1.1.4.0_x86_x64.appxbundle

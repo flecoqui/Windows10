@@ -358,9 +358,9 @@
     <Language Code="zu-za" InMinimumRequirementSet="true" />
   </SupportedLocales>
   <ProductReservedInfo>
-    <MainPackageIdentityName>52458FLECOQUI.TestUWPStore</MainPackageIdentityName>
+    <MainPackageIdentityName>52458FLECOQUI.StartupTask</MainPackageIdentityName>
     <ReservedNames>
-      <ReservedName>TestUWPStore</ReservedName>
+      <ReservedName>StartupTask</ReservedName>
     </ReservedNames>
   </ProductReservedInfo>
   <AccountPackageIdentityNames>
@@ -377,9 +377,10 @@
     <MainPackageIdentityName>52458FLECOQUI.TestInAppOperatorBilling</MainPackageIdentityName>
     <MainPackageIdentityName>52458FLECOQUI.TestTemplateApp</MainPackageIdentityName>
     <MainPackageIdentityName>52458FLECOQUI.TestUnmanaged</MainPackageIdentityName>
+    <MainPackageIdentityName>52458FLECOQUI.TestUWPStore</MainPackageIdentityName>
     <MainPackageIdentityName>52458FLECOQUI.UniversalVideoPlayer</MainPackageIdentityName>
     <MainPackageIdentityName>52458FLECOQUI.192363350C1B0</MainPackageIdentityName>
     <MainPackageIdentityName>52458FLECOQUI.Win8WP8iOSAndroid</MainPackageIdentityName>
   </AccountPackageIdentityNames>
-  <PackageInfoList LandingUrl="https://developer.microsoft.com/dashboard/Application?appId=9NBLGGH4N6XC" />
+  <PackageInfoList LandingUrl="https://developer.microsoft.com/dashboard/Application?appId=9NN1018ZWLG0" />
 </StoreAssociation>

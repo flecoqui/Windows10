@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10" IgnorableNamespaces="uap mp rescap desktop">
-  <Identity Name="52458FLECOQUI.StartupTask" Publisher="CN=0F2C9F5D-19D3-44D5-AC3F-64AB88C40609" Version="1.1.2.0" />
+  <Identity Name="52458FLECOQUI.StartupTask" Publisher="CN=0F2C9F5D-19D3-44D5-AC3F-64AB88C40609" Version="1.1.4.0" />
   <mp:PhoneIdentity PhoneProductId="a5a42b5a-a60f-4647-8f2d-fbdd2ca674ad" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>StartupTask</DisplayName>
