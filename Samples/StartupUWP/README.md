@@ -74,48 +74,25 @@ The publication of these packages on Windows Store will require a manual generat
 To generate the new appxupload file follow those steps:
 
 1. Select the project associated with the UWP Application, right-click on the project, select "Store" on the popup menu and "Create App package...":
-
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/createapppackages.png)
-
 2. Select "Yes (using a new name)" on the first "Create App Package" page 
-
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/storepackage.png)
-
 3. Create or Select the name of the new application 
-
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/appname.png)
-
 4. Select "Release" configuration and x86, x64 flavor and click on Create button
-
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/createapppackagespage.png)
-
 5. After few seconds, the packages are ready and click on the Output location link.
-
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/createapppackagespagecompleted.png)
-
 6. The File Explorer opens the folder which contains the new appxupload file and the folder ending with "_test" associated to the new pachage
-
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files1.png)
-
 Unfortunately, the appxbundle inside the new appxupload files contains the CoreCLR assemblies, not the .NET native ones.
 We need to create a new appxupload with .Net native. The appxbundle file inside the folder ending with "_test" does contains the .Net native assemblies.
-
 7. Navigate into the folder ending with "_test" 
-
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files2.png)
-
-7. Select the files appxbundle and appxsym and create a zip file with those files. 
-
+8. Select the files appxbundle and appxsym and create a zip file with those files. 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files3.png)
-
-8. Rename the new zip file (newpackages.zip) into appxupload file.
-
+9. Rename the new zip file (newpackages.zip) into appxupload file.
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files4.png)
-
-9. The new appxupload file can be uplaoded on the Windows Store to deploy your UWP Application.
-
+10. The new appxupload file can be uplaoded on the Windows Store to deploy your UWP Application.
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/StartupUWP/Docs/files5.png)
  
-
-
-
