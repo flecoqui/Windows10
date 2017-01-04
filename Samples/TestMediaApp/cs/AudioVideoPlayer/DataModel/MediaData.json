@@ -7,6 +7,22 @@
       "ImagePath": "ms-appx:///Assets/AudioVideo.png",
       "Description": "Windows 10 Universal Media Player Tests",
       "Items": [
+               {
+          "UniqueId": "ams_http_1",
+          "Comment": "#31",
+          "Title": "SMOOTH Azure Media Services",
+          "ImagePath": "ms-appx:///Assets/SMOOTH.png",
+          "Description": "SMOOTH AMS Video over HTTP 1",
+          "Content": "http://amssamples.streaming.mediaservices.windows.net/91492735-c523-432b-ba01-faba6c2206a2/AzureMediaServicesPromo.ism/manifest",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "HttpHeaders": "",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        },
+ 
         {
           "UniqueId": "video_wmv_http_1",
           "Comment": "#1",
@@ -224,21 +240,6 @@
           "ImagePath": "ms-appx:///Assets/SMOOTH.png",
           "Description": "SMOOTH Video over HTTP 2",
           "Content": "http://VMBasicA1.cloudapp.net/testISM2/test2.ism/manifest",
-          "PosterContent": "",
-          "Start": "0",
-          "Duration": "0",
-          "HttpHeaders": "",
-          "PlayReadyUrl": "",
-          "PlayReadyCustomData": "",
-          "BackgroundAudio": false
-        },
-        {
-          "UniqueId": "ams_http_1",
-          "Comment": "#31",
-          "Title": "SMOOTH Azure Media Services",
-          "ImagePath": "ms-appx:///Assets/SMOOTH.png",
-          "Description": "SMOOTH AMS Video over HTTP 1",
-          "Content": "http://amssamples.streaming.mediaservices.windows.net/91492735-c523-432b-ba01-faba6c2206a2/AzureMediaServicesPromo.ism/manifest",
           "PosterContent": "",
           "Start": "0",
           "Duration": "0",
