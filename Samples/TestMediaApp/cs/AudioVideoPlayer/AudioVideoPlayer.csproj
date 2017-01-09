@@ -104,6 +104,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="CommonLicenseRequest.cs" />
+    <Compile Include="Companion\CompanionClient.cs" />
     <Compile Include="DataModel\MediaDataSource.cs" />
     <Compile Include="Information\SystemInformation.cs" />
     <Compile Include="MainPage.xaml.cs">

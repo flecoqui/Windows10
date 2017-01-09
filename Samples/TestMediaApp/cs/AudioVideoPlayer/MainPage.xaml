@@ -110,6 +110,7 @@
                     <Button IsEnabled="False" Content="&#xE768;" x:Name="playPauseButton" ToolTipService.ToolTip="Pause the stream currently played by the MediaElement"  FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playPause_Click"/>
                     <Button IsEnabled="False" Content="&#xE769;" x:Name="pausePlayButton" ToolTipService.ToolTip="Resume the stream currently puased by the MediaElement"   FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="pausePlay_Click"/>
                     <Button IsEnabled="False" Content="&#xE71A;" x:Name="stopButton" ToolTipService.ToolTip="Stop the stream currently played by the MediaElement"   FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="stop_Click"/>
+                    <CheckBox VerticalAlignment="Center" x:Name="Remote" ToolTipService.ToolTip="Select automically the Companion mode server or client"   FlowDirection="RightToLeft" HorizontalAlignment="Stretch" Margin="-38,0,0,0" Content="Remote:" Canvas.ZIndex="-1"  />
                     <Image x:Name="streamLogo" Width="40" Height="40" VerticalAlignment="Center" Margin="1,1,1,1" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">

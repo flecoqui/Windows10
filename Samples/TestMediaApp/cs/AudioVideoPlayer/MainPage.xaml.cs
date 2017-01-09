@@ -28,6 +28,7 @@ using AudioVideoPlayer.DataModel;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
 using System.Reflection;
+using Companion;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -115,6 +116,14 @@ namespace AudioVideoPlayer
             this.InitializeComponent();
             LogMessage("Application MainPage Initialized");
         }
+        public async void SetPath(string path)
+        {
+            mediaUri.Text = "file://" + path;
+            if(AutoSkip.IsChecked == true)
+            {
+                await StartPlay(mediaUri.Text, mediaUri.Text, null, 0, 0);
+            }
+        }
         /// <summary>
         /// Invoked when this page is about to be displayed in a Frame.
         /// </summary>
@@ -153,19 +162,37 @@ namespace AudioVideoPlayer
             // Register UI components and events
             await RegisterUI();
 
+            // Register Companion
+            RegisterCompanion();
+            // Initialize the Companion mode (Remote or Player)
+            InitializeCompanionMode();
+
+
             // Load Data
-            if(string.IsNullOrEmpty(MediaDataSource.MediaDataPath))
+            if (string.IsNullOrEmpty(MediaDataSource.MediaDataPath))
             {
                 LogMessage("MainPage Loading Data...");
                 await LoadingData(string.Empty);
             }
 
-            // Update control and play first video
-            UpdateControls();
+            // Take into account the argument if file activated
+            var args = e.Parameter as Windows.ApplicationModel.Activation.IActivatedEventArgs;
+            if (args != null)
+            {
+                if (args.Kind == Windows.ApplicationModel.Activation.ActivationKind.File)
+                {
+                    var fileArgs = args as Windows.ApplicationModel.Activation.FileActivatedEventArgs;
+                    mediaUri.Text = "file://" + fileArgs.Files[0].Path;
+                }
+            }
 
             // Start to play the first asset
             if (bAutoSkip)
                 PlayCurrentUrl();
+
+            // Update control and play first video
+            UpdateControls();
+
 
             // Display OS, Device information
             LogMessage(Information.SystemInformation.GetString());
@@ -947,75 +974,108 @@ namespace AudioVideoPlayer
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
                  () =>
                  {
-
-                     if (comboStream.Items.Count > 0)
+                     if(Remote.IsChecked==true)
                      {
                          playButton.IsEnabled = true;
-
+                         playPauseButton.IsEnabled = true;
+                         pausePlayButton.IsEnabled = true;
+                         stopButton.IsEnabled = true;
 
                          minusButton.IsEnabled = true;
                          plusButton.IsEnabled = true;
+
                          muteButton.IsEnabled = true;
                          volumeDownButton.IsEnabled = true;
                          volumeUpButton.IsEnabled = true;
 
-                         playPauseButton.IsEnabled = false;
-                         pausePlayButton.IsEnabled = false;
-                         stopButton.IsEnabled = false;
+                         fullscreenButton.IsEnabled = true;
+                         fullwindowButton.IsEnabled = true;
+
+                         playlistButton.IsEnabled = false;
+                         comboStream.IsEnabled = false;
+                         mediaUri.IsEnabled = false;
+                         minBitrate.IsEnabled = false;
+                         maxBitrate.IsEnabled = false;
+                         AutoSkip.IsEnabled = false;
+                     }
+                     else
+                     {
+                         playlistButton.IsEnabled = true;
+                         comboStream.IsEnabled = true;
+                         mediaUri.IsEnabled = true;
+                         minBitrate.IsEnabled = true;
+                         maxBitrate.IsEnabled = true;
+                         AutoSkip.IsEnabled = true;
+
+                         if ((comboStream.Items.Count > 0)||(!string.IsNullOrEmpty(mediaUri.Text)))
+                         {
+                             playButton.IsEnabled = true;
 
 
-                         if (IsPicture(CurrentMediaUrl))
-                         {
-                             fullscreenButton.IsEnabled = true;
-                             fullwindowButton.IsEnabled = true;
-                         }
-                         else
-                         {
-                             if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Opening)
+                             minusButton.IsEnabled = true;
+                             plusButton.IsEnabled = true;
+                             muteButton.IsEnabled = true;
+                             volumeDownButton.IsEnabled = true;
+                             volumeUpButton.IsEnabled = true;
+
+                             playPauseButton.IsEnabled = false;
+                             pausePlayButton.IsEnabled = false;
+                             stopButton.IsEnabled = false;
+
+
+                             if (IsPicture(CurrentMediaUrl))
                              {
                                  fullscreenButton.IsEnabled = true;
                                  fullwindowButton.IsEnabled = true;
                              }
-                             else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
+                             else
                              {
-                                 if (string.Equals(mediaUri.Text, CurrentMediaUrl))
+                                 if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Opening)
                                  {
-                                     playPauseButton.IsEnabled = false;
-                                     pausePlayButton.IsEnabled = true;
+                                     fullscreenButton.IsEnabled = true;
+                                     fullwindowButton.IsEnabled = true;
+                                 }
+                                 else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
+                                 {
+                                     if (string.Equals(mediaUri.Text, CurrentMediaUrl))
+                                     {
+                                         playPauseButton.IsEnabled = false;
+                                         pausePlayButton.IsEnabled = true;
+                                         stopButton.IsEnabled = true;
+                                     }
+                                 }
+                                 else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
+                                 {
+                                     playPauseButton.IsEnabled = true;
                                      stopButton.IsEnabled = true;
                                  }
+                                 else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.None)
+                                 {
+                                     //   mediaPlayerElement.AreTransportControlsEnabled = false;
+                                     fullscreenButton.IsEnabled = false;
+                                     fullwindowButton.IsEnabled = false;
+                                 }
                              }
-                             else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
+                             // Volume buttons control
+                             if (mediaPlayer.IsMuted)
+                                 muteButton.Content = "\xE767";
+                             else
+                                 muteButton.Content = "\xE74F";
+                             if (mediaPlayer.Volume == 0)
                              {
-                                 playPauseButton.IsEnabled = true;
-                                 stopButton.IsEnabled = true;
+                                 volumeDownButton.IsEnabled = false;
+                                 volumeUpButton.IsEnabled = true;
                              }
-                             else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.None)
+                             else if (mediaPlayer.Volume >= 1)
                              {
-                              //   mediaPlayerElement.AreTransportControlsEnabled = false;
-                                 fullscreenButton.IsEnabled = false;
-                                 fullwindowButton.IsEnabled = false;
+                                 volumeDownButton.IsEnabled = true;
+                                 volumeUpButton.IsEnabled = false;
                              }
-                         }
-                         // Volume buttons control
-                         if (mediaPlayer.IsMuted)
-                             muteButton.Content = "\xE767";
-                         else
-                             muteButton.Content = "\xE74F";
-                         if (mediaPlayer.Volume == 0)
-                         {
-                             volumeDownButton.IsEnabled = false;
-                             volumeUpButton.IsEnabled = true;
-                         }
-                         else if (mediaPlayer.Volume >= 1)
-                         {
-                             volumeDownButton.IsEnabled = true;
-                             volumeUpButton.IsEnabled = false;
-                         }
-                         else
-                         {
-                             volumeDownButton.IsEnabled = true;
-                             volumeUpButton.IsEnabled = true;
+                             else
+                             {
+                                 volumeDownButton.IsEnabled = true;
+                                 volumeUpButton.IsEnabled = true;
+                             }
                          }
                      }
                  });
@@ -1026,6 +1086,11 @@ namespace AudioVideoPlayer
         /// </summary>
         private void play_Click(object sender, RoutedEventArgs e)
         {
+            if (Remote.IsChecked == true)
+            {
+                play_remote_Click(sender, e);
+                return;
+            }
             try
             {
                 PlayCurrentUrl();
@@ -1040,6 +1105,11 @@ namespace AudioVideoPlayer
         /// </summary>
         private void stop_Click(object sender, RoutedEventArgs e)
         {
+            if (Remote.IsChecked == true)
+            {
+                stop_remote_Click(sender, e);
+                return;
+            }
             try
             {
                 if ((!string.IsNullOrEmpty(CurrentMediaUrl)) &&
@@ -1061,6 +1131,11 @@ namespace AudioVideoPlayer
         /// </summary>
         private void playPause_Click(object sender, RoutedEventArgs e)
         {
+            if (Remote.IsChecked == true)
+            {
+                playpause_remote_Click(sender, e);
+                return;
+            }
             try
             {
                 if ((!string.IsNullOrEmpty(CurrentMediaUrl)) &&
@@ -1081,6 +1156,11 @@ namespace AudioVideoPlayer
         /// </summary>
         private void pausePlay_Click(object sender, RoutedEventArgs e)
         {
+            if (Remote.IsChecked == true)
+            {
+                pause_remote_Click(sender, e);
+                return;
+            }
             try
             {
                 if ((!string.IsNullOrEmpty(CurrentMediaUrl)) &&
@@ -1138,6 +1218,11 @@ namespace AudioVideoPlayer
         /// </summary>
         private void plus_Click(object sender, RoutedEventArgs e)
         {
+            if (Remote.IsChecked == true)
+            {
+                plus_remote_Click(sender, e);
+                return;
+            }
             try
             {
                 int Index = comboStream.SelectedIndex;
@@ -1165,6 +1250,11 @@ namespace AudioVideoPlayer
         /// </summary>
         private void minus_Click(object sender, RoutedEventArgs e)
         {
+            if (Remote.IsChecked == true)
+            {
+                minus_remote_Click(sender, e);
+                return;
+            }
             try
             {
                 int Index = comboStream.SelectedIndex;
@@ -1193,6 +1283,11 @@ namespace AudioVideoPlayer
         /// </summary>
         private void mute_Click(object sender, RoutedEventArgs e)
         {
+            if (Remote.IsChecked == true)
+            {
+                mute_remote_Click(sender, e);
+                return;
+            }
             LogMessage("Toggle Mute");
             mediaPlayer.IsMuted = !mediaPlayer.IsMuted;
             UpdateControls();
@@ -1202,6 +1297,11 @@ namespace AudioVideoPlayer
         /// </summary>
         private void volumeUp_Click(object sender, RoutedEventArgs e)
         {
+            if (Remote.IsChecked == true)
+            {
+                volumeUp_remote_Click(sender, e);
+                return;
+            }
             LogMessage("Volume Up");
             mediaPlayer.Volume = (mediaPlayer.Volume + 0.10 <= 1 ? mediaPlayer.Volume + 0.10 : 1) ;
             UpdateControls();
@@ -1211,6 +1311,11 @@ namespace AudioVideoPlayer
         /// </summary>
         private void volumeDown_Click(object sender, RoutedEventArgs e)
         {
+            if (Remote.IsChecked == true)
+            {
+                volumeDown_remote_Click(sender, e);
+                return;
+            }
             LogMessage("Volume Down");
             mediaPlayer.Volume = (mediaPlayer.Volume - 0.10 >= 0 ? mediaPlayer.Volume - 0.10 : 0);
             UpdateControls();
@@ -1327,6 +1432,11 @@ namespace AudioVideoPlayer
         /// </summary>
         private void fullscreen_Click(object sender, RoutedEventArgs e)
         {
+            if (Remote.IsChecked == true)
+            {
+                fullscreen_remote_Click(sender, e);
+                return;
+            }
             LogMessage("Switch to fullscreen");
             SetWindowMode(WindowMediaState.FullScreen);
         }
@@ -1458,6 +1568,12 @@ namespace AudioVideoPlayer
         /// </summary>
         private void fullwindow_Click(object sender, RoutedEventArgs e)
         {
+            if (Remote.IsChecked == true)
+            {
+                fullwindow_remote_Click(sender, e);
+                return;
+            }
+
             LogMessage("Switch to fullwindow");
             SetWindowMode(WindowMediaState.FullWindow);
         }
@@ -1752,6 +1868,14 @@ namespace AudioVideoPlayer
             {
                 await StartPlay(item.Title, mediaUri.Text, item.PosterContent, item.Start, item.Duration);
                 UpdateControls();
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(mediaUri.Text))
+                {
+                    await StartPlay(mediaUri.Text, mediaUri.Text, null, 0, 0);
+                    UpdateControls();
+                }
             }
         }
         /// <summary>
@@ -2895,6 +3019,395 @@ namespace AudioVideoPlayer
             await DisplayExternalStorage();
         }
         #endregion
+
+        #region Companion
+        private CompanionClient companion;
+
+        private void RegisterCompanion()
+        {
+            companion = new CompanionClient();
+            companion.MessageReceived += Companion_MessageReceived;
+            // Remote or Player
+            Remote.Checked += Remote_Checked;
+            Remote.Unchecked += Remote_Checked;
+
+        }
+        private void Remote_Checked(object sender, RoutedEventArgs e)
+        {
+            InitializeCompanionMode();
+            UpdateControls();
+        }
+        private void UnregisterCompanion()
+        {
+            if (companion != null)
+                companion.MessageReceived -= Companion_MessageReceived;
+        }
+
+        private void select_Click(object sender, RoutedEventArgs e, int newIndex)
+        {
+            try
+            {
+                if ((newIndex >= 0) && (newIndex < comboStream.Items.Count))
+                {
+                    int Index = comboStream.SelectedIndex;
+                    comboStream.SelectedIndex = newIndex;
+                    if (Index != newIndex)
+                    {
+                        MediaItem ms = comboStream.SelectedItem as MediaItem;
+                        mediaUri.Text = ms.Content;
+                        PlayCurrentUrl();
+                    }
+                }
+                /*
+                                LogMessage("Start to play: " + ms.Content);
+                                mediaElement.Source = new Uri(ms.Content);
+                                mediaElement.Play();
+                                */
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Failed to to play: " + mediaUri.Text + " Exception: " + ex.Message);
+            }
+        }
+
+        private async void Companion_MessageReceived(CompanionClient sender, string Command, Dictionary<string, string> Parameters)
+        {
+            if (Parameters == null)
+                LogMessage("Command Received: " + Command);
+            else
+            {
+                string parameter = string.Empty;
+                foreach (var v in Parameters)
+                {
+                    parameter += " " + v.Key + "=" + v.Value;
+                }
+                LogMessage("Command Received: " + Command + " Parameter: " + parameter);
+            }
+            switch (Command)
+            {
+                //https://testcertstorage.blob.core.windows.net/images/Radio.json
+                //https://testcertstorage.blob.core.windows.net/images/Photos.json
+                //https://testcertstorage.blob.core.windows.net/images/TVLive.json
+                //https://testcertstorage.blob.core.windows.net/images/Video.json
+                //https://testcertstorage.blob.core.windows.net/images/AudioVideoData.json
+
+                case CompanionClient.commandOpenPlaylist:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+                    {
+                        if ((Parameters != null) && (Parameters.ContainsKey(CompanionClient.parameterContent)))
+                        {
+                            string Path = Parameters[CompanionClient.parameterContent];
+                            if (Path != null)
+                            {
+                                await LoadingData(Path);
+                                MediaItem ms = comboStream.SelectedItem as MediaItem;
+                                mediaUri.Text = ms.Content;
+                                PlayCurrentUrl();
+                                // Update control and play first video
+                                UpdateControls();
+                            }
+                        }
+                    });
+                    break;
+                case CompanionClient.commandOpen:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, async () =>
+                    {
+                        if ((Parameters != null) && (Parameters.ContainsKey(CompanionClient.parameterContent)))
+                        {
+                            string path = Parameters[CompanionClient.parameterContent];
+                            if (path != null)
+                            {
+                                string value = string.Empty;
+                                Parameters.TryGetValue(CompanionClient.parameterPosterContent, out value);
+                                string poster = value;
+                                value = "0";
+                                Parameters.TryGetValue(CompanionClient.parameterStart, out value);
+                                long start = 0;
+                                long.TryParse(value, out start);
+                                Parameters.TryGetValue(CompanionClient.parameterDuration, out value);
+                                long duration = 0;
+                                long.TryParse(value, out duration);
+                                await StartPlay("", path, poster, start, duration);
+
+                                // Update control and play first video
+                                UpdateControls();
+                            }
+                        }
+                    });
+                    break;
+                case CompanionClient.commandPlay:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        play_Click(null, null);
+                    });
+                    break;
+                case CompanionClient.commandStop:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        stop_Click(null, null);
+                    });
+                    break;
+                case CompanionClient.commandPause:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        pausePlay_Click(null, null);
+                    });
+                    break;
+                case CompanionClient.commandPlayPause:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        playPause_Click(null, null);
+                    });
+                    break;
+                case CompanionClient.commandSelect:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        int newIndex = -1;
+                        if ((Parameters != null) &&
+                            (Parameters.ContainsKey(CompanionClient.parameterIndex)))
+                        {
+
+                            if (int.TryParse(Parameters[CompanionClient.parameterIndex], out newIndex))
+                                select_Click(null, null, newIndex);
+                        }
+                    });
+                    break;
+                case CompanionClient.commandPlus:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        plus_Click(null, null);
+                    });
+                    break;
+                case CompanionClient.commandMinus:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        minus_Click(null, null);
+                    });
+                    break;
+                case CompanionClient.commandFullWindow:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        if (IsFullWindow())
+                            SetWindowMode(WindowMediaState.WindowMode);
+                        else
+                            fullwindow_Click(null, null);
+                    });
+                    break;
+                case CompanionClient.commandFullScreen:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        if (IsFullScreen())
+                            SetWindowMode(WindowMediaState.WindowMode);
+                        else
+                            fullscreen_Click(null, null);
+                    });
+                    break;
+                case CompanionClient.commandWindow:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        if (mediaPlayerElement.IsFullWindow == true)
+                            mediaPlayerElement.IsFullWindow = false;
+                    });
+                    break;
+                case CompanionClient.commandMute:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        mute_Click(null, null);
+                    });
+                    break;
+                case CompanionClient.commandVolumeUp:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        volumeUp_Click(null, null);
+                    });
+                    break;
+                case CompanionClient.commandVolumeDown:
+                    await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        volumeDown_Click(null, null);
+                    });
+                    break;
+
+                default:
+                    LogMessage("Unknown Command");
+                    break;
+            }
+
+        }
+
+        private async void InitializeCompanionMode()
+        {
+            if (Remote.IsChecked == true)
+            {
+                // Show FullWindow on phone
+                if (Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
+                {
+                    // Show fullWindow button
+                    fullwindowButton.Visibility = Visibility.Visible;
+                }
+
+                companion.StopRecv();
+                bool result = await companion.InitializeSend();
+                if (result == true)
+                    LogMessage("Companion Initialize Send ok");
+               else
+                    LogMessage("Error Companion Initialize Send");
+
+            }
+            else
+            {
+                // Hide FullWindow on phone
+                if (Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
+                {
+                    // Hide fullWindow button
+                    fullwindowButton.Visibility = Visibility.Collapsed;
+                }
+                companion.StopSend();
+                bool result = await companion.InitializeRecv();
+                if (result == true)
+                    LogMessage("Companion Initialize Reception ok");
+                else
+                    LogMessage("Error Companion Initialize Reception");
+            }
+
+        }
+
+        //private async void open_remote_Click(object sender, RoutedEventArgs e)
+        //{
+        //    LogMessage("Open Media event, parameter: " + parameter.Text);
+        //    Dictionary<string, string> p = companion.GetParametersFromString(parameter.Text);
+        //    bool bResult = await companion.SendCommand(CompanionClient.commandOpen, p);
+        //    UpdateControls();
+        //}
+        //private async void openPlaylist_remote_Click(object sender, RoutedEventArgs e)
+        //{
+        //    LogMessage("Open Playlist event, parameter: " + parameter.Text);
+        //    Dictionary<string, string> p = companion.GetParametersFromString(parameter.Text);
+        //    bool bResult = await companion.SendCommand(CompanionClient.commandOpenPlaylist, p);
+        //    UpdateControls();
+        //}
+        //private async void select_remote_Click(object sender, RoutedEventArgs e)
+        //{
+
+        //    LogMessage("Select event, parameter: " + parameter.Text);
+        //    Dictionary<string, string> p = companion.GetParametersFromString(parameter.Text);
+        //    bool bResult = await companion.SendCommand(CompanionClient.commandSelect, p);
+        //    UpdateControls();
+
+        //}
+        private async void stop_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Stop event");
+            bool bResult = await companion.SendCommand(CompanionClient.commandStop, null);
+            UpdateControls();
+
+        }
+        private async void play_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Play event");
+            bool bResult = await companion.SendCommand(CompanionClient.commandPlay, null);
+            UpdateControls();
+
+        }
+        private async void playpause_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Playpause event");
+            bool bResult = await companion.SendCommand(CompanionClient.commandPlayPause, null);
+            UpdateControls();
+
+        }
+        private async void pause_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Pause event");
+            bool bResult = await companion.SendCommand(CompanionClient.commandPause, null);
+            UpdateControls();
+
+
+        }
+        private async void plus_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Plus event");
+            bool bResult = await companion.SendCommand(CompanionClient.commandPlus, null);
+            UpdateControls();
+
+        }
+        private async void minus_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Minus event");
+            bool bResult = await companion.SendCommand(CompanionClient.commandMinus, null);
+            UpdateControls();
+        }
+        private async void fullscreen_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Fullscreen event");
+            bool bResult = await companion.SendCommand(CompanionClient.commandFullScreen, null);
+            UpdateControls();
+
+        }
+        private async void fullwindow_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Fullwindow event");
+            bool bResult = await companion.SendCommand(CompanionClient.commandFullWindow, null);
+            UpdateControls();
+        }
+        private async void window_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("window event");
+            bool bResult = await companion.SendCommand(CompanionClient.commandWindow, null);
+            UpdateControls();
+        }
+        private async void mute_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Mute event");
+            bool bResult = await companion.SendCommand(CompanionClient.commandMute, null);
+            UpdateControls();
+        }
+        private async void volumeUp_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Volume Up event ");
+            bool bResult = await companion.SendCommand(CompanionClient.commandVolumeUp, null);
+            UpdateControls();
+
+        }
+        private async void volumeDown_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Volume Down event ");
+            bool bResult = await companion.SendCommand(CompanionClient.commandVolumeDown, null);
+            UpdateControls();
+        }
+        private async void down_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Down event ");
+            bool bResult = await companion.SendCommand(CompanionClient.commandDown, null);
+            UpdateControls();
+        }
+        private async void up_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Up event ");
+            bool bResult = await companion.SendCommand(CompanionClient.commandUp, null);
+            UpdateControls();
+        }
+        private async void left_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Left event ");
+            bool bResult = await companion.SendCommand(CompanionClient.commandLeft, null);
+            UpdateControls();
+        }
+        private async void right_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Right event ");
+            bool bResult = await companion.SendCommand(CompanionClient.commandRight, null);
+            UpdateControls();
+        }
+        private async void enter_remote_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Enter event ");
+            bool bResult = await companion.SendCommand(CompanionClient.commandEnter, null);
+            UpdateControls();
+        }
+
+        #endregion
+
     }
 
 }

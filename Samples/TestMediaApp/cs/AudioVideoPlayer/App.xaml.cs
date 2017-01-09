@@ -75,6 +75,7 @@ namespace AudioVideoPlayer
                 if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
                 {
                     //TODO: Load state from previously suspended application
+
                 }
 
                 // Place the frame in the current Window
@@ -115,8 +116,66 @@ namespace AudioVideoPlayer
             //TODO: Save application state and stop any background activity
             deferral.Complete();
         }
+        protected override  void OnFileActivated(FileActivatedEventArgs args)
+        {
+            Frame rootFrame = Window.Current.Content as Frame;
+            // Do not repeat app initialization when the Window already has content, 
+            // just ensure that the window is active 
+            if (rootFrame == null)
+            {
+                // Create a Frame to act as the navigation context and navigate to the first page 
+                rootFrame = new Frame();
+                // Associate the frame with a SuspensionManager key 
+                if (args.PreviousExecutionState == ApplicationExecutionState.Terminated)
+                {
+                }
 
+                // Place the frame in the current Window 
+                Window.Current.Content = rootFrame;
+            }
 
+            if (rootFrame.Content == null)
+            {
+                if (!rootFrame.Navigate(typeof(MainPage)))
+                {
+                    throw new Exception("Failed to create initial page");
+                }
+            }
+
+            var p = rootFrame.Content as MainPage;
+            if (p != null)
+            {
+                var f = args.Files.FirstOrDefault();
+                p.SetPath(f.Path);
+            }
+            // Ensure the current window is active 
+            Window.Current.Activate();
+        }
+        /*
+        protected  override void OnActivated(IActivatedEventArgs args)
+        {
+            base.OnActivated(args);
+            if (Window.Current.Content == null)
+            {
+                OnLaunched(null);
+            }
+
+            switch (args.Kind)
+            {
+                case ActivationKind.Protocol:
+                    OnLaunched(null);
+                    break;
+                case ActivationKind.VoiceCommand:
+                    OnLaunched(null);
+                    break;
+                case ActivationKind.ToastNotification:
+                    OnLaunched(null);
+                    break;
+            }
+
+        }
+
+    */
 
         #region RS1
         /// <summary>
