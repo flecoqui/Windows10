@@ -1825,6 +1825,21 @@ namespace AudioVideoPlayer
             return result;
         }
         /// <summary>
+        /// This method checks if the url is a redirect url of http url
+        /// </summary>
+        private bool IsRedirectUri(string url)
+        {
+            bool result = false;
+            if (!string.IsNullOrEmpty(url))
+            {
+                if ((url.ToLower().StartsWith("redirect://")) )
+                {
+                    result = true;
+                }
+            }
+            return result;
+        }
+        /// <summary>
         /// This method checks if the url is a SMOOTH, HLS or DASH url
         /// </summary>
         private bool IsAdaptiveStreaming(string url)
@@ -2162,7 +2177,50 @@ namespace AudioVideoPlayer
             }
             return file;
         }
+        /// <summary>
+        /// GetRemoteContent
+        /// Downloads the remote content from content uri asynchronously.
+        /// </summary>
+        /// <param name="content">Uri Specifies whether to force a new download and avoid cached results.</param>
+        /// <param name="forceNewDownload">Specifies whether to force a new download and avoid cached results.</param>
+        /// <returns>A byte array</returns>
+        public async System.Threading.Tasks.Task<string> GetRemoteContent(string content, bool forceNewDownload)
+        {
+            string result = string.Empty;
+            Uri contentUri = null;
+            try
+            {
+                contentUri = new Uri(content);
+            }
+            catch(Exception ex)
+            {
+                LogMessage("Exception while creating uri for: " + content  + " exception: " + ex.Message);
 
+            }
+            LogMessage("Get Remote content from: " + contentUri.ToString());
+
+            var client = new Windows.Web.Http.HttpClient();
+            try
+            {
+                if (forceNewDownload)
+                {
+                    string modifier = contentUri.AbsoluteUri.Contains("?") ? "&" : "?";
+                    string newUriString = string.Concat(contentUri.AbsoluteUri, modifier, "ignore=", Guid.NewGuid());
+                    contentUri = new Uri(newUriString);
+                }
+                SetHttpHeaders(httpHeaders, client.DefaultRequestHeaders);
+                Windows.Web.Http.HttpResponseMessage response = await client.GetAsync(contentUri, Windows.Web.Http.HttpCompletionOption.ResponseContentRead);
+
+                response.EnsureSuccessStatusCode();
+                result = await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("Exception: " + e.Message);
+            }
+
+            return result;
+        }
         /// <summary>
         /// SetAudioVideoUrl
         /// Prepare the MediaElement to play audio or video content 
@@ -2173,6 +2231,17 @@ namespace AudioVideoPlayer
         {
             try
             {
+                if (IsRedirectUri(Content))
+                {
+                    string localuri = Content.Replace("redirect://", "");
+                    string newContent  = await GetRemoteContent(localuri,true);
+                    if (!string.IsNullOrEmpty(newContent) && Uri.IsWellFormedUriString(newContent, UriKind.Absolute))
+                    {
+                        Content = newContent;
+                    }
+                    else
+                        return false;
+                }
                 if (IsLocalFile(Content))
                 {
                     Windows.Storage.StorageFile file = await GetFileFromLocalPathUrl(Content);
@@ -2237,7 +2306,10 @@ namespace AudioVideoPlayer
                     // If SMOOTH stream
                     if (IsSmoothStreaming(Content))
                     {
+                     //   string modifier = Content.Contains("?") ? "&" : "?";
+                     //   string newUriString = string.Concat(Content, modifier, "ignore=", Guid.NewGuid());
                         mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(Content));
+                        
                         return true;
                     }
                     else
