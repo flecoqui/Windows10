@@ -1037,12 +1037,12 @@ namespace AudioVideoPlayer
                                  }
                                  else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
                                  {
-                                     if (string.Equals(mediaUri.Text, CurrentMediaUrl))
-                                     {
+                                     //if (string.Equals(mediaUri.Text, CurrentMediaUrl))
+                                     //{
                                          playPauseButton.IsEnabled = false;
                                          pausePlayButton.IsEnabled = true;
                                          stopButton.IsEnabled = true;
-                                     }
+                                     //}
                                  }
                                  else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
                                  {
@@ -1969,21 +1969,43 @@ namespace AudioVideoPlayer
                     {
                         
                         // Load the bitmap image over http
-                        Windows.Web.Http.HttpClient httpClient = new Windows.Web.Http.HttpClient();
-                        Windows.Storage.Streams.InMemoryRandomAccessStream ras = new Windows.Storage.Streams.InMemoryRandomAccessStream();
-                        using (var stream = await httpClient.GetInputStreamAsync(new Uri(PosterUrl)))
+                        //Windows.Web.Http.HttpClient httpClient = new Windows.Web.Http.HttpClient();
+                        //Windows.Storage.Streams.InMemoryRandomAccessStream ras = new Windows.Storage.Streams.InMemoryRandomAccessStream();
+                        //using (var stream = await httpClient.GetInputStreamAsync(new Uri(PosterUrl)))
+                        //{
+                        //    if (stream != null)
+                        //    {
+                        //        await stream.AsStreamForRead().CopyToAsync(ras.AsStreamForWrite());
+                        //        ras.Seek(0);
+                        //        var b = new Windows.UI.Xaml.Media.Imaging.BitmapImage();
+                        //        if (b != null)
+                        //        {
+                        //            await b.SetSourceAsync(ras);
+                        //            SetPictureSource(b);
+                        //            SetPictureElementSize();
+                        //            return true;
+                        //        }
+                        //    }
+                        //}
+
+                        using (var client = new Windows.Web.Http.HttpClient())
                         {
-                            if (stream != null)
+                            
+                            var response = await client.GetAsync(new Uri(PosterUrl));
+                            var b = new Windows.UI.Xaml.Media.Imaging.BitmapImage();
+                            if (response != null && response.StatusCode == Windows.Web.Http.HttpStatusCode.Ok)
                             {
-                                await stream.AsStreamForRead().CopyToAsync(ras.AsStreamForWrite());
-                                ras.Seek(0);
-                                var b = new Windows.UI.Xaml.Media.Imaging.BitmapImage();
-                                if (b != null)
+                                using (var stream = await response.Content.ReadAsInputStreamAsync())
                                 {
-                                    await b.SetSourceAsync(ras);
-                                    SetPictureSource(b);
-                                    SetPictureElementSize();
-                                    return true;
+                                    using (var memStream = new MemoryStream())
+                                    {
+                                        await stream.AsStreamForRead().CopyToAsync(memStream);
+                                        memStream.Position = 0;
+                                        b.SetSource(memStream.AsRandomAccessStream());
+                                        SetPictureSource(b);
+                                        SetPictureElementSize();
+                                        return true;
+                                    }
                                 }
                             }
                         }
