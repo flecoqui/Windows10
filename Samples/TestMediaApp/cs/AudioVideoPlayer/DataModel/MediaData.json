@@ -7,7 +7,7 @@
       "ImagePath": "ms-appx:///Assets/AudioVideo.png",
       "Description": "Windows 10 Universal Media Player Tests",
       "Items": [
-               {
+        {
           "UniqueId": "ams_http_1",
           "Comment": "#31",
           "Title": "SMOOTH Azure Media Services",
@@ -22,7 +22,106 @@
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
         },
- 
+        {
+          "UniqueId": "ams_http_2",
+          "Comment": "#32",
+          "Title": "Live SMOOTH STREAMING PlayReady",
+          "ImagePath": "ms-appx:///Assets/SMOOTH.png",
+          "Description": "Live SMOOTH Video PlayReady over HTTP 1",
+          "Content": "http://b028.wpc.azureedge.net/80B028/SampleStream/3f6088ec-9e1f-4db7-b7d9-3ec07183ce7d/e405bd0a-a34f-40e2-b70b-4322c46f5cb7.ism/manifest",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "HttpHeaders": "",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        },
+        {
+          "UniqueId": "video_dash_http_1",
+          "Comment": "#1",
+          "Title": "Unified Streaming DASH PlayReady",
+          "ImagePath": "ms-appx:///Assets/DASH.png",
+          "Description": "Unified Streaming DASH Video PlayReady over HTTP",
+          "Content": "http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-dash-playready.ism/.mpd",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "PlayReadyUrl": "http://playready.directtaps.net/pr/svc/rightsmanager.asmx?PlayRight=1&UseSimpleNonPersistentLicense=1",
+          "PlayReadyCustomData": "null",
+          "BackgroundAudio": false
+        },
+        {
+          "UniqueId": "azure_video_dash_http_1",
+          "Comment": "#1",
+          "Title": "Unified Streaming DASH from Azure Storage",
+          "ImagePath": "ms-appx:///Assets/DASH.png",
+          "Description": "Unified Streaming DASH Video from Azure Storage",
+          "Content": "http://demo.unified-streaming.com/usp-azure-storage/tears-of-steel/tears-of-steel.ism/.mpd",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "null",
+          "BackgroundAudio": false
+        },
+        {
+          "UniqueId": "video_smooth_http_1",
+          "Comment": "#2",
+          "Title": "Unified Streaming SMOOTH PlayReady",
+          "ImagePath": "ms-appx:///Assets/SMOOTH.png",
+          "Description": "Unified Streaming SMOOTH Video PlayReady over HTTP",
+          "Content": "http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-smooth-playready.ism/Manifest",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "PlayReadyUrl": "http://playready.directtaps.net/pr/svc/rightsmanager.asmx?PlayRight=1&UseSimpleNonPersistentLicense=1",
+          "PlayReadyCustomData": "null",
+          "BackgroundAudio": false
+        },
+        {
+          "UniqueId": "azure_video_smooth_http_1",
+          "Comment": "#2",
+          "Title": "Unified Streaming SMOOTH from Azure Storage",
+          "ImagePath": "ms-appx:///Assets/SMOOTH.png",
+          "Description": "Unified Streaming SMOOTH Video from Azure Storage",
+          "Content": "http://demo.unified-streaming.com/usp-azure-storage/tears-of-steel-smooth.ism/Manifest",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "null",
+          "BackgroundAudio": false
+        },
+        {
+          "UniqueId": "video_hls_http_1",
+          "Comment": "#1",
+          "Title": "Unified Streaming HLS AES",
+          "ImagePath": "ms-appx:///Assets/HLS.png",
+          "Description": "Unified Streaming HLS Video AES over HTTP",
+          "Content": "http://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-pr-transdrm-aes128.ism/.m3u8",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "null",
+          "BackgroundAudio": false
+        },
+        {
+          "UniqueId": "azure_video_hls_http_1",
+          "Comment": "#1",
+          "Title": "Unified Streaming HLS from Azure Storage",
+          "ImagePath": "ms-appx:///Assets/HLS.png",
+          "Description": "Unified Streaming HLS Video from Azure Storage",
+          "Content": "http://demo.unified-streaming.com/usp-azure-storage/tears-of-steel/tears-of-steel.ism/.m3u8",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "null",
+          "BackgroundAudio": false
+        },
+
         {
           "UniqueId": "video_wmv_http_1",
           "Comment": "#1",
@@ -96,7 +195,7 @@
           "PlayReadyUrl": "",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
-        },        
+        },
         {
           "UniqueId": "video_hevc_http_2",
           "Comment": "#42",
@@ -111,7 +210,7 @@
           "PlayReadyUrl": "",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
-        },        
+        },
         {
           "UniqueId": "video_hevc_http_3",
           "Comment": "#43",
@@ -126,8 +225,8 @@
           "PlayReadyUrl": "",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
-        },        
- 
+        },
+
         {
           "UniqueId": "video_ts_http_1",
           "Comment": "#21",
@@ -274,7 +373,7 @@
           "Start": "0",
           "Duration": "0",
           "HttpHeaders": "",
-          "PlayReadyUrl": " http://playready.directtaps.net/pr/svc/rightsmanager.asmx?PlayRight=1&FirstPlayExpiration=600",
+          "PlayReadyUrl": "http://playready.directtaps.net/pr/svc/rightsmanager.asmx?PlayRight=1&FirstPlayExpiration=600",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
         },
@@ -414,6 +513,6 @@
           "BackgroundAudio": false
         }
       ]
-    }
-  ]
+        }
+      ]
 }
