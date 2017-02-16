@@ -95,12 +95,13 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CustomAudioStream.cs" />
+    <Compile Include="SpeechToTextClient.cs" />
+    <Compile Include="SpeechToTextStream.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Result.cs" />
+    <Compile Include="SpeechToTextResponse.cs" />
     <Compile Include="SystemInformation.cs" />
   </ItemGroup>
   <ItemGroup>

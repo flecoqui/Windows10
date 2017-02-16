@@ -19,7 +19,7 @@ using Windows.Data.Json;
 
 namespace TestSpeechToTextCognitiveServicesUWP
 {
-    class Confidence
+    class SpeechToTextConfidence
     {
         private const string HIGHCONFKey = "HIGHCONF";
         private const string MIDCONFKey = "MIDCONF";
@@ -30,14 +30,14 @@ namespace TestSpeechToTextCognitiveServicesUWP
         private int MIDCONF;
         private int LOWCONF;
         private string requestid;
-        public Confidence()
+        public SpeechToTextConfidence()
         {
             HIGHCONF = 0;
             MIDCONF = 0;
             LOWCONF = 0;
             requestid = string.Empty;
         }
-        public Confidence(JsonObject jsonObject)
+        public SpeechToTextConfidence(JsonObject jsonObject)
         {
             HIGHCONF = 0;
             MIDCONF = 0;
@@ -49,7 +49,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             requestid = jsonObject.GetNamedString(requestidKey, "") ;
         }
     }
-    class Result
+    class SpeechToTextResult
     {
         //{
         //\"scenario\":\"catsearch\",
@@ -68,18 +68,18 @@ namespace TestSpeechToTextCognitiveServicesUWP
         private string name;
         private string lexical;
         private double confidence;
-        private Confidence properties;
+        private SpeechToTextConfidence properties;
 
-        public Result()
+        public SpeechToTextResult()
         {
             scenario = "";
             name = "";
             lexical = "";
             confidence = 0;
-            properties = new Confidence();
+            properties = new SpeechToTextConfidence();
         }
 
-        public Result(JsonObject jsonObject)
+        public SpeechToTextResult(JsonObject jsonObject)
         {
             scenario = jsonObject.GetNamedString(scenarioKey, "");
             name = jsonObject.GetNamedString(nameKey, "");
@@ -89,10 +89,10 @@ namespace TestSpeechToTextCognitiveServicesUWP
             double.TryParse(s, out confidence);
             JsonObject propertiesObject = jsonObject.GetNamedObject(propertiesKey, null);
             if (propertiesObject != null)
-                properties = new Confidence(propertiesObject);
+                properties = new SpeechToTextConfidence(propertiesObject);
         }
     }
-    class Header
+    class SpeechToTextHeader
     {
         //{
         //\"scenario\":\"catsearch\",
@@ -119,18 +119,18 @@ namespace TestSpeechToTextCognitiveServicesUWP
         private string scenario;
         private string name;
         private string lexical;
-        private Confidence properties;
+        private SpeechToTextConfidence properties;
 
-        public Header()
+        public SpeechToTextHeader()
         {
             status = "";
             scenario = "";
             name = "";
             lexical = "";
-            properties = new Confidence();
+            properties = new SpeechToTextConfidence();
         }
 
-        public Header(JsonObject jsonObject)
+        public SpeechToTextHeader(JsonObject jsonObject)
         {
             status = jsonObject.GetNamedString(statusKey, "");
             scenario = jsonObject.GetNamedString(scenarioKey, "");
@@ -138,7 +138,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             lexical = jsonObject.GetNamedString(lexicalKey, "");
             JsonObject propertiesObject = jsonObject.GetNamedObject(propertiesKey, null);
             if (propertiesObject != null)
-                properties = new Confidence(propertiesObject);
+                properties = new SpeechToTextConfidence(propertiesObject);
         }
         public string Result()
         {
@@ -150,7 +150,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
         }
     }
 
-    public class Response
+    public class SpeechToTextResponse
     {
         //{\"version\":\"3.0\",
         //\"header\":{\"status\":\"success\",\"scenario\":\"catsearch\",\"name\":\"bing what's the weather like\",\"lexical\":\"bing what's the weather like\",
@@ -171,37 +171,37 @@ namespace TestSpeechToTextCognitiveServicesUWP
         private const string resultsKey = "results";
 
         private string version;
-        private Header header;
-        private ObservableCollection<Result> results;
+        private SpeechToTextHeader header;
+        private ObservableCollection<SpeechToTextResult> results;
         private string displayString;
         public override string ToString()
         {
             return displayString;
         }
 
-        public Response()
+        public SpeechToTextResponse()
         {
             version = "3.0";
             header = null;
-            results = new ObservableCollection<Result>();
+            results = new ObservableCollection<SpeechToTextResult>();
         }
 
-        public Response(string jsonString)
+        public SpeechToTextResponse(string jsonString)
         {
             JsonObject jsonObject = JsonObject.Parse(jsonString);
             Newtonsoft.Json.Linq.JObject obj = Newtonsoft.Json.Linq.JObject.Parse(jsonString);
             displayString = obj.ToString();
             version = jsonObject.GetNamedString(versionKey, "");
-            header = new Header (jsonObject.GetNamedObject(headerKey, null));
+            header = new SpeechToTextHeader(jsonObject.GetNamedObject(headerKey, null));
 
-            results = new ObservableCollection<Result>();
+            results = new ObservableCollection<SpeechToTextResult>();
             if (results != null)
             {
                 foreach (IJsonValue jsonValue in jsonObject.GetNamedArray(resultsKey, new JsonArray()))
                 {
                     if (jsonValue.ValueType == JsonValueType.Object)
                     {
-                        results.Add(new Result(jsonValue.GetObject()));
+                        results.Add(new SpeechToTextResult(jsonValue.GetObject()));
                     }
                 }
             }

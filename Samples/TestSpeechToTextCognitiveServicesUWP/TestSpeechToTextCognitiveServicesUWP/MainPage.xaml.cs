@@ -1,18 +1,24 @@
-﻿using System;
+﻿//*********************************************************
+//
+// Copyright (c) Microsoft. All rights reserved.
+// This code is licensed under the MIT License (MIT).
+// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
+// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
+// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
+// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
+//
+//*********************************************************
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using TestSpeechToTextCognitiveServicesUWP.Information;
 using Windows.UI.ViewManagement;
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -24,33 +30,22 @@ namespace TestSpeechToTextCognitiveServicesUWP
     public sealed partial class MainPage : Page
     {
         Windows.Media.Playback.MediaPlayer mediaPlayer;
-        string[] ArrayLanguage = 
+        string[] LanguageArray = 
             {"ca-ES","de-DE","zh-TW", "zh-HK","ru-RU","es-ES", "ja-JP","ar-EG", "da-DK","en-AU" ,"en-CA","en-GB" ,"en-IN", "en-US" , "en-NZ","es-MX","fi-FI",
               "fr-FR","fr-CA" ,"it-IT","ko-KR" , "nb-NO","nl-NL","pt-BR" ,"pt-PT"  ,             
               "pl-PL"  ,"sv-SE", "zh-CN"  };
-        private string GetSavedSubscriptionKey()
+        public MainPage()
         {
-            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            Object value = localSettings.Values["subscriptionKey"];
-            string s = string.Empty;
-            if (value != null)
-                s = (string)value;
-            return s;
+            this.InitializeComponent();
         }
-        private void SaveSubscriptionKey(string ID)
-        {
-            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            localSettings.Values["subscriptionKey"] = ID;
-        }
+
         /// <summary>
         /// Invoked when this page is about to be displayed in a Frame.
         /// </summary>
         /// <param name="e">Event data that describes how this page was reached.
         /// This parameter is typically used to configure the page.</param>
-        protected async override void OnNavigatedTo(NavigationEventArgs e)
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            // TODO: Prepare page for display here.
-
             // TODO: If your application contains multiple pages, ensure that you are
             // handling the hardware Back button by registering for the
             // Windows.Phone.UI.Input.HardwareButtons.BackPressed event.
@@ -74,7 +69,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
 
             language.Items.Clear();
-            foreach(var l in ArrayLanguage)
+            foreach(var l in LanguageArray)
                 language.Items.Add(l);
             language.SelectedItem = "en-US";
 
@@ -89,11 +84,25 @@ namespace TestSpeechToTextCognitiveServicesUWP
             LogMessage(Information.SystemInformation.GetString());
 
         }
-
-
+#region Settings
+        private string GetSavedSubscriptionKey()
+        {
+            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            Object value = localSettings.Values["subscriptionKey"];
+            string s = string.Empty;
+            if (value != null)
+                s = (string)value;
+            return s;
+        }
+        private void SaveSubscriptionKey(string ID)
+        {
+            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            localSettings.Values["subscriptionKey"] = ID;
+        }
+#endregion Settings
 
         public async System.Threading.Tasks.Task<string> GetToken(string authUrl, string subscriptionKey)
-    {
+        {
         try
         {
                 Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
@@ -131,94 +140,8 @@ namespace TestSpeechToTextCognitiveServicesUWP
         }
         return string.Empty;
     }
-    public async System.Threading.Tasks.Task<string> SpeechToText(string token, string wavFile, string locale)
-    {
 
-        //            POST / recognize ? scenarios = catsearch & appid = f84e364c - ec34 - 4773 - a783 - 73707bd9a585 & locale = en - US & device.os = wp7 & version = 3.0 & format = xml & requestid = 1d4b6030 - 9099 - 11e0 - 91e4 - 0800200c9a66 & instanceid = 1d4b6030 - 9099 - 11e0 - 91e4 - 0800200c9a66 HTTP/ 1.1
-        //Host: speech.platform.bing.com
-        //Content - Type: audio / wav; samplerate = 16000
-        //Authorization: Bearer[Base64 access_token]
-        try
-        {
-            string os = "Windows";
-            string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
-            string speechUrl = "https://speech.platform.bing.com/recognize?scenarios=catsearch&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=4";
-            Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
-
-            hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", token);
-            hc.DefaultRequestHeaders.TryAppendWithoutValidation("ContentType", "audio/wav; samplerate=16000");
-                Windows.Web.Http.HttpResponseMessage hrm = null;
-                Windows.Web.Http.HttpStreamContent content;
-                Windows.Storage.StorageFile file = await Windows.Storage.StorageFile.GetFileFromPathAsync(wavFile);
-                if (file != null)
-                {
-//                    System.IO.FileStream fileStream = new System.IO.FileStream(wavFile, System.IO.FileMode.Open, System.IO.FileAccess.Read);
-                    using (var fileStream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read))
-                    {
-                        //                        content = new Windows.Web.Http.HttpStreamContent(fileStream.AsStream().AsInputStream());
-                        //AudioStream.
-                        AudioStream = CustomAudioStream.Create(50000,0);
-                        byte[] byteArray = new byte[fileStream.Size];
-                        fileStream.ReadAsync(byteArray.AsBuffer(), (uint)fileStream.Size, Windows.Storage.Streams.InputStreamOptions.Partial).AsTask().Wait() ;
-                        AudioStream.WriteAsync(byteArray.AsBuffer()).AsTask().Wait();
-                        
-                        content = new Windows.Web.Http.HttpStreamContent(AudioStream.AsStream().AsInputStream());
-                        hrm = await hc.PostAsync(new Uri(speechUrl), content);
-                    }
-                }
-
-                
-//            Windows.Web.Http.HttpContent content = new Windows.Web.Http.StreamContent(fileStream);
-//            Windows.Web.Http.HttpResponseMessage hrm = await hc.PostAsync(new Uri(speechUrl), content);
-            if (hrm != null)
-            {
-                switch (hrm.StatusCode)
-                {
-                    case Windows.Web.Http.HttpStatusCode.Ok:
-                        //IEnumerable<string> result;
-                            var b = await hrm.Content.ReadAsBufferAsync();
-                            string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
-                            if (!string.IsNullOrEmpty(result))
-
-
-                            //                            {\"version\":\"3.0\",
-                            //\"header\":{\"status\":\"success\",\"scenario\":\"catsearch\",\"name\":\"bing what's the weather like\",\"lexical\":\"bing what's the weather like\",
-                            //          \"properties\":
-                            //               {\"requestid\":\"dd2f0028-b001-4d23-94e3-24fd6521da35\",\"HIGHCONF\":\"1\"}
-                            //           },
-                            //\"results\":
-                            //[{
-                            //\"scenario\":\"catsearch\",
-                            //\"name\":\"bing what's the weather like\",
-                            //\"lexical\":\"bing what's the weather like\",
-                            //\"confidence\":\"0.879686\",
-                            //\"properties\":{\"HIGHCONF\":\"1\"}
-                            //}]
-                            //}
-                            //     
-
-                 //           "{\"version\":\"3.0\",\"header\":{\"status\":\"success\",\"scenario\":\"catsearch\",\"name\":\"bing what's the weather like\",\"lexical\":\"bing what's the weather like\",\"properties\":{\"requestid\":\"f99c9963-ec5f-4168-bcd2-e4e18ebe5113\",\"HIGHCONF\":\"1\"}},\"results\":[{\"scenario\":\"catsearch\",\"name\":\"bing what's the weather like\",\"lexical\":\"bing what's the weather like\",\"confidence\":\"0.879686\",\"properties\":{\"HIGHCONF\":\"1\"}}]}""
-                            //                            if (hrm.Headers.TryGetValues("Authorization",out result)==true)
-                            {
-                            //   Newtonsoft.Json.Linq.JObject obj = Newtonsoft.Json.Linq.JObject.Parse(result);
-                            string base64Token = "toto";
-                            return base64Token;
-
-                        }
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-        }
-        catch (Exception e)
-        {
-        }
-        return string.Empty;
-    }
-
-        public async System.Threading.Tasks.Task<Response> StreamSpeechToText(string token, CustomAudioStream stream , string locale)
+        public async System.Threading.Tasks.Task<SpeechToTextResponse> StreamSpeechToText(string token, SpeechToTextStream stream , string locale)
         {
 
             try
@@ -253,7 +176,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
                             string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
                             if (!string.IsNullOrEmpty(result))
                             {
-                                Response r = new Response(result);
+                                SpeechToTextResponse r = new SpeechToTextResponse(result);
                                 return r;
                             }
                             break;
@@ -282,7 +205,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             //LogMessage("Http progress: " + progress.Stage.ToString() + " " + progress.BytesSent.ToString() + "/" + progress.TotalBytesToSend.ToString());
         }
 
-        public async System.Threading.Tasks.Task<Response> StorageFileSpeechToText(string token, Windows.Storage.StorageFile wavFile, string locale)
+        public async System.Threading.Tasks.Task<SpeechToTextResponse> StorageFileSpeechToText(string token, Windows.Storage.StorageFile wavFile, string locale)
         {
 
             //            POST / recognize ? scenarios = catsearch & appid = f84e364c - ec34 - 4773 - a783 - 73707bd9a585 & locale = en - US & device.os = wp7 & version = 3.0 & format = xml & requestid = 1d4b6030 - 9099 - 11e0 - 91e4 - 0800200c9a66 & instanceid = 1d4b6030 - 9099 - 11e0 - 91e4 - 0800200c9a66 HTTP/ 1.1
@@ -306,7 +229,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
                     //                    System.IO.FileStream fileStream = new System.IO.FileStream(wavFile, System.IO.FileMode.Open, System.IO.FileAccess.Read);
                     using (var fileStream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read))
                     {
-                        AudioStream = CustomAudioStream.Create();
+                        AudioStream = SpeechToTextStream.Create();
                         byte[] byteArray = new byte[fileStream.Size];
                         fileStream.ReadAsync(byteArray.AsBuffer(), (uint)fileStream.Size, Windows.Storage.Streams.InputStreamOptions.Partial).AsTask().Wait();
                         AudioStream.WriteAsync(byteArray.AsBuffer()).AsTask().Wait();
@@ -354,7 +277,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
                             //                            if (hrm.Headers.TryGetValues("Authorization",out result)==true)
                             {
                                 //dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
-                                Response r = new Response(result);                                
+                                SpeechToTextResponse r = new SpeechToTextResponse(result);                                
                                 return r;
                                 //Newtonsoft.Json.Linq.JObject obj = Newtonsoft.Json.Linq.JObject.Parse(result);
                                 //System.Diagnostics.Debug.WriteLine("Result: " + obj.ToString());
@@ -386,10 +309,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             }
             return null;
         }
-        public MainPage()
-        {
-            this.InitializeComponent();
-        }
+
 
 
 
@@ -571,7 +491,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
                  });
         }
 
-
+        #region Media
         /// <summary>
         /// Mute method 
         /// </summary>
@@ -823,33 +743,12 @@ namespace TestSpeechToTextCognitiveServicesUWP
                 LogMessage("Failed to play: " + mediaUri.Text + " Exception: " + ex.Message);
             }
         }
-        private async System.Threading.Tasks.Task<bool> InitRecording()
-        {
-            //Read system's raw audio stream support 
-            String[] propertiesToRetrieve = { "System.Devices.AudioDevice.RawProcessingSupported" };
-            try
-            {
 
-                var device = await Windows.Devices.Enumeration.DeviceInformation.CreateFromIdAsync(Windows.Media.Devices.MediaDevice.GetDefaultAudioCaptureId(Windows.Media.Devices.AudioDeviceRole.Communications), propertiesToRetrieve);
-                bool bRes = device.Properties["System.Devices.AudioDevice.RawProcessingSupported"].Equals(true);
-                if (bRes)
-                {
-                    LogMessage("Raw audio recording is supported");
-                    return true;
-                }
-                else
-                {
-                    LogMessage("Raw audio recording is not supported");
-                }
-            }
-            catch (Exception e)
-            {
-                LogMessage("Exception while checking Raw audio recording - Exception: " + e.Message);
-            }
-            return false;
-        }
+#endregion Media
+        
+         
         Windows.Media.Capture.MediaCapture mediaCapture;
-        private CustomAudioStream AudioStream;
+        private SpeechToTextStream AudioStream;
         private async System.Threading.Tasks.Task<bool> StopRecording()
         {
             // Stop recording and dispose resources
@@ -909,157 +808,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             ClearLevel();
             LogMessage("Record stopped");
         }
-        private async System.Threading.Tasks.Task<bool> StartRecording(Windows.Storage.StorageFile file)
-        {
-            try
-            {
-                // Wire up current screen as input for the MediaCapture
-                // Windows.Media.Capture.MediaCapture.
-                // var screenCapture = ScreenCapture.GetForCurrentView();
-
-                mediaCapture = new Windows.Media.Capture.MediaCapture();
-                await mediaCapture.InitializeAsync(new Windows.Media.Capture.MediaCaptureInitializationSettings
-                {
-                    //VideoSource = screenCapture.VideoSource,
-                    //      AudioSource = screenCapture.AudioSource,
-                    StreamingCaptureMode = Windows.Media.Capture.StreamingCaptureMode.Audio,
-                    MediaCategory = Windows.Media.Capture.MediaCategory.Other,
-                    AudioProcessing = Windows.Media.AudioProcessing.Raw
-
-                });
-                mediaCapture.RecordLimitationExceeded += mediaCapture_RecordLimitationExceeded;
-                mediaCapture.Failed += mediaCapture_Failed;
-                LogMessage("Device Initialized Successfully...");
-                // Start recording to a file
-                Windows.Media.MediaProperties.MediaEncodingProfile MEP = Windows.Media.MediaProperties.MediaEncodingProfile.CreateWav(Windows.Media.MediaProperties.AudioEncodingQuality.Auto);
-                if (MEP != null)
-                {
-                    if (MEP.Audio != null)
-                    {
-                        LogMessage("Audio Properties:");
-                        uint framerate = 16000;
-                        uint bitsPerSample = 16;
-                        uint numChannels = 1;
-                        uint bytespersecond = 32000;
-                        MEP.Audio.Properties[WAVAttributes.MF_MT_AUDIO_SAMPLES_PER_SECOND] = framerate;
-                        MEP.Audio.Properties[WAVAttributes.MF_MT_AUDIO_NUM_CHANNELS] = numChannels;
-                        MEP.Audio.Properties[WAVAttributes.MF_MT_AUDIO_BITS_PER_SAMPLE] = bitsPerSample;
-                        MEP.Audio.Properties[WAVAttributes.MF_MT_AUDIO_AVG_BYTES_PER_SECOND] = bytespersecond;
-                        foreach (var Property in MEP.Audio.Properties)
-                        {
-                            LogMessage("Property: " + Property.Key.ToString());
-                            LogMessage("Value: " + Property.Value.ToString());
-                            if (Property.Key == new Guid("5faeeae7-0290-4c31-9e8a-c534f68d9dba"))
-                                framerate = (uint)Property.Value;
-                            if (Property.Key == new Guid("f2deb57f-40fa-4764-aa33-ed4f2d1ff669"))
-                                bitsPerSample = (uint)Property.Value;
-                            if (Property.Key == new Guid("37e48bf5-645e-4c5b-89de-ada9e29b696a"))
-                                numChannels = (uint)Property.Value;
-
-                        }
-                        //     MEP.Audio.Properties.Remove(new Guid("5faeeae7-0290-4c31-9e8a-c534f68d9dba"));
-                        //     KeyValuePair<Guid, object> kv = new KeyValuePair<Guid, object>(new Guid("5faeeae7-0290-4c31-9e8a-c534f68d9dba"), (uint)(44100));
-                        //     MEP.Audio.Properties.Add(kv);
-                    }
-                    if (MEP.Container != null)
-                    {
-                        LogMessage("Container Properties:");
-                        foreach (var Property in MEP.Container.Properties)
-                        {
-                            LogMessage("Property: " + Property.Key.ToString());
-                            LogMessage("Value: " + Property.Value.ToString());
-                        }
-                    }
-                }
-                LastAmplitudeTime = DateTime.Now;
-                maxValue = 0;
-
-                await mediaCapture.StartRecordToStorageFileAsync(MEP, file);
-                LogMessage("Recording in audio file: " + file.Path);
-                return true;
-            }
-            catch(Exception e)
-            {
-                LogMessage("Exception while Recording in audio file: " + e.Message);
-
-            }
-            return false;
-        }
-        private async System.Threading.Tasks.Task<bool> StartRecording()
-        {
-            // Wire up current screen as input for the MediaCapture
-            // Windows.Media.Capture.MediaCapture.
-            // var screenCapture = ScreenCapture.GetForCurrentView();
-
-            mediaCapture = new Windows.Media.Capture.MediaCapture();
-            await mediaCapture.InitializeAsync(new Windows.Media.Capture.MediaCaptureInitializationSettings
-            {
-                //VideoSource = screenCapture.VideoSource,
-                //      AudioSource = screenCapture.AudioSource,
-                StreamingCaptureMode = Windows.Media.Capture.StreamingCaptureMode.Audio,
-                MediaCategory = Windows.Media.Capture.MediaCategory.Other,
-                AudioProcessing = Windows.Media.AudioProcessing.Raw
-
-            });
-            mediaCapture.RecordLimitationExceeded += mediaCapture_RecordLimitationExceeded;
-            mediaCapture.Failed += mediaCapture_Failed;
-            LogMessage("Device Initialized Successfully...");
-            // Start recording to a file
-            //var file = await GetScreenRecordingAudioFile();
-            //await mediaCapture.StartRecordToStorageFileAsync(MediaEncodingProfile.CreateWav(AudioEncodingQuality.Auto), file);
-            // LogMessage("Recording in audio file...");
-
-            // Start Recording in a stream
-            //AudioStream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
-            AudioStream = CustomAudioStream.Create(2000,0);
-            AudioStream.AmplitudeReading += AudioStream_AmplitudeReading;
-
-            Windows.Media.MediaProperties.MediaEncodingProfile MEP = Windows.Media.MediaProperties.MediaEncodingProfile.CreateWav(Windows.Media.MediaProperties.AudioEncodingQuality.Auto);
-            if (MEP != null)
-            {
-                if (MEP.Audio != null)
-                {
-                    uint framerate = 16000;
-                    uint bitsPerSample = 16;
-                    uint numChannels = 1;
-                    uint bytespersecond = 32000;
-                    MEP.Audio.Properties[WAVAttributes.MF_MT_AUDIO_SAMPLES_PER_SECOND] = framerate;
-                    MEP.Audio.Properties[WAVAttributes.MF_MT_AUDIO_NUM_CHANNELS] = numChannels;
-                    MEP.Audio.Properties[WAVAttributes.MF_MT_AUDIO_BITS_PER_SAMPLE] = bitsPerSample;
-                    MEP.Audio.Properties[WAVAttributes.MF_MT_AUDIO_AVG_BYTES_PER_SECOND] = bytespersecond;
-                    foreach (var Property in MEP.Audio.Properties)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Property: " + Property.Key.ToString());
-                        System.Diagnostics.Debug.WriteLine("Value: " + Property.Value.ToString());
-                        if (Property.Key == new Guid("5faeeae7-0290-4c31-9e8a-c534f68d9dba"))
-                            framerate = (uint)Property.Value;
-                        if (Property.Key == new Guid("f2deb57f-40fa-4764-aa33-ed4f2d1ff669"))
-                            bitsPerSample = (uint)Property.Value;
-                        if (Property.Key == new Guid("37e48bf5-645e-4c5b-89de-ada9e29b696a"))
-                            numChannels = (uint)Property.Value;
-
-                    }
-                    //     MEP.Audio.Properties.Remove(new Guid("5faeeae7-0290-4c31-9e8a-c534f68d9dba"));
-                    //     KeyValuePair<Guid, object> kv = new KeyValuePair<Guid, object>(new Guid("5faeeae7-0290-4c31-9e8a-c534f68d9dba"), (uint)(44100));
-                    //     MEP.Audio.Properties.Add(kv);
-                }
-                if (MEP.Container != null)
-                {
-                    foreach (var Property in MEP.Container.Properties)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Property: " + Property.Key.ToString());
-                        System.Diagnostics.Debug.WriteLine("Value: " + Property.Value.ToString());
-                    }
-                }
-            }
-
-            LastAmplitudeTime = DateTime.Now;
-            maxValue = 0;
-            await mediaCapture.StartRecordToStreamAsync(MEP, AudioStream);
-            LogMessage("Recording in audio stream...");
-            return true;
-        }
-        private async System.Threading.Tasks.Task<bool> StartRecording(CustomAudioStream stream)
+        private async System.Threading.Tasks.Task<bool> StartRecording(SpeechToTextStream stream)
         {
             bool bResult = false;
             if ((stream != null) && (_isInitialized == true))
@@ -1183,7 +932,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
                 try
                 {
                     await CleanupRecording();
-                    AudioStream = CustomAudioStream.Create();
+                    AudioStream = SpeechToTextStream.Create();
                     AudioStream.AmplitudeReading += AudioStream_AmplitudeReading;
 
                     if (await InitializeRecording() == true)
@@ -1223,7 +972,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
                                     SaveSubscriptionKey(subscriptionKey.Text);
                                 string locale = language.SelectedItem.ToString();
                                 string convertedText = string.Empty;
-                                Response result = await StreamSpeechToText(token, AudioStream, locale);
+                                SpeechToTextResponse result = await StreamSpeechToText(token, AudioStream, locale);
                                 if (result != null)
                                 {
                                     if (result.Status() == "error")
@@ -1247,38 +996,6 @@ namespace TestSpeechToTextCognitiveServicesUWP
             UpdateControls();
 
         }
-        /// <summary>
-        /// stopConvertAudio method which plays the video with the MediaElement from position 0
-        /// </summary>
-        private async void stopConvertAudio_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                LogMessage("Stop Convert Audio");
-                await StopRecording();
-                ClearLevel();
-            }
-            catch (Exception ex)
-            {
-                LogMessage("Failed to stopConvertAudio: Exception: " + ex.Message);
-            }
-        }
-        /// <summary>
-        /// stopRecordAudio method which plays the video with the MediaElement from position 0
-        /// </summary>
-        private async void stopRecordAudio_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                LogMessage("Stop Recording");
-                await StopRecording();
-                ClearLevel();
-            }
-            catch (Exception ex)
-            {
-                LogMessage("Failed to stopRecordAudio: Exception: " + ex.Message);
-            }
-        }
         bool _isInitialized = false;
         bool _isRecording = false;
         /// <summary>
@@ -1290,7 +1007,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             {
                 try
                 {
-                    AudioStream = CustomAudioStream.Create();
+                    AudioStream = SpeechToTextStream.Create();
                     AudioStream.AmplitudeReading += AudioStream_AmplitudeReading;
 
                     if(await InitializeRecording() == true)
@@ -1325,7 +1042,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
                         filePicker.FileTypeChoices.Add("WAV files", new List<string>() { ".wav" });
                         filePicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.VideosLibrary;
                         filePicker.SettingsIdentifier = "WavPicker";
-                        filePicker.CommitButtonText = "Open WAV File to Process";
+                        filePicker.CommitButtonText = "Save buffer into a WAV File";
 
                         var wavFile = await filePicker.PickSaveFileAsync();
                         if (wavFile != null)
@@ -1384,7 +1101,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
         private async void convertWAVFile_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Converting file: " + mediaUri.Text + " into text");
-            Response result = null;
+            SpeechToTextResponse result = null;
             try
             {
                 resultText.Text = string.Empty;

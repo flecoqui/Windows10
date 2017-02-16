@@ -79,7 +79,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
         public static readonly Guid MF_MT_AUDIO_AVG_BYTES_PER_SECOND = new Guid("1aab75c8-cfef-451c-ab95-ac034b8e1731");
     }
 
-    public class CustomAudioStream : IRandomAccessStream
+    public class SpeechToTextStream : IRandomAccessStream
     {
         private uint duration = 0;
         private uint triggerLevel = 0;
@@ -88,12 +88,12 @@ namespace TestSpeechToTextCognitiveServicesUWP
         private Windows.Storage.Streams.IRandomAccessStream internalStream;
         private Windows.Storage.Streams.IInputStream inputStream;
 //        private Windows.Storage.Streams.IOutputStream outputStream;
-        public static CustomAudioStream Create(uint duration = 0, uint threshold = 0)
+        public static SpeechToTextStream Create(uint duration = 0, uint threshold = 0)
         {
-            CustomAudioStream cas = null;
+            SpeechToTextStream cas = null;
             try
             {
-                cas = new CustomAudioStream(duration, threshold);
+                cas = new SpeechToTextStream(duration, threshold);
                 cas.Size = 32000 * 120 + 82;
             }
             catch(Exception ex)
@@ -102,7 +102,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             }
             return cas;
         }
-        private CustomAudioStream(uint d = 0,uint t = 0)
+        private SpeechToTextStream(uint d = 0,uint t = 0)
         {
             duration = d;
             triggerLevel = t;
