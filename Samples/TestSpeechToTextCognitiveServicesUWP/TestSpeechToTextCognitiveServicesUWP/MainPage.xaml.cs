@@ -30,6 +30,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
     public sealed partial class MainPage : Page
     {
         Windows.Media.Playback.MediaPlayer mediaPlayer;
+        SpeechToTextClient client = new SpeechToTextClient();
         string[] LanguageArray = 
             {"ca-ES","de-DE","zh-TW", "zh-HK","ru-RU","es-ES", "ja-JP","ar-EG", "da-DK","en-AU" ,"en-CA","en-GB" ,"en-IN", "en-US" , "en-NZ","es-MX","fi-FI",
               "fr-FR","fr-CA" ,"it-IT","ko-KR" , "nb-NO","nl-NL","pt-BR" ,"pt-PT"  ,             
@@ -44,7 +45,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
         /// </summary>
         /// <param name="e">Event data that describes how this page was reached.
         /// This parameter is typically used to configure the page.</param>
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             // TODO: If your application contains multiple pages, ensure that you are
             // handling the hardware Back button by registering for the
@@ -83,6 +84,16 @@ namespace TestSpeechToTextCognitiveServicesUWP
             // Display OS, Device information
             LogMessage(Information.SystemInformation.GetString());
 
+            // Cognitive Service SpeechToText GetToken 
+            if (!string.IsNullOrEmpty(subscriptionKey.Text))
+            {
+                string s = await client.GetToken(subscriptionKey.Text);
+                if (!string.IsNullOrEmpty(s))
+                    LogMessage("GetToken for subscription Key: " + subscriptionKey.Text);
+                else
+                    LogMessage("GetToken failed for subscription Key: " + subscriptionKey.Text);
+            }
+
         }
 #region Settings
         private string GetSavedSubscriptionKey()
@@ -100,7 +111,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             localSettings.Values["subscriptionKey"] = ID;
         }
 #endregion Settings
-
+        /*
         public async System.Threading.Tasks.Task<string> GetToken(string authUrl, string subscriptionKey)
         {
         try
@@ -140,7 +151,8 @@ namespace TestSpeechToTextCognitiveServicesUWP
         }
         return string.Empty;
     }
-
+    */
+    /*
         public async System.Threading.Tasks.Task<SpeechToTextResponse> StreamSpeechToText(string token, SpeechToTextStream stream , string locale)
         {
 
@@ -204,7 +216,8 @@ namespace TestSpeechToTextCognitiveServicesUWP
         {
             //LogMessage("Http progress: " + progress.Stage.ToString() + " " + progress.BytesSent.ToString() + "/" + progress.TotalBytesToSend.ToString());
         }
-
+        */
+        /*
         public async System.Threading.Tasks.Task<SpeechToTextResponse> StorageFileSpeechToText(string token, Windows.Storage.StorageFile wavFile, string locale)
         {
 
@@ -309,7 +322,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             }
             return null;
         }
-
+        */
 
 
 
@@ -421,15 +434,15 @@ namespace TestSpeechToTextCognitiveServicesUWP
                  () =>
                  {
                      {
-                         if (_isRecording)
-                         {
-                             convertAudioButton.Content = "\xE778";
-                             recordAudioButton.Content = "\xE78C";
-                         }
-                         else
+                         if ((client==null)||(!client.IsRecording()))
                          {
                              convertAudioButton.Content = "\xE717";
                              recordAudioButton.Content = "\xE720";
+                         }
+                         else
+                         {
+                             convertAudioButton.Content = "\xE778";
+                             recordAudioButton.Content = "\xE78C";
                          }
                          openButton.IsEnabled = true;
                          convertAudioButton.IsEnabled = true;
@@ -746,7 +759,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
 
 #endregion Media
         
-         
+         /*
         Windows.Media.Capture.MediaCapture mediaCapture;
         private SpeechToTextStream AudioStream;
         private async System.Threading.Tasks.Task<bool> StopRecording()
@@ -757,14 +770,37 @@ namespace TestSpeechToTextCognitiveServicesUWP
                 await mediaCapture.StopRecordAsync();
             }
             return true;
-        }
-        DateTime LastAmplitudeTime = DateTime.Now;
+        }*/
+        DateTime LastLevelTime = DateTime.Now;
         double maxValue = 0;
+        /*
         async void AudioStream_AmplitudeReading(object sender, double reading)
         {
             if ((DateTime.Now - LastAmplitudeTime).TotalMilliseconds > 200)
             {
                 LastAmplitudeTime = DateTime.Now;
+                if (maxValue == 0)
+                {
+                    maxValue = 1;
+                    return;
+                }
+                //LogMessage("Amplitude: " + reading.ToString());
+
+                double value = reading > 32768 ? 32768 : reading;
+                if (value > maxValue)
+                    maxValue = value;
+                await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
+                    () =>
+                    {
+                        DrawLevel(value);
+                    });
+            }
+        }*/
+        async void Client_AudioLevel(object sender, double reading)
+        {
+            if ((DateTime.Now - LastLevelTime).TotalMilliseconds > 200)
+            {
+                LastLevelTime = DateTime.Now;
                 if (maxValue == 0)
                 {
                     maxValue = 1;
@@ -794,13 +830,14 @@ namespace TestSpeechToTextCognitiveServicesUWP
         {
             if (CanvasGraph.Children.Count > 0) CanvasGraph.Children.Clear();
         }
+        /*
         async void mediaCapture_Failed(Windows.Media.Capture.MediaCapture sender, Windows.Media.Capture.MediaCaptureFailedEventArgs errorEventArgs)
         {
             LogMessage("Fatal Error " + errorEventArgs.Message);
             await StopRecording();
             ClearLevel();
         }
-
+        
         async void mediaCapture_RecordLimitationExceeded(Windows.Media.Capture.MediaCapture sender)
         {
             LogMessage("Stopping Record on exceeding max record duration");
@@ -808,6 +845,8 @@ namespace TestSpeechToTextCognitiveServicesUWP
             ClearLevel();
             LogMessage("Record stopped");
         }
+        */
+        /*
         private async System.Threading.Tasks.Task<bool> StartRecording(SpeechToTextStream stream)
         {
             bool bResult = false;
@@ -922,11 +961,75 @@ namespace TestSpeechToTextCognitiveServicesUWP
             }
             return true;
         }
+        */
         /// <summary>
         /// convertAudio method which plays the video with the MediaElement from position 0
         /// </summary>
         private async void convertAudio_Click(object sender, RoutedEventArgs e)
         {
+            if(client!=null)
+            {
+                if((!client.HasToken())&&(!string.IsNullOrEmpty(subscriptionKey.Text)))
+                {
+                    string token = await client.GetToken(subscriptionKey.Text);
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        // Save subscription key
+                        if (!subscriptionKey.Text.Equals(GetSavedSubscriptionKey()))
+                            SaveSubscriptionKey(subscriptionKey.Text);
+                    }
+                }
+                if (client.HasToken())
+                {
+                    if (client.IsRecording() == false)
+                    {
+                        if (await client.CleanupRecording())
+                        {
+                            if (await client.StartRecording())
+                            {
+                                client.AudioLevel += Client_AudioLevel;
+                                LogMessage("Start Recording...");
+                            }
+                            else
+                                LogMessage("Start Recording failed");
+                        }
+                        else
+                            LogMessage("CleanupRecording failed");
+                    }
+                    else
+                    {
+                        LogMessage("Stop Recording...");
+                        await client.StopRecording();
+                        client.AudioLevel -= Client_AudioLevel;
+                        ClearLevel();
+                        string locale = language.SelectedItem.ToString();
+                        SpeechToTextResponse result = await client.SendBuffer(locale);
+                        if (result != null)
+                        {
+                            string httpError = result.GetHttpError();
+                            if (!string.IsNullOrEmpty(httpError))
+                            {
+                                resultText.Text = httpError;
+                                LogMessage("Http Error: " + httpError.ToString());
+                            }
+                            else
+                            {
+                                if (result.Status() == "error")
+                                    resultText.Text = "error";
+                                else
+                                    resultText.Text = result.Result();
+                                LogMessage("Result: " + result.ToString());
+                            }
+                        }
+                        else
+                            LogMessage("Error while sending buffer");
+
+                    }
+                }
+                else
+                    LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
+            }
+            /*
             if (_isRecording == false)
             {
                 try
@@ -993,16 +1096,70 @@ namespace TestSpeechToTextCognitiveServicesUWP
                     LogMessage("Failed to send Audio: Exception: " + ex.Message);
                 }
             }
+            */
             UpdateControls();
 
         }
+        /*
         bool _isInitialized = false;
-        bool _isRecording = false;
+        bool _isRecording = false;*/
         /// <summary>
         /// recordAudio method which plays the video with the MediaElement from position 0
         /// </summary>
         private async void recordAudio_Click(object sender, RoutedEventArgs e)
         {
+            if (client != null)
+            {
+                if (client.IsRecording() == false)
+                {
+                    if (await client.CleanupRecording())
+                    {
+                        if (await client.StartRecording())
+                        {
+                            client.AudioLevel += Client_AudioLevel;
+                            LogMessage("Start Recording...");
+                        }
+                        else
+                            LogMessage("Start Recording failed");
+                    }
+                    else
+                        LogMessage("CleanupRecording failed");
+                }
+                else
+                {
+                    LogMessage("Stop Recording...");
+                    await client.StopRecording();
+                    client.AudioLevel -= Client_AudioLevel;
+                    ClearLevel();
+                    if (client.GetBufferLength() > 0)
+                    {
+                        var filePicker = new Windows.Storage.Pickers.FileSavePicker();
+                        filePicker.DefaultFileExtension = ".wav";
+                        filePicker.SuggestedFileName = "record.wav";
+                        filePicker.FileTypeChoices.Add("WAV files", new List<string>() { ".wav" });
+                        filePicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.VideosLibrary;
+                        filePicker.SettingsIdentifier = "WavPicker";
+                        filePicker.CommitButtonText = "Save buffer into a WAV File";
+
+                        var wavFile = await filePicker.PickSaveFileAsync();
+                        if (wavFile != null)
+                        {
+                            if (await client.SaveBuffer(wavFile))
+                            {
+                                mediaUri.Text = "file://" + wavFile.Path;
+                                LogMessage("Record buffer saved in file: " + wavFile.Path.ToString());
+                                UpdateControls();
+                            }
+                            else
+                                LogMessage("Error while saving record buffer in file: " + wavFile.Path.ToString());
+                        }
+                    }
+                    else
+                        LogMessage("Buffer empty nothing to save" );
+                }
+            }
+
+            /*
             if (_isRecording == false)
             {
                 try
@@ -1065,8 +1222,11 @@ namespace TestSpeechToTextCognitiveServicesUWP
                     LogMessage("Failed to store Audio: Exception: " + ex.Message);
                 }
             }
+            */
             UpdateControls();
         }
+
+
         /// <summary>
         /// open method which select WAV file on disk
         /// </summary>
@@ -1100,6 +1260,54 @@ namespace TestSpeechToTextCognitiveServicesUWP
         /// </summary>
         private async void convertWAVFile_Click(object sender, RoutedEventArgs e)
         {
+            if (client != null)
+            {
+                if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
+                {
+                    string token = await client.GetToken(subscriptionKey.Text);
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        // Save subscription key
+                        if (!subscriptionKey.Text.Equals(GetSavedSubscriptionKey()))
+                            SaveSubscriptionKey(subscriptionKey.Text);
+                    }
+                }
+
+                if (client.HasToken())
+                {
+                    string locale = language.SelectedItem.ToString();
+                    var file = await GetFileFromLocalPathUrl(mediaUri.Text);
+                    if (file != null)
+                    {
+                        string convertedText = string.Empty;
+                        LogMessage("Sending StorageFile: " + file.Path.ToString());
+                        SpeechToTextResponse result = await client.SendStorageFile(file, locale);
+                        if (result != null)
+                        {
+                            string httpError = result.GetHttpError();
+                            if (!string.IsNullOrEmpty(httpError))
+                            {
+                                resultText.Text = httpError;
+                                LogMessage("Http Error: " + httpError.ToString());
+                            }
+                            else
+                            {
+                                if (result.Status() == "error")
+                                    resultText.Text = "error";
+                                else
+                                    resultText.Text = result.Result();
+                                LogMessage("Result: " + result.ToString());
+                            }
+                        }
+                        else
+                            LogMessage("Error while sending file");
+                    }
+                }
+                else
+                    LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
+            }
+
+            /*
             LogMessage("Converting file: " + mediaUri.Text + " into text");
             SpeechToTextResponse result = null;
             try
@@ -1139,6 +1347,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             {
                 LogMessage("Failed to convertAudio: Exception: " + ex.Message);
             }
+            */
         }
     }
 }

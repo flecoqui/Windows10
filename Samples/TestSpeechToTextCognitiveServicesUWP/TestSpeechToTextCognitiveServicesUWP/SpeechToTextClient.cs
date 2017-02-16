@@ -1,9 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿//*********************************************************
+//
+// Copyright (c) Microsoft. All rights reserved.
+// This code is licensed under the MIT License (MIT).
+// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
+// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
+// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
+// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
+//
+//*********************************************************
+using System;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 
 namespace TestSpeechToTextCognitiveServicesUWP
@@ -74,6 +81,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
                             break;
 
                         default:
+                            System.Diagnostics.Debug.WriteLine("Http Response Error:" + hrm.StatusCode.ToString() + " reason: " + hrm.ReasonPhrase.ToString());
                             break;
                     }
                 }
@@ -84,6 +92,20 @@ namespace TestSpeechToTextCognitiveServicesUWP
             }
             return string.Empty;
         }
+        /// <summary>
+        /// HasToken method
+        /// </summary>
+        /// <param>Check if a Token has been acquired
+        /// </param>
+        /// <return>true if a Token has been acquired to use the SpeechToText REST API.
+        /// </return>
+        public bool HasToken()
+        {
+            if (string.IsNullOrEmpty(Token))
+                return false;
+            return true;
+        }
+
         /// <summary>
         /// SendBuffer method
         /// </summary>
@@ -115,21 +137,24 @@ namespace TestSpeechToTextCognitiveServicesUWP
                 }
                 if (hrm != null)
                 {
+                    SpeechToTextResponse r = null;
                     switch (hrm.StatusCode)
                     {
                         case Windows.Web.Http.HttpStatusCode.Ok:
                             var b = await hrm.Content.ReadAsBufferAsync();
                             string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
                             if (!string.IsNullOrEmpty(result))
-                            {
-                                SpeechToTextResponse r = new SpeechToTextResponse(result);
-                                return r;
-                            }
+                                r = new SpeechToTextResponse(result);
                             break;
 
                         default:
+                            int code = (int)hrm.StatusCode;
+                            string HttpError = "Http Response Error: " + code.ToString() + " reason: " + hrm.ReasonPhrase.ToString();
+                            System.Diagnostics.Debug.WriteLine(HttpError);
+                            r = new SpeechToTextResponse(string.Empty, HttpError);
                             break;
                     }
+                    return r;
                 }
             }
             catch (System.Threading.Tasks.TaskCanceledException)
@@ -191,26 +216,32 @@ namespace TestSpeechToTextCognitiveServicesUWP
                             Windows.Web.Http.HttpStreamContent content = new Windows.Web.Http.HttpStreamContent(STTStream.AsStream().AsInputStream());
                             content.Headers.ContentLength = STTStream.GetLength();
                             System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString() + " bytes");
-                            hrm = await hc.PostAsync(new Uri(speechUrl), content);
+                            System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
+                            IProgress<Windows.Web.Http.HttpProgress> progress = new Progress<Windows.Web.Http.HttpProgress>(ProgressHandler);
+                            hrm = await hc.PostAsync(new Uri(speechUrl), content).AsTask(cts.Token, progress);
                         }
                     }
                 }
                 if (hrm != null)
                 {
+                    SpeechToTextResponse r = null;
                     switch (hrm.StatusCode)
                     {
                         case Windows.Web.Http.HttpStatusCode.Ok:
                             var b = await hrm.Content.ReadAsBufferAsync();
                             string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
                             if (!string.IsNullOrEmpty(result))
-                            {
-                                SpeechToTextResponse r = new SpeechToTextResponse(result);
-                                return r;
-                            }
+                                r = new SpeechToTextResponse(result);
                             break;
+
                         default:
+                            int code = (int)hrm.StatusCode;
+                            string HttpError = "Http Response Error: " + code.ToString() + " reason: " + hrm.ReasonPhrase.ToString();
+                            System.Diagnostics.Debug.WriteLine(HttpError);
+                            r = new SpeechToTextResponse(string.Empty, HttpError);
                             break;
                     }
+                    return r;
                 }
             }
             catch (Exception ex)
@@ -232,25 +263,45 @@ namespace TestSpeechToTextCognitiveServicesUWP
             bool bResult = false;
             if (wavFile != null)
             {
-                using (Stream stream = await wavFile.OpenStreamForWriteAsync())
+                try
                 {
-                    if ((stream != null)&&(STTStream != null))
+                    using (Stream stream = await wavFile.OpenStreamForWriteAsync())
                     {
-                        await STTStream.AsStream().CopyToAsync(stream);
-                        System.Diagnostics.Debug.WriteLine("Audio Stream stored in: " + wavFile.Path);
-                        bResult = true;
+                        if ((stream != null) && (STTStream != null))
+                        {
+                            stream.SetLength(0);
+                            await STTStream.AsStream().CopyToAsync(stream);
+                            System.Diagnostics.Debug.WriteLine("Audio Stream stored in: " + wavFile.Path);
+                            bResult = true;
+                        }
                     }
+                }
+                catch(Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception while saving the Audio Stream stored in: " + wavFile.Path + " Exception: " + ex.Message);
+
                 }
             }
             return bResult;
         }
         /// <summary>
-        /// GetBufferLength method
+        /// IsRecording method
         /// </summary>
         /// <param>Return the length of the audio buffer
         /// </param>
         /// <return>the length of the WAV buffer in uint.
         /// </return>
+        public bool IsRecording()
+        {
+            return isRecording;
+        }
+        /// <summary>
+                 /// GetBufferLength method
+                 /// </summary>
+                 /// <param>Return the length of the audio buffer
+                 /// </param>
+                 /// <return>the length of the WAV buffer in uint.
+                 /// </return>
         public uint GetBufferLength()
         {
             if (STTStream != null)
@@ -323,6 +374,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
                     }
                     await mediaCapture.StartRecordToStreamAsync(MEP, STTStream);
                     bResult = true;
+                    isRecording = true;
                     System.Diagnostics.Debug.WriteLine("Recording in audio stream...");
                 }
                 catch (Exception e)
@@ -347,6 +399,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
             if (mediaCapture != null)
             {
                 await mediaCapture.StopRecordAsync();
+                isRecording = false;
             }
             return true;
         }
@@ -439,7 +492,7 @@ namespace TestSpeechToTextCognitiveServicesUWP
 
         private void ProgressHandler(Windows.Web.Http.HttpProgress progress)
         {
-            //System.Diagnostics.Debug.WriteLine("Http progress: " + progress.Stage.ToString() + " " + progress.BytesSent.ToString() + "/" + progress.TotalBytesToSend.ToString());
+            System.Diagnostics.Debug.WriteLine("Http progress: " + progress.Stage.ToString() + " " + progress.BytesSent.ToString() + "/" + progress.TotalBytesToSend.ToString());
         }
         #endregion private
     }

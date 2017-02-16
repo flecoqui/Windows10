@@ -119,14 +119,16 @@ namespace TestSpeechToTextCognitiveServicesUWP
         private string scenario;
         private string name;
         private string lexical;
+        private string HttpError;
         private SpeechToTextConfidence properties;
 
         public SpeechToTextHeader()
         {
-            status = "";
-            scenario = "";
-            name = "";
-            lexical = "";
+            status = string.Empty;
+            scenario = string.Empty;
+            name = string.Empty;
+            lexical = string.Empty;
+            HttpError = string.Empty;
             properties = new SpeechToTextConfidence();
         }
 
@@ -142,6 +144,8 @@ namespace TestSpeechToTextCognitiveServicesUWP
         }
         public string Result()
         {
+            if (string.IsNullOrEmpty(lexical))
+                return string.Empty;
             return (lexical.StartsWith("bing ")? lexical.Substring(5):lexical);
         }
         public string Status()
@@ -173,46 +177,67 @@ namespace TestSpeechToTextCognitiveServicesUWP
         private string version;
         private SpeechToTextHeader header;
         private ObservableCollection<SpeechToTextResult> results;
+        private string HttpError;
         private string displayString;
         public override string ToString()
         {
-            return displayString;
+            if(!string.IsNullOrEmpty(displayString))
+                return displayString;
+            return string.Empty;
         }
 
         public SpeechToTextResponse()
         {
+            HttpError = string.Empty;
             version = "3.0";
             header = null;
             results = new ObservableCollection<SpeechToTextResult>();
         }
 
-        public SpeechToTextResponse(string jsonString)
+        public SpeechToTextResponse(string jsonString, string httpError = null)
         {
-            JsonObject jsonObject = JsonObject.Parse(jsonString);
-            Newtonsoft.Json.Linq.JObject obj = Newtonsoft.Json.Linq.JObject.Parse(jsonString);
-            displayString = obj.ToString();
-            version = jsonObject.GetNamedString(versionKey, "");
-            header = new SpeechToTextHeader(jsonObject.GetNamedObject(headerKey, null));
-
-            results = new ObservableCollection<SpeechToTextResult>();
-            if (results != null)
+            if (!string.IsNullOrEmpty(jsonString))
             {
-                foreach (IJsonValue jsonValue in jsonObject.GetNamedArray(resultsKey, new JsonArray()))
+                JsonObject jsonObject = JsonObject.Parse(jsonString);
+                Newtonsoft.Json.Linq.JObject obj = Newtonsoft.Json.Linq.JObject.Parse(jsonString);
+                displayString = obj.ToString();
+                version = jsonObject.GetNamedString(versionKey, "");
+                header = new SpeechToTextHeader(jsonObject.GetNamedObject(headerKey, null));
+
+                results = new ObservableCollection<SpeechToTextResult>();
+                if (results != null)
                 {
-                    if (jsonValue.ValueType == JsonValueType.Object)
+                    foreach (IJsonValue jsonValue in jsonObject.GetNamedArray(resultsKey, new JsonArray()))
                     {
-                        results.Add(new SpeechToTextResult(jsonValue.GetObject()));
+                        if (jsonValue.ValueType == JsonValueType.Object)
+                        {
+                            results.Add(new SpeechToTextResult(jsonValue.GetObject()));
+                        }
                     }
                 }
             }
+            if(!string.IsNullOrEmpty(httpError))
+            {
+                HttpError = httpError;
+            }
         }
         public string Result()
-        {            
+        {
+            if (header == null)
+                return string.Empty;
+
             return header.Result();
         }
         public string Status()
         {
+            if (header == null)
+                return string.Empty;
+
             return header.Status();
+        }
+        public string GetHttpError()
+        {
+            return HttpError;
         }
 
     }
