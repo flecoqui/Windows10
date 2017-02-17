@@ -57,6 +57,13 @@ namespace SpeechToTextUWPSampleApp
                 Height = 436,
                 Width = 320
             });
+            // Hide Systray on phone
+            if (Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
+            {
+                // Hide Status bar
+                var statusBar = Windows.UI.ViewManagement.StatusBar.GetForCurrentView();
+                await statusBar.HideAsync();
+            }
 
             // Logs event to refresh the TextBox
             logs.TextChanged += Logs_TextChanged;
@@ -74,12 +81,17 @@ namespace SpeechToTextUWPSampleApp
             language.SelectedItem = "en-US";
 
             // Get Subscription ID from the local settings
-            subscriptionKey.Text = GetSavedSubscriptionKey();
+            ReadSettings();
             
             // Update control and play first video
             UpdateControls();
             convertAudioButton.Focus(FocusState.Programmatic);
 
+            
+            // Register Suspend/Resume
+            Application.Current.Suspending += Current_Suspending;
+            Application.Current.Resuming += Current_Resuming;
+            
             // Display OS, Device information
             LogMessage(Information.SystemInformation.GetString());
             
@@ -97,20 +109,89 @@ namespace SpeechToTextUWPSampleApp
             }
 
         }
-        #region Settings
-        private string GetSavedSubscriptionKey()
+        /// <summary>
+        /// Method OnNavigatedFrom
+        /// </summary>
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            Object value = localSettings.Values["subscriptionKey"];
-            string s = string.Empty;
-            if (value != null)
-                s = (string)value;
-            return s;
+            LogMessage("MainPage OnNavigatedFrom");
+            // Unregister Suspend/Resume
+            Application.Current.Suspending -= Current_Suspending;
+            Application.Current.Resuming -= Current_Resuming;
         }
-        private void SaveSubscriptionKey(string ID)
+        /// <summary>
+        /// This method is called when the application is resuming
+        /// </summary>
+        void Current_Resuming(object sender, object e)
         {
-            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-            localSettings.Values["subscriptionKey"] = ID;
+            LogMessage("Resuming");
+            //ReadSettings();
+
+            // Resotre Playback Rate
+            if (mediaPlayer.PlaybackSession.PlaybackRate != 1)
+                mediaPlayer.PlaybackSession.PlaybackRate = 1;
+        }
+        /// <summary>
+        /// This method is called when the application is suspending
+        /// </summary>
+        void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
+        {
+            LogMessage("Suspending");
+            var deferal = e.SuspendingOperation.GetDeferral();
+            SaveSettings();
+            deferal.Complete();
+        }
+
+        #region Settings
+        const string keySubscription = "subscriptionKey";
+        /// <summary>
+        /// Function to save all the persistent attributes
+        /// </summary>
+        public bool SaveSettings()
+        {
+            SaveSettingsValue(keySubscription,subscriptionKey.Text);
+            return true;
+        }
+        /// <summary>
+        /// Function to read all the persistent attributes
+        /// </summary>
+        public bool ReadSettings()
+        {
+            string s = ReadSettingsValue(keySubscription) as string;
+            if (!string.IsNullOrEmpty(s))
+                subscriptionKey.Text = s;
+            return true;
+        }
+        /// <summary>
+        /// Function to read a setting value and clear it after reading it
+        /// </summary>
+        public static object ReadSettingsValue(string key)
+        {
+            if (!Windows.Storage.ApplicationData.Current.LocalSettings.Values.ContainsKey(key))
+            {
+                return null;
+            }
+            else
+            {
+                var value = Windows.Storage.ApplicationData.Current.LocalSettings.Values[key];
+                Windows.Storage.ApplicationData.Current.LocalSettings.Values.Remove(key);
+                return value;
+            }
+        }
+
+        /// <summary>
+        /// Save a key value pair in settings. Create if it doesn't exist
+        /// </summary>
+        public static void SaveSettingsValue(string key, object value)
+        {
+            if (!Windows.Storage.ApplicationData.Current.LocalSettings.Values.ContainsKey(key))
+            {
+                Windows.Storage.ApplicationData.Current.LocalSettings.Values.Add(key, value);
+            }
+            else
+            {
+                Windows.Storage.ApplicationData.Current.LocalSettings.Values[key] = value;
+            }
         }
         #endregion Settings
 
@@ -601,8 +682,7 @@ namespace SpeechToTextUWPSampleApp
                     if (string.IsNullOrEmpty(token))
                     {
                         // Save subscription key
-                        if (!subscriptionKey.Text.Equals(GetSavedSubscriptionKey()))
-                            SaveSubscriptionKey(subscriptionKey.Text);
+                        SaveSettings();
                     }
                 }
                 if (client.HasToken())
@@ -763,8 +843,7 @@ namespace SpeechToTextUWPSampleApp
                     if (string.IsNullOrEmpty(token))
                     {
                         // Save subscription key
-                        if (!subscriptionKey.Text.Equals(GetSavedSubscriptionKey()))
-                            SaveSubscriptionKey(subscriptionKey.Text);
+                        SaveSettings();
                     }
                 }
 

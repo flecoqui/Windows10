@@ -399,8 +399,11 @@ namespace SpeechToTextUWPSampleApp
             // Stop recording and dispose resources
             if (mediaCapture != null)
             {
-                await mediaCapture.StopRecordAsync();
-                isRecording = false;
+                if (isRecording == true)
+                {
+                    await mediaCapture.StopRecordAsync();
+                    isRecording = false;
+                }
             }
             return true;
         }
