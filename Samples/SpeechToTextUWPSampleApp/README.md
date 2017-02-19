@@ -71,13 +71,13 @@ Once the application is launched, you can enter your subscription key which will
 
 ### Recording Spoken Audio into a WAV file
 With the application you can record the spoken audio. 
-Click on the button "Record" (https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/record.png) to start the recording.
-Now you can speak, after few seconds click on the same button "Stop Record" (https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stoprecord.png) to stop the recording.
+Click on the button "Record" ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/record.png) to start the recording.
+Now you can speak, after few seconds click on the same button "Stop Record" ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stoprecord.png) to stop the recording.
 And then select the WAV file where you want to store the recording.
-The path of the WAV file is displayed in the Edit box "Path" (https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/openfile.png) to select a WAV file.
+The path of the WAV file is displayed in the Edit box "Path" ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/openfile.png) to select a WAV file.
 
 ### Playing a WAV file
-In order to play a WAV file click on the button "Open WAV File" (https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/openfile.png) to select a WAV file.
+In order to play a WAV file click on the button "Open WAV File" ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/openfile.png) to select a WAV file.
 
 ### Mute and Audio level
 Once the application is playing an audio file it's possible to switch off the audio (`Mute` button) or change the audio output level (`Audio+` and `Audio-` button)
@@ -98,16 +98,24 @@ Once the application is playing an audio file it's possible to:
 
 ### Converting Spoken Audio WAV file to Text
 With you can convert to text the WAV file you have just recorded. 
-First, select the language with the "Language" Combo Box: (https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/upload.png).
-Then click on the button "Upload" (https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/upload.png) to start the recording.
-After less than one second, the result is displayed in the "Result" Edit box: (https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
+First, select the language with the "Language" Combo Box: 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/upload.png)
+Then click on the button "Upload" 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/upload.png) 
+to start the recording.
+After less than one second, the result is displayed in the "Result" Edit box: 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
 
 ### Converting Live Spoken Audio to Text
 You can also directly convert the live Spoken Audio to text. 
-First, select the language with the "Language" Combo Box: (https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/upload.png).
-Then click on the button "Convert" (https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/convert.png) to start the recording of Live Spoken Audio.
-Now you can speak, after few seconds click on the same button "Stop Convert" (https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stoprecord.png) to stop the recording and transmit the audio stream.
-After less than one second, the result is displayed in the "Result" Edit box: (https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
+First, select the language with the "Language" Combo Box: 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/upload.png).
+Then click on the button "Convert" 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/convert.png) to start the recording of Live Spoken Audio.
+Now you can speak, after few seconds click on the same button "Stop Convert" 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stoprecord.png) to stop the recording and transmit the audio stream.
+After less than one second, the result is displayed in the "Result" Edit box: 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
 
 Building the application
 ----------------
