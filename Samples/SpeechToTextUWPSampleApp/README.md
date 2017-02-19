@@ -117,13 +117,12 @@ Once the application is playing an audio file it's possible to:
 With you can convert to text the WAV file you have just recorded. 
 First, select the language with the "Language" Combo Box: 
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/upload.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/language.png)
 
-Then click on the button "Upload" 
+Then click on the button "Upload" to start the recording.
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/upload.png) 
 
-to start the recording.
 After less than one second, the result is displayed in the "Result" Edit box: 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
@@ -132,19 +131,20 @@ After less than one second, the result is displayed in the "Result" Edit box:
 You can also directly convert the live Spoken Audio to text. 
 First, select the language with the "Language" Combo Box: 
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/upload.png).
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/language.png).
 
-Then click on the button "Convert" 
+Then click on the button "Convert" to start the recording of Live Spoken Audio.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/convert.png) to start the recording of Live Spoken Audio.
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/convert.png) 
 
-Now you can speak, after few seconds click on the same button "Stop Convert" 
+Now you can speak, after few seconds click on the same button "Stop Convert" to stop the recording and transmit the audio stream.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stoprecord.png) to stop the recording and transmit the audio stream.
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stoprecord.png) 
 
 After less than one second, the result is displayed in the "Result" Edit box: 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
+
 
 Building the application
 ----------------
