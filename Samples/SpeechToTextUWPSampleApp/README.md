@@ -82,7 +82,7 @@ Now you can speak, after few seconds click on the same button "Stop Record" to s
 And then select the WAV file where you want to store the recording.
 The path of the WAV file is displayed in the Edit box "Path" to select a WAV file.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/openfile.png) 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/path.png) 
 
 
 ### Playing a WAV file
@@ -91,13 +91,13 @@ In order to play a WAV file click on the button "Open WAV File" to select a WAV 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/openfile.png) 
 
 
-### Mute and Audio level
+#### Mute and Audio level
 Once the application is playing an audio file it's possible to switch off the audio (`Mute` button) or change the audio output level (`Audio+` and `Audio-` button)
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/audio.png)
 
 
-### Start over, play, pause and stop 
+#### Start over, play, pause and stop 
 
 Once the application is playing an audio file it's possible to:
 <p/>
@@ -109,7 +109,7 @@ Once the application is playing an audio file it's possible to:
 
 
 ### Converting Spoken Audio WAV file to Text
-With you can convert to text the WAV file you have just recorded. 
+With the application, you can convert to text the WAV file you have just recorded. 
 First, select the language with the "Language" Combo Box: 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/language.png)
