@@ -134,10 +134,15 @@ namespace SpeechToTextUWPSampleApp
         /// <summary>
         /// This method is called when the application is suspending
         /// </summary>
-        void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
+        async void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
         {
             LogMessage("Suspending");
             var deferal = e.SuspendingOperation.GetDeferral();
+            if (client.IsRecording())
+            {
+                LogMessage("Stop Recording...");
+                await client.StopRecording();
+            }
             SaveSettings();
             deferal.Complete();
         }
@@ -547,7 +552,7 @@ namespace SpeechToTextUWPSampleApp
 
         #endregion Media
 
-        #region Level
+        #region LevelAndError
         DateTime LastLevelTime = DateTime.Now;
         double maxValue = 0;
         async void Client_AudioLevel(object sender, double reading)
@@ -584,7 +589,12 @@ namespace SpeechToTextUWPSampleApp
         {
             if (CanvasGraph.Children.Count > 0) CanvasGraph.Children.Clear();
         }
-        #endregion Level
+        private void Client_AudioCaptureError(object sender, string message)
+        {
+            LogMessage("Audio Capture Error: " + message );
+            UpdateControls();
+        }
+        #endregion LevelAndError
 
         #region ui
         /// <summary>
@@ -694,6 +704,7 @@ namespace SpeechToTextUWPSampleApp
                             if (await client.StartRecording())
                             {
                                 client.AudioLevel += Client_AudioLevel;
+                                client.AudioCaptureError += Client_AudioCaptureError;
                                 LogMessage("Start Recording...");
                             }
                             else
@@ -707,6 +718,7 @@ namespace SpeechToTextUWPSampleApp
                         LogMessage("Stop Recording...");
                         await client.StopRecording();
                         client.AudioLevel -= Client_AudioLevel;
+                        client.AudioCaptureError -= Client_AudioCaptureError;
                         ClearLevel();
                         string locale = language.SelectedItem.ToString();
                         SpeechToTextResponse result = await client.SendBuffer(locale);
@@ -754,6 +766,7 @@ namespace SpeechToTextUWPSampleApp
                         if (await client.StartRecording())
                         {
                             client.AudioLevel += Client_AudioLevel;
+                            client.AudioCaptureError += Client_AudioCaptureError;
                             LogMessage("Start Recording...");
                         }
                         else
@@ -767,6 +780,7 @@ namespace SpeechToTextUWPSampleApp
                     LogMessage("Stop Recording...");
                     await client.StopRecording();
                     client.AudioLevel -= Client_AudioLevel;
+                    client.AudioCaptureError -= Client_AudioCaptureError;
                     ClearLevel();
                     if (client.GetBufferLength() > 0)
                     {
@@ -799,6 +813,7 @@ namespace SpeechToTextUWPSampleApp
 
             UpdateControls();
         }
+
 
 
         /// <summary>

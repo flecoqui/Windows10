@@ -440,13 +440,19 @@ namespace SpeechToTextUWPSampleApp
             return true;
         }
         /// <summary>
-        /// Event which return the Audio Level of the audio samples
+        /// Event which returns the Audio Level of the audio samples
         /// being stored in the audio buffer
         /// </summary>
-        /// <returns>true if successful</returns>
         public delegate void AudioLevelEventHandler(object sender, double level);
         public event AudioLevelEventHandler AudioLevel;
 
+        /// <summary>
+        /// Event which returns the Audio Capture Errors while 
+        /// a recording is in progress
+        /// </summary>
+        /// <returns>true if successful</returns>
+        public delegate void AudioCaptureErrorEventHandler(object sender, string message);
+        public event AudioCaptureErrorEventHandler AudioCaptureError;
         #region private
         private async System.Threading.Tasks.Task<bool> InitializeRecording()
         {
@@ -480,12 +486,16 @@ namespace SpeechToTextUWPSampleApp
         {
             System.Diagnostics.Debug.WriteLine("Fatal Error " + errorEventArgs.Message);
             await StopRecording();
+            if (AudioCaptureError != null)
+                AudioCaptureError(this, errorEventArgs.Message);
         }
 
         async void mediaCapture_RecordLimitationExceeded(Windows.Media.Capture.MediaCapture sender)
         {
             System.Diagnostics.Debug.WriteLine("Stopping Record on exceeding max record duration");
             await StopRecording();
+            if (AudioCaptureError != null)
+                AudioCaptureError(this, "Error Media Capture: Record Limitation Exceeded");
         }
         private  void STTStream_AudioLevel(object sender, double level)
         {

@@ -344,8 +344,8 @@ namespace SpeechToTextUWPSampleApp
 
 
         public delegate void AudioLevelEventHandler(object sender, double reading);
-
         public event AudioLevelEventHandler AudioLevel;
+
 
         #region private
         private IEnumerable<Int16> Decode(byte[] byteArray)
