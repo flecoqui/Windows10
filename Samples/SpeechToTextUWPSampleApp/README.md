@@ -71,30 +71,25 @@ Once the application is launched, you can enter your subscription key which will
 
 ### Recording Spoken Audio into a WAV file
 With the application you can record the spoken audio. 
-Click on the button "Record" 
+Click on the button "Record" to start the recording.
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/record.png)
 
-to start the recording.
-
-Now you can speak, after few seconds click on the same button "Stop Record" 
+Now you can speak, after few seconds click on the same button "Stop Record" to stop the recording.
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stoprecord.png)
 
-to stop the recording.
 And then select the WAV file where you want to store the recording.
-The path of the WAV file is displayed in the Edit box "Path" 
+The path of the WAV file is displayed in the Edit box "Path" to select a WAV file.
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/openfile.png) 
 
-to select a WAV file.
 
 ### Playing a WAV file
-In order to play a WAV file click on the button "Open WAV File" 
+In order to play a WAV file click on the button "Open WAV File" to select a WAV file.
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/openfile.png) 
 
-to select a WAV file.
 
 ### Mute and Audio level
 Once the application is playing an audio file it's possible to switch off the audio (`Mute` button) or change the audio output level (`Audio+` and `Audio-` button)
