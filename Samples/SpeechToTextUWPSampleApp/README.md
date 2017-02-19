@@ -90,12 +90,7 @@ In order to play a WAV file click on the button "Open WAV File" to select a WAV 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/openfile.png) 
 
-
-#### Mute and Audio level
-Once the application is playing an audio file it's possible to switch off the audio (`Mute` button) or change the audio output level (`Audio+` and `Audio-` button)
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/audio.png)
-
+Press on the "Play" button.
 
 #### Start over, play, pause and stop 
 
@@ -108,13 +103,20 @@ Once the application is playing an audio file it's possible to:
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/playpause.png)
 
 
+#### Mute and Audio level
+Once the application is playing an audio file it's possible to switch off the audio (`Mute` button) or change the audio output level (`Audio+` and `Audio-` button)
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/audio.png)
+
+
 ### Converting Spoken Audio WAV file to Text
 With the application, you can convert to text the WAV file you have just recorded. 
-First, select the language with the "Language" Combo Box: 
+First, check the path of the your audio file is correct in the Path Edit box,
+then select the language in the "Language" Combo Box: 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/language.png)
 
-Then click on the button "Upload" to start the recording.
+Finally click on the button "Upload" to upload the file towards the Cognitive Services.
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/upload.png) 
 
@@ -124,7 +126,7 @@ After less than one second, the result is displayed in the "Result" Edit box:
 
 ### Converting Live Spoken Audio to Text
 You can also directly convert the live Spoken Audio to text. 
-First, select the language with the "Language" Combo Box: 
+First, select the language in the "Language" Combo Box: 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/language.png).
 
@@ -141,9 +143,9 @@ After less than one second, the result is displayed in the "Result" Edit box:
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
 
 
+
 Building the application
 ----------------
-
 
 1. If you download the samples ZIP, be sure to unzip the entire archive, not just the folder with the sample you want to build. 
 2. Ensure the Red Stone 1 (RS1) Windows 10 SDK is installed on your machine
