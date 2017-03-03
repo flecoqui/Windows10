@@ -85,6 +85,7 @@
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
                     <Button IsEnabled="False" Content="&#xE898;" x:Name="convertWAVButton"  ToolTipService.ToolTip="Speech-To-Text with local WAV file sent to Cognitive Services" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="42" Width="42" Margin="1,1,1,1" Click="sendWAVFile_Click" />
                     <Button IsEnabled="False" Content="&#xE717;" x:Name="convertAudioButton" ToolTipService.ToolTip="Speech-To-Text with microphone live recording sent to Cognitive Services" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="42" Width="42" Margin="1,1,1,1" Click="sendAudioBuffer_Click" />
+                    <Button IsEnabled="False" Content="&#xE895;" x:Name="continuousConvertAudioButton" ToolTipService.ToolTip="Continuous Speech-To-Text with microphone live recording sent to Cognitive Services" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="42" Width="42" Margin="1,1,1,1" Click="sendContinuousAudioBuffer_Click" />
                     <TextBlock x:Name="labelLanguage" Text="Language:" HorizontalAlignment="Right" VerticalAlignment="Center" Width="80" />
                     <ComboBox  x:Name="language" ToolTipService.ToolTip="Language of the audio to convert" VerticalAlignment="Center" Width="96"   HorizontalAlignment="Stretch"  IsTabStop="True"  >
                     </ComboBox>

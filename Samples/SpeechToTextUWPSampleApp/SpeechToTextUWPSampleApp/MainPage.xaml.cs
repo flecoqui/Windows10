@@ -611,14 +611,17 @@ namespace SpeechToTextUWPSampleApp
                          {
                              convertAudioButton.Content = "\xE717";
                              recordAudioButton.Content = "\xE720";
+                             continuousConvertAudioButton.Content = "\xE895";
                          }
                          else
                          {
                              convertAudioButton.Content = "\xE778";
                              recordAudioButton.Content = "\xE78C";
+                             continuousConvertAudioButton.Content = "\xE8D8";
                          }
                          openButton.IsEnabled = true;
                          convertAudioButton.IsEnabled = true;
+                         continuousConvertAudioButton.IsEnabled = true;
                          recordAudioButton.IsEnabled = true;
                          mediaUri.IsEnabled = true;
 
@@ -750,6 +753,99 @@ namespace SpeechToTextUWPSampleApp
             UpdateControls();
 
         }
+        /// <summary>
+        /// sendContinuousAudioBuffer method which :
+        /// - record audio sample permanently in the buffer
+        /// - send the buffer to SpeechToText REST API once the recording is done
+        /// </summary>
+        private async void sendContinuousAudioBuffer_Click(object sender, RoutedEventArgs e)
+        {
+            if (client != null)
+            {
+                if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
+                {
+                    string token = await client.GetToken(subscriptionKey.Text);
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        // Save subscription key
+                        SaveSettings();
+                    }
+                }
+                if (client.HasToken())
+                {
+                    if (client.IsRecording() == false)
+                    {
+                        if (await client.CleanupRecording())
+                        {
+                            ulong maxSize = 0;
+                            UInt16 level = 256;
+                            UInt16 duration = 300;
+                            if (await client.StartContinuousRecording(maxSize, duration,level))
+                            {
+                                client.BufferReady += Client_BufferReady;
+                                client.AudioLevel += Client_AudioLevel;
+                                client.AudioCaptureError += Client_AudioCaptureError;
+                                LogMessage("Start Recording...");
+                            }
+                            else
+                                LogMessage("Start Recording failed");
+                        }
+                        else
+                            LogMessage("CleanupRecording failed");
+                    }
+                    else
+                    {
+                        LogMessage("Stop Recording...");
+                        await client.StopRecording();
+                        client.BufferReady -= Client_BufferReady;
+                        client.AudioLevel -= Client_AudioLevel;
+                        client.AudioCaptureError -= Client_AudioCaptureError;
+                        ClearLevel();
+                    }
+                }
+                else
+                    LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
+            }
+            UpdateControls();
+
+        }
+
+        private async void Client_BufferReady(object sender)
+        {
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
+           async () =>
+            {
+                AudioStream stream;
+                while ((stream = client.GetAudioStream()) !=null)
+                {
+                    string locale = language.SelectedItem.ToString();
+                    double start = stream.startTime.TotalMilliseconds;
+                    double end = stream.endTime.TotalMilliseconds;
+                    LogMessage("Sending Sub-Buffer: " + stream.Size.ToString() + " bytes for buffer from: " + start.ToString() + " ms to: " + end.ToString() + " ms");
+                    SpeechToTextResponse result = await client.SendAudioStream(locale, stream);
+                    if (result != null)
+                    {
+                        string httpError = result.GetHttpError();
+                        if (!string.IsNullOrEmpty(httpError))
+                        {
+                            resultText.Text = httpError;
+                            LogMessage("Http Error: " + httpError.ToString());
+                        }
+                        else
+                        {
+                            if (result.Status() == "error")
+                                resultText.Text = "error";
+                            else
+                                resultText.Text = result.Result();
+                            LogMessage("Result for buffer from: " + start.ToString() + " ms to: " + end.ToString() + " ms : \r\n" + result.ToString());
+                        }
+                    }
+                    else
+                        LogMessage("Error while sending buffer");
+                }
+            });
+        }
+
         /// <summary>
         /// recordAudio method which :
         /// - record audio sample in the buffer

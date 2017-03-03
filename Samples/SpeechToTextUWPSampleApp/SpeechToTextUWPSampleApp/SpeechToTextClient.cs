@@ -32,6 +32,9 @@ namespace SpeechToTextUWPSampleApp
 
         private bool isRecordingInitialized;
         private bool isRecording;
+        private ulong maxStreamSizeInBytes;
+        private UInt16 thresholdDuration;
+        private UInt16 thresholdLevel;
         private Windows.Media.Capture.MediaCapture mediaCapture;
 
         /// <summary>
@@ -45,6 +48,9 @@ namespace SpeechToTextUWPSampleApp
             Token = string.Empty;
             isRecordingInitialized = false;
             isRecording = false;
+            thresholdDuration = 0;
+            thresholdLevel = 0;
+            maxStreamSizeInBytes = 0;
         }
 
         /// <summary>
@@ -106,12 +112,26 @@ namespace SpeechToTextUWPSampleApp
                 return false;
             return true;
         }
-
+        /// <summary>
+        /// GetAudioStream method
+        /// </summary>
+        /// <param>
+        /// </param>
+        /// <return>The AudioStream in the queue, null if the queue is empty.
+        /// </return>
+        public AudioStream GetAudioStream()
+        {
+            return STTStream.GetAudioStream();
+        }
         /// <summary>
         /// SendBuffer method
         /// </summary>
         /// <param name="locale">language associated with the current buffer/recording.
         /// for instance en-US, fr-FR, pt-BR, ...
+        /// </param>
+        /// <param name="start">start position of the buffer to transmit.
+        /// </param>
+        /// <param name="end">start position of the buffer to transmit.
         /// </param>
         /// <return>The result of the SpeechToText REST API.
         /// </return>
@@ -126,7 +146,7 @@ namespace SpeechToTextUWPSampleApp
                 System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
                 hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
                 Windows.Web.Http.HttpResponseMessage hrm = null;
-                Windows.Web.Http.HttpStreamContent content;
+                Windows.Web.Http.HttpStreamContent content = null;
                 if (STTStream != null)
                 {
                     content = new Windows.Web.Http.HttpStreamContent(STTStream.AsStream().AsInputStream());
@@ -169,6 +189,73 @@ namespace SpeechToTextUWPSampleApp
             finally
             {
                 System.Diagnostics.Debug.WriteLine("http POST done" );
+            }
+            return null;
+        }
+        /// <summary>
+        /// SendAudioStream method
+        /// </summary>
+        /// <param name="locale">language associated with the current buffer/recording.
+        /// for instance en-US, fr-FR, pt-BR, ...
+        /// </param>
+        /// <param name="stream">AudioStream which will be forwarded to REST API.
+        /// </param>
+        /// <return>The result of the SpeechToText REST API.
+        /// </return>
+        public async System.Threading.Tasks.Task<SpeechToTextResponse> SendAudioStream(string locale, AudioStream stream )
+        {
+            try
+            {
+                string os = "Windows" + Information.SystemInformation.SystemVersion;
+                string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
+                string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
+                Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
+                System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
+                hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
+                Windows.Web.Http.HttpResponseMessage hrm = null;
+                Windows.Web.Http.HttpStreamContent content = null;
+                content = new Windows.Web.Http.HttpStreamContent(stream.GetInputStreamAt(0));
+                content.Headers.ContentLength = (ulong)stream.Size;
+                if ((content != null) && (content.Headers.ContentLength > 0))
+                {
+                    System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString());
+                    content.Headers.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
+                    IProgress<Windows.Web.Http.HttpProgress> progress = new Progress<Windows.Web.Http.HttpProgress>(ProgressHandler);
+                    hrm = await hc.PostAsync(new Uri(speechUrl), content).AsTask(cts.Token, progress);
+                }
+                if (hrm != null)
+                {
+                    SpeechToTextResponse r = null;
+                    switch (hrm.StatusCode)
+                    {
+                        case Windows.Web.Http.HttpStatusCode.Ok:
+                            var b = await hrm.Content.ReadAsBufferAsync();
+                            string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
+                            if (!string.IsNullOrEmpty(result))
+                                r = new SpeechToTextResponse(result);
+                            break;
+
+                        default:
+                            int code = (int)hrm.StatusCode;
+                            string HttpError = "Http Response Error: " + code.ToString() + " reason: " + hrm.ReasonPhrase.ToString();
+                            System.Diagnostics.Debug.WriteLine(HttpError);
+                            r = new SpeechToTextResponse(string.Empty, HttpError);
+                            break;
+                    }
+                    return r;
+                }
+            }
+            catch (System.Threading.Tasks.TaskCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("http POST canceled");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("http POST exception: " + ex.Message);
+            }
+            finally
+            {
+                System.Diagnostics.Debug.WriteLine("http POST done");
             }
             return null;
         }
@@ -259,7 +346,7 @@ namespace SpeechToTextUWPSampleApp
         /// </param>
         /// <return>true if successful.
         /// </return>
-        public async System.Threading.Tasks.Task<bool> SaveBuffer(Windows.Storage.StorageFile wavFile)
+        public async System.Threading.Tasks.Task<bool> SaveBuffer(Windows.Storage.StorageFile wavFile, UInt64 start = 0, UInt64 end = 0)
         {
             bool bResult = false;
             if (wavFile != null)
@@ -271,9 +358,32 @@ namespace SpeechToTextUWPSampleApp
                         if ((stream != null) && (STTStream != null))
                         {
                             stream.SetLength(0);
-                            await STTStream.AsStream().CopyToAsync(stream);
-                            System.Diagnostics.Debug.WriteLine("Audio Stream stored in: " + wavFile.Path);
-                            bResult = true;
+                            if ((start == 0) && (end == 0))
+                            {
+                                await STTStream.AsStream().CopyToAsync(stream);
+                                System.Diagnostics.Debug.WriteLine("Audio Stream stored in: " + wavFile.Path);
+                                bResult = true;
+                            }
+                            else if ((start >= 0) && (end > start))
+                            {
+                                var headerBuffer = STTStream.GetWAVHeaderBuffer((uint)(end - start));
+                                if (headerBuffer != null)
+                                {
+                                    byte[] buffer = new byte[headerBuffer.Length + (uint)(end - start)];
+                                    if (buffer != null)
+                                    {
+                                        headerBuffer.CopyTo(buffer, headerBuffer.Length);
+                                        ulong pos = STTStream.Position;
+                                        STTStream.Seek(start);
+                                        STTStream.ReadAsync(buffer.AsBuffer((int)headerBuffer.Length, (int)(end - start)), (uint)(end - start), Windows.Storage.Streams.InputStreamOptions.None).AsTask().Wait();
+                                        STTStream.Seek(pos);
+                                        MemoryStream bufferStream = new MemoryStream(buffer);
+                                        await bufferStream.CopyToAsync(stream);
+                                        System.Diagnostics.Debug.WriteLine("Audio Stream stored in: " + wavFile.Path);
+                                        bResult = true;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -320,19 +430,37 @@ namespace SpeechToTextUWPSampleApp
         /// </param>
         /// <return>return true if successful.
         /// </return>
-        public async System.Threading.Tasks.Task<bool> StartRecording()
+        public async System.Threading.Tasks.Task<bool> StartContinuousRecording(ulong MaxStreamSizeInBytes, UInt16 ThresholdDuration, UInt16 ThresholdLevel)
+        {
+            thresholdDuration = ThresholdDuration;
+            thresholdLevel = ThresholdLevel;
+            return await StartRecording(MaxStreamSizeInBytes);
+        }
+        /// <summary>
+        /// StartRecording method
+        /// </summary>
+        /// <param>
+        /// Start to record audio using the microphone.
+        /// The audio stream in stored in memory
+        /// </param>
+        /// <return>return true if successful.
+        /// </return>STTStream
+        public async System.Threading.Tasks.Task<bool> StartRecording(ulong MaxStreamSizeInBytes = 0)
         {
             bool bResult = false;
+            maxStreamSizeInBytes = MaxStreamSizeInBytes;
             if (isRecordingInitialized != true)
                 await InitializeRecording();
             if(STTStream != null)
             {
+                STTStream.BufferReady -= STTStream_BufferReady;
                 STTStream.AudioLevel -= STTStream_AudioLevel;
                 STTStream.Dispose();
                 STTStream = null;
             }
-            STTStream = SpeechToTextStream.Create();
+            STTStream = SpeechToTextStream.Create(maxStreamSizeInBytes, thresholdDuration, thresholdLevel);
             STTStream.AudioLevel += STTStream_AudioLevel;
+            STTStream.BufferReady += STTStream_BufferReady;
 
             if ((STTStream != null) && (isRecordingInitialized == true))
             {
@@ -385,6 +513,8 @@ namespace SpeechToTextUWPSampleApp
             }
             return bResult;
         }
+
+
         /// <summary>
         /// StopRecording method
         /// </summary>
@@ -433,12 +563,20 @@ namespace SpeechToTextUWPSampleApp
             }
             if (STTStream != null)
             {
+                STTStream.BufferReady -= STTStream_BufferReady;
                 STTStream.AudioLevel -= STTStream_AudioLevel;
                 STTStream.Dispose();
                 STTStream = null;
             }
             return true;
         }
+        /// <summary>
+        /// Event which returns the position of the buffer ready to be sent 
+        /// This event is fired with continuous recording
+        /// </summary>
+        public delegate void BufferReadyEventHandler(object sender);
+        public event BufferReadyEventHandler BufferReady;
+        
         /// <summary>
         /// Event which returns the Audio Level of the audio samples
         /// being stored in the audio buffer
@@ -503,6 +641,12 @@ namespace SpeechToTextUWPSampleApp
             if (AudioLevel != null)
                 AudioLevel(sender, level);
         }
+        private void STTStream_BufferReady(object sender)
+        {
+            if (BufferReady != null)
+                BufferReady(sender);
+        }
+
 
         private void ProgressHandler(Windows.Web.Http.HttpProgress progress)
         {
