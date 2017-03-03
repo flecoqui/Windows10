@@ -121,11 +121,12 @@ namespace SpeechToTextUWPSampleApp
         private uint nAvgBytesPerSec;
         private uint nBlockAlign;
         private uint wBitsPerSample;
-        private uint Length;
-        private ulong posStartAudioSamples = 0;
-        private uint posLastWriteData = 0;
-        private ulong posReadData = 0;
-
+        private ulong wavHeaderLength = 0;
+        //private uint posLastWriteData = 0;
+        private ulong ReadDataIndex = 0;
+        private ulong WriteDataIndex = 0;
+        private ulong seekOffset = 0;
+        private Object maxSizeLock = new Object();
         private ulong maxSize = 0;
         private uint thresholdDurationInBytes = 0;
         private uint tresholdDuration = 0;
@@ -164,14 +165,18 @@ namespace SpeechToTextUWPSampleApp
             inputStream = internalStream.GetInputStreamAt(0);
             audioQueue = new ConcurrentQueue<AudioStream>();
         }
-        public uint GetLength()
+        public ulong GetLength()
         {
             uint delta = 0;
-            if (posStartAudioSamples > (4 + fmt.length + 8 + 8 + 8))
-                delta = (uint)posStartAudioSamples - (4 + fmt.length + 8 + 8 + 8);
-            if (posLastWriteData > delta)
-                return posLastWriteData - delta;
-            return posLastWriteData;
+            uint minwavHeaderLength = 4 + fmt.length + 8 + 8 + 8;
+            if (wavHeaderLength > minwavHeaderLength)
+                delta = (uint)wavHeaderLength - minwavHeaderLength;
+//            if (posLastWriteData >= wavHeaderLength)
+//                return posLastWriteData - delta;
+//            return posLastWriteData;
+            if (internalStream.Size  >= wavHeaderLength)
+                return internalStream.Size - delta;
+            return internalStream.Size;
         }
 
         public bool CanRead
@@ -215,6 +220,8 @@ namespace SpeechToTextUWPSampleApp
 
         public void Seek(ulong position)
         {
+            if (position >= seekOffset)
+                position = position - seekOffset ;
             //System.Diagnostics.Debug.WriteLine("Seek: " + position.ToString() + " - Stream Size: " + internalStream.Size + " Stream position: " + internalStream.Position);
             internalStream.Seek(position);
         }
@@ -246,7 +253,7 @@ namespace SpeechToTextUWPSampleApp
         {
             internalStream.Dispose();
         }
-        public byte[] GetWAVHeaderBuffer(uint Len)
+        public byte[] CreateWAVHeaderBuffer(uint Len)
         {
             uint headerLen = 4 + fmt.length + 8 + 8 + 8;
             byte[] updatedBuffer = new byte[headerLen];
@@ -271,34 +278,33 @@ namespace SpeechToTextUWPSampleApp
                 return Task.Run(() =>
                 {
                     System.Diagnostics.Debug.WriteLine("ReadAsync for: " + count.ToString() + " bytes - Stream Size: " + internalStream.Size + " Stream position: " + internalStream.Position);
-                    if (posReadData == 0)
+                    // If first Read call
+                    if ((ReadDataIndex == 0)&&(internalStream.Size>count))
                     {
-                        // First read header
-                        byte[] array = new byte[posStartAudioSamples];
-                        if (array != null)
+                        // First dummy read of the header
+                        inputStream = internalStream.GetInputStreamAt(wavHeaderLength);
+                        uint currentDataLength = (uint)(internalStream.Size - wavHeaderLength);
+                        if (currentDataLength > 0)
                         {
-                            uint currentDataLength = (uint)(posLastWriteData - posStartAudioSamples);
-                            inputStream.ReadAsync(array.AsBuffer(), (uint)posStartAudioSamples, options).AsTask().Wait();
-                            if (currentDataLength > 0)
+                            data.length = currentDataLength;
+                            var WAVHeaderBuffer = CreateWAVHeaderBuffer(data.length);
+                            if (WAVHeaderBuffer != null)
                             {
-                                data.length = currentDataLength;
-                                var WAVHeaderBuffer = GetWAVHeaderBuffer(data.length);
-                                if (WAVHeaderBuffer != null)
+                                int headerLen = WAVHeaderBuffer.Length;
+                                if (count >= headerLen)
                                 {
-                                    int headerLen = WAVHeaderBuffer.Length;
-                                    Length = data.length + 4 + fmt.length + 8 + 8 + 8;
                                     byte[] updatedBuffer = new byte[count];
                                     WAVHeaderBuffer.CopyTo(updatedBuffer.AsBuffer());
                                     if (count > headerLen)
                                     {
                                         //fill buffer
-                                        inputStream.ReadAsync(updatedBuffer.AsBuffer((int)headerLen, (int)(count - headerLen)), (uint) (count - headerLen), options).AsTask().Wait();
+                                        inputStream.ReadAsync(updatedBuffer.AsBuffer((int)headerLen, (int)(count - headerLen)), (uint)(count - headerLen), options).AsTask().Wait();
                                     }
 
-                                    posReadData = posStartAudioSamples;
-                                    progress.Report((uint)updatedBuffer.Length);
-
-                                    System.Diagnostics.Debug.WriteLine("ReadAsync return : " + updatedBuffer.Length.ToString() + " bytes - Stream Size: " + internalStream.Size + " Stream position: " + internalStream.Position);
+                                    buffer = updatedBuffer.AsBuffer();
+                                    ReadDataIndex += buffer.Length;
+                                    System.Diagnostics.Debug.WriteLine("ReadAsync return : " + buffer.Length.ToString() + " bytes - Stream Size: " + internalStream.Size + " Stream position: " + internalStream.Position);
+                                    progress.Report((uint)buffer.Length);
                                     return updatedBuffer.AsBuffer();
                                 }
                             }
@@ -307,6 +313,7 @@ namespace SpeechToTextUWPSampleApp
                     else
                     {
                         inputStream.ReadAsync(buffer, count, options).AsTask().Wait();
+                        ReadDataIndex += buffer.Length;
                         System.Diagnostics.Debug.WriteLine("ReadAsync return : " + buffer.Length.ToString() + " bytes - Stream Size: " + internalStream.Size + " Stream position: " + internalStream.Position);
                         progress.Report((uint)buffer.Length);
                         return buffer;
@@ -325,31 +332,30 @@ namespace SpeechToTextUWPSampleApp
                 return Task.Run(() =>
                 {
 
-                    // check header 
-                    if((internalStream.Size==0) && (posStartAudioSamples == 0) )
+                    // If it's the first WriteAsync in the stream
+                    // the buffer should contains the WAV Header
+                    if((internalStream.Size==0) && (wavHeaderLength == 0) )
                     {
+                        WriteDataIndex = 0;
                         // Check header
                         byte[] array = buffer.ToArray();
-                        posStartAudioSamples = ParseWAVHeader(array);
+                        wavHeaderLength = ParseAndGetWAVHeaderLength(array);
                         internalStream.WriteAsync(buffer).AsTask().Wait();
-                        posLastWriteData += buffer.Length;
+                        WriteDataIndex += buffer.Length;
                         progress.Report((uint)(buffer.Length));
                         return (uint)(buffer.Length);
                     }
                     else
                     {
-                        if(internalStream.Position != posLastWriteData)
-                            System.Diagnostics.Debug.WriteLine("Warning WriteAsync: " + internalStream.Position.ToString() + "/" + posLastWriteData.ToString());
+                        if(internalStream.Position != internalStream.Size)
+                            System.Diagnostics.Debug.WriteLine("Warning WriteAsync: " + internalStream.Position.ToString() + "/" + internalStream.Size.ToString());
 
                         ulong index = internalStream.Size;
-                        uint byteToWrite = 0;
-                        if ((Length>0) &&(buffer.Length > (Length - index)))
-                            byteToWrite = (uint)(Length - index);
-                        else
-                            byteToWrite = buffer.Length;
+                        uint byteToWrite = buffer.Length;
                         
                        // System.Diagnostics.Debug.WriteLine("WriteAsync: " + buffer.Length.ToString() + " at position: " + internalStream.Position);
                         internalStream.WriteAsync(buffer.ToArray(0, (int)byteToWrite).AsBuffer()).AsTask().Wait();
+                        WriteDataIndex += buffer.Length;
                         var byteArray = buffer.ToArray();
                         if (byteArray.Length >= 2)
                         {
@@ -371,9 +377,9 @@ namespace SpeechToTextUWPSampleApp
                                         if (level > thresholdLevel)
                                         {
                                             System.Diagnostics.Debug.WriteLine("Audio Level sufficient to start recording");
-                                            thresholdStart = internalStream.Size - thresholdDurationInBytes;
+                                            thresholdStart = WriteDataIndex - thresholdDurationInBytes;
                                             audioStream = AudioStream.Create(nChannels, nSamplesPerSec, nAvgBytesPerSec, nBlockAlign, wBitsPerSample, thresholdStart);
-                                            var headerBuffer = GetWAVHeaderBuffer(0);
+                                            var headerBuffer = CreateWAVHeaderBuffer(0);
                                             if ((audioStream != null) && (headerBuffer != null))
                                             {
                                                 audioStream.WriteAsync(headerBuffer.AsBuffer()).AsTask().Wait();
@@ -392,9 +398,9 @@ namespace SpeechToTextUWPSampleApp
                                     if (level < thresholdLevel)
                                     {
                                         System.Diagnostics.Debug.WriteLine("Audio Level lower enough to stop recording");
-                                        thresholdEnd = internalStream.Size;
+                                        thresholdEnd = WriteDataIndex;
                                         audioStream.Seek(0);
-                                        var headerBuffer = GetWAVHeaderBuffer((uint)(thresholdEnd - thresholdStart));
+                                        var headerBuffer = CreateWAVHeaderBuffer((uint)(thresholdEnd - thresholdStart));
                                         if (headerBuffer != null)
                                             audioStream.WriteAsync(headerBuffer.AsBuffer()).AsTask().Wait();
                                         if (audioQueue != null)
@@ -422,15 +428,28 @@ namespace SpeechToTextUWPSampleApp
                             // check maxSize
                             if((internalStream.Size>maxSize)&&(audioStream==null))
                             {
-                                internalStream.Dispose();
-                                inputStream.Dispose();
-                                internalStream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
-                                inputStream = internalStream.GetInputStreamAt(0);
-
+                                lock(maxSizeLock)
+                                {
+                                    byte[] headerBuffer = null;
+                                    if (wavHeaderLength > 0)
+                                    {
+                                        // WAV header present
+                                        headerBuffer = new byte[wavHeaderLength];
+                                        inputStream = internalStream.GetInputStreamAt(0);
+                                        inputStream.ReadAsync(headerBuffer.AsBuffer(), (uint)wavHeaderLength, InputStreamOptions.None).AsTask().Wait();
+                                    }
+                                    seekOffset += (internalStream.Size - wavHeaderLength);
+                                    internalStream.Dispose();
+                                    inputStream.Dispose();
+                                    internalStream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
+                                    if (headerBuffer != null)
+                                        internalStream.WriteAsync(headerBuffer.AsBuffer()).AsTask().Wait();
+                                    inputStream = internalStream.GetInputStreamAt(0);
+                                }
                             }
                         }
-                        if (internalStream.Position == (posLastWriteData + buffer.Length))
-                            posLastWriteData += buffer.Length;
+                        if (internalStream.Position == internalStream.Size)
+                            WriteDataIndex += buffer.Length;
                         progress.Report((uint)buffer.Length);
                         return (uint)buffer.Length;
                     }
@@ -467,7 +486,7 @@ namespace SpeechToTextUWPSampleApp
                 yield return (BitConverter.ToInt16(byteArray, i));
             }
         }
-        private uint ParseWAVHeader(byte[] buffer)
+        private uint ParseAndGetWAVHeaderLength(byte[] buffer)
         {
 
             int length = 0;

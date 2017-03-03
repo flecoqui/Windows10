@@ -777,9 +777,9 @@ namespace SpeechToTextUWPSampleApp
                     {
                         if (await client.CleanupRecording())
                         {
-                            ulong maxSize = 0;
-                            UInt16 level = 256;
-                            UInt16 duration = 300;
+                            ulong maxSize = 320000;
+                            UInt16 level = 300;
+                            UInt16 duration = 400;
                             if (await client.StartContinuousRecording(maxSize, duration,level))
                             {
                                 client.BufferReady += Client_BufferReady;
@@ -819,9 +819,9 @@ namespace SpeechToTextUWPSampleApp
                 while ((stream = client.GetAudioStream()) !=null)
                 {
                     string locale = language.SelectedItem.ToString();
-                    double start = stream.startTime.TotalMilliseconds;
-                    double end = stream.endTime.TotalMilliseconds;
-                    LogMessage("Sending Sub-Buffer: " + stream.Size.ToString() + " bytes for buffer from: " + start.ToString() + " ms to: " + end.ToString() + " ms");
+                    double start = stream.startTime.TotalSeconds;
+                    double end = stream.endTime.TotalSeconds;
+                    LogMessage("Sending Sub-Buffer: " + stream.Size.ToString() + " bytes for buffer from: " + start.ToString() + " seconds to: " + end.ToString() + " seconds");
                     SpeechToTextResponse result = await client.SendAudioStream(locale, stream);
                     if (result != null)
                     {
@@ -837,7 +837,7 @@ namespace SpeechToTextUWPSampleApp
                                 resultText.Text = "error";
                             else
                                 resultText.Text = result.Result();
-                            LogMessage("Result for buffer from: " + start.ToString() + " ms to: " + end.ToString() + " ms : \r\n" + result.ToString());
+                            LogMessage("Result for buffer from: " + start.ToString() + " seconds to: " + end.ToString() + " seconds duration : " + (end-start).ToString() + " seconds \r\n" + result.ToString());
                         }
                     }
                     else

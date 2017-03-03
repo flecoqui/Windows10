@@ -366,7 +366,7 @@ namespace SpeechToTextUWPSampleApp
                             }
                             else if ((start >= 0) && (end > start))
                             {
-                                var headerBuffer = STTStream.GetWAVHeaderBuffer((uint)(end - start));
+                                var headerBuffer = STTStream.CreateWAVHeaderBuffer((uint)(end - start));
                                 if (headerBuffer != null)
                                 {
                                     byte[] buffer = new byte[headerBuffer.Length + (uint)(end - start)];
@@ -413,7 +413,7 @@ namespace SpeechToTextUWPSampleApp
                  /// </param>
                  /// <return>the length of the WAV buffer in uint.
                  /// </return>
-        public uint GetBufferLength()
+        public ulong GetBufferLength()
         {
             if (STTStream != null)
             {
