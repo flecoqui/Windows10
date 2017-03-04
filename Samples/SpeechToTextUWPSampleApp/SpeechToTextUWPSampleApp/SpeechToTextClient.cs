@@ -100,6 +100,50 @@ namespace SpeechToTextUWPSampleApp
             return string.Empty;
         }
         /// <summary>
+        /// RenewToken method
+        /// </summary>
+        /// <param>
+        /// </param>
+        /// <return>Token which is used to all the SpeechToText REST API.
+        /// </return>
+        public async System.Threading.Tasks.Task<string> RenewToken()
+        {
+            if (string.IsNullOrEmpty(SubscriptionKey))
+                return string.Empty;
+            try
+            {
+                Token = string.Empty;
+                Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
+                hc.DefaultRequestHeaders.TryAppendWithoutValidation("Ocp-Apim-Subscription-Key", SubscriptionKey);
+                Windows.Web.Http.HttpStringContent content = new Windows.Web.Http.HttpStringContent(String.Empty);
+                Windows.Web.Http.HttpResponseMessage hrm = await hc.PostAsync(new Uri(AuthUrl), content);
+                if (hrm != null)
+                {
+                    switch (hrm.StatusCode)
+                    {
+                        case Windows.Web.Http.HttpStatusCode.Ok:
+                            var b = await hrm.Content.ReadAsBufferAsync();
+                            string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
+                            if (!string.IsNullOrEmpty(result))
+                            {
+                                Token = "Bearer  " + result;
+                                return Token;
+                            }
+                            break;
+
+                        default:
+                            System.Diagnostics.Debug.WriteLine("Http Response Error:" + hrm.StatusCode.ToString() + " reason: " + hrm.ReasonPhrase.ToString());
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Exception while getting the token: " + ex.Message);
+            }
+            return string.Empty;
+        }
+        /// <summary>
         /// HasToken method
         /// </summary>
         /// <param>Check if a Token has been acquired
@@ -137,60 +181,72 @@ namespace SpeechToTextUWPSampleApp
         /// </return>
         public async System.Threading.Tasks.Task<SpeechToTextResponse> SendBuffer(string locale)
         {
-            try
-            {
-                string os = "Windows" + Information.SystemInformation.SystemVersion;
-                string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
-                string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
-                Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
-                System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
-                hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
-                Windows.Web.Http.HttpResponseMessage hrm = null;
-                Windows.Web.Http.HttpStreamContent content = null;
-                if (STTStream != null)
-                {
-                    content = new Windows.Web.Http.HttpStreamContent(STTStream.AsStream().AsInputStream());
-                    content.Headers.ContentLength = STTStream.GetLength();
-                    System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString());
-                    content.Headers.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
-                    IProgress<Windows.Web.Http.HttpProgress> progress = new Progress<Windows.Web.Http.HttpProgress>(ProgressHandler);
-                    hrm = await hc.PostAsync(new Uri(speechUrl), content).AsTask(cts.Token, progress);
-                }
-                if (hrm != null)
-                {
-                    SpeechToTextResponse r = null;
-                    switch (hrm.StatusCode)
-                    {
-                        case Windows.Web.Http.HttpStatusCode.Ok:
-                            var b = await hrm.Content.ReadAsBufferAsync();
-                            string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
-                            if (!string.IsNullOrEmpty(result))
-                                r = new SpeechToTextResponse(result);
-                            break;
+            SpeechToTextResponse r = null;
+            int loop = 1;
 
-                        default:
-                            int code = (int)hrm.StatusCode;
-                            string HttpError = "Http Response Error: " + code.ToString() + " reason: " + hrm.ReasonPhrase.ToString();
-                            System.Diagnostics.Debug.WriteLine(HttpError);
-                            r = new SpeechToTextResponse(string.Empty, HttpError);
-                            break;
+            while (loop-- > 0)
+            {
+                try
+                {
+                    string os = "Windows" + Information.SystemInformation.SystemVersion;
+                    string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
+                    string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
+                    Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
+                    System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
+                    Windows.Web.Http.HttpResponseMessage hrm = null;
+                    Windows.Web.Http.HttpStreamContent content = null;
+                    if (STTStream != null)
+                    {
+                        content = new Windows.Web.Http.HttpStreamContent(STTStream.AsStream().AsInputStream());
+                        content.Headers.ContentLength = STTStream.GetLength();
+                        System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString());
+                        content.Headers.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
+                        IProgress<Windows.Web.Http.HttpProgress> progress = new Progress<Windows.Web.Http.HttpProgress>(ProgressHandler);
+                        hrm = await hc.PostAsync(new Uri(speechUrl), content).AsTask(cts.Token, progress);
                     }
-                    return r;
+                    if (hrm != null)
+                    {
+                        switch (hrm.StatusCode)
+                        {
+                            case Windows.Web.Http.HttpStatusCode.Ok:
+                                var b = await hrm.Content.ReadAsBufferAsync();
+                                string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
+                                if (!string.IsNullOrEmpty(result))
+                                    r = new SpeechToTextResponse(result);
+                                break;
+
+                            case Windows.Web.Http.HttpStatusCode.Forbidden:
+                                string token = await RenewToken();
+                                if (string.IsNullOrEmpty(token))
+                                {
+                                    loop++;
+                                }
+                                break;
+
+                            default:
+                                int code = (int)hrm.StatusCode;
+                                string HttpError = "Http Response Error: " + code.ToString() + " reason: " + hrm.ReasonPhrase.ToString();
+                                System.Diagnostics.Debug.WriteLine(HttpError);
+                                r = new SpeechToTextResponse(string.Empty, HttpError);
+                                break;
+                        }
+                    }
+                }
+                catch (System.Threading.Tasks.TaskCanceledException)
+                {
+                    System.Diagnostics.Debug.WriteLine("http POST canceled");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("http POST exception: " + ex.Message);
+                }
+                finally
+                {
+                    System.Diagnostics.Debug.WriteLine("http POST done");
                 }
             }
-            catch (System.Threading.Tasks.TaskCanceledException)
-            {
-                System.Diagnostics.Debug.WriteLine("http POST canceled");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("http POST exception: " + ex.Message);
-            }
-            finally
-            {
-                System.Diagnostics.Debug.WriteLine("http POST done" );
-            }
-            return null;
+            return r;
         }
         /// <summary>
         /// SendAudioStream method
@@ -204,60 +260,71 @@ namespace SpeechToTextUWPSampleApp
         /// </return>
         public async System.Threading.Tasks.Task<SpeechToTextResponse> SendAudioStream(string locale, AudioStream stream )
         {
-            try
-            {
-                string os = "Windows" + Information.SystemInformation.SystemVersion;
-                string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
-                string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
-                Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
-                System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
-                hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
-                Windows.Web.Http.HttpResponseMessage hrm = null;
-                Windows.Web.Http.HttpStreamContent content = null;
-                content = new Windows.Web.Http.HttpStreamContent(stream.GetInputStreamAt(0));
-                content.Headers.ContentLength = (ulong)stream.Size;
-                if ((content != null) && (content.Headers.ContentLength > 0))
-                {
-                    System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString());
-                    content.Headers.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
-                    IProgress<Windows.Web.Http.HttpProgress> progress = new Progress<Windows.Web.Http.HttpProgress>(ProgressHandler);
-                    hrm = await hc.PostAsync(new Uri(speechUrl), content).AsTask(cts.Token, progress);
-                }
-                if (hrm != null)
-                {
-                    SpeechToTextResponse r = null;
-                    switch (hrm.StatusCode)
-                    {
-                        case Windows.Web.Http.HttpStatusCode.Ok:
-                            var b = await hrm.Content.ReadAsBufferAsync();
-                            string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
-                            if (!string.IsNullOrEmpty(result))
-                                r = new SpeechToTextResponse(result);
-                            break;
+            SpeechToTextResponse r = null;
+            int loop = 1;
 
-                        default:
-                            int code = (int)hrm.StatusCode;
-                            string HttpError = "Http Response Error: " + code.ToString() + " reason: " + hrm.ReasonPhrase.ToString();
-                            System.Diagnostics.Debug.WriteLine(HttpError);
-                            r = new SpeechToTextResponse(string.Empty, HttpError);
-                            break;
+            while (loop-- > 0)
+            {
+                try
+                {
+                    string os = "Windows" + Information.SystemInformation.SystemVersion;
+                    string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
+                    string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
+                    Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
+                    System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
+                    Windows.Web.Http.HttpResponseMessage hrm = null;
+                    Windows.Web.Http.HttpStreamContent content = null;
+                    content = new Windows.Web.Http.HttpStreamContent(stream.GetInputStreamAt(0));
+                    content.Headers.ContentLength = (ulong)stream.Size;
+                    if ((content != null) && (content.Headers.ContentLength > 0))
+                    {
+                        System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString());
+                        content.Headers.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
+                        IProgress<Windows.Web.Http.HttpProgress> progress = new Progress<Windows.Web.Http.HttpProgress>(ProgressHandler);
+                        hrm = await hc.PostAsync(new Uri(speechUrl), content).AsTask(cts.Token, progress);
                     }
-                    return r;
+                    if (hrm != null)
+                    {
+                        switch (hrm.StatusCode)
+                        {
+                            case Windows.Web.Http.HttpStatusCode.Ok:
+                                var b = await hrm.Content.ReadAsBufferAsync();
+                                string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
+                                if (!string.IsNullOrEmpty(result))
+                                    r = new SpeechToTextResponse(result);
+                                break;
+                            case Windows.Web.Http.HttpStatusCode.Forbidden:
+                                string token = await RenewToken();
+                                if (string.IsNullOrEmpty(token))
+                                {
+                                    loop++;
+                                }
+                                break;
+
+                            default:
+                                int code = (int)hrm.StatusCode;
+                                string HttpError = "Http Response Error: " + code.ToString() + " reason: " + hrm.ReasonPhrase.ToString();
+                                System.Diagnostics.Debug.WriteLine(HttpError);
+                                r = new SpeechToTextResponse(string.Empty, HttpError);
+                                break;
+                        }
+                    }
+                }
+                catch (System.Threading.Tasks.TaskCanceledException)
+                {
+                    System.Diagnostics.Debug.WriteLine("http POST canceled");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("http POST exception: " + ex.Message);
+                }
+                finally
+                {
+                    System.Diagnostics.Debug.WriteLine("http POST done");
                 }
             }
-            catch (System.Threading.Tasks.TaskCanceledException)
-            {
-                System.Diagnostics.Debug.WriteLine("http POST canceled");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("http POST exception: " + ex.Message);
-            }
-            finally
-            {
-                System.Diagnostics.Debug.WriteLine("http POST done");
-            }
-            return null;
+            return r;
         }
         /// <summary>
         /// SendStorageFile method
@@ -272,71 +339,83 @@ namespace SpeechToTextUWPSampleApp
         /// </return>
         public async System.Threading.Tasks.Task<SpeechToTextResponse> SendStorageFile(Windows.Storage.StorageFile wavFile, string locale)
         {
-            try
+            SpeechToTextResponse r = null;
+            int loop = 1;
+
+            while (loop-- > 0)
             {
-                string os = "Windows" + Information.SystemInformation.SystemVersion;
-                string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
-                string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
-                Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
-
-                hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
-                hc.DefaultRequestHeaders.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
-                Windows.Web.Http.HttpResponseMessage hrm = null;
-
-                Windows.Storage.StorageFile file = wavFile;
-                if (file != null)
+                try
                 {
-                    using (var fileStream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read))
-                    {
-                        if (STTStream != null)
-                        {
-                            STTStream.AudioLevel -= STTStream_AudioLevel;
-                            STTStream.Dispose();
-                            STTStream = null;
-                        }
-                        STTStream = SpeechToTextStream.Create();
-                        if (STTStream != null)
-                        {
-                            byte[] byteArray = new byte[fileStream.Size];
-                            fileStream.ReadAsync(byteArray.AsBuffer(), (uint)fileStream.Size, Windows.Storage.Streams.InputStreamOptions.Partial).AsTask().Wait();
-                            STTStream.WriteAsync(byteArray.AsBuffer()).AsTask().Wait();
+                    string os = "Windows" + Information.SystemInformation.SystemVersion;
+                    string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
+                    string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
+                    Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
 
-                            Windows.Web.Http.HttpStreamContent content = new Windows.Web.Http.HttpStreamContent(STTStream.AsStream().AsInputStream());
-                            content.Headers.ContentLength = STTStream.GetLength();
-                            System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString() + " bytes");
-                            System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
-                            IProgress<Windows.Web.Http.HttpProgress> progress = new Progress<Windows.Web.Http.HttpProgress>(ProgressHandler);
-                            hrm = await hc.PostAsync(new Uri(speechUrl), content).AsTask(cts.Token, progress);
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
+                    Windows.Web.Http.HttpResponseMessage hrm = null;
+
+                    Windows.Storage.StorageFile file = wavFile;
+                    if (file != null)
+                    {
+                        using (var fileStream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read))
+                        {
+                            if (STTStream != null)
+                            {
+                                STTStream.AudioLevel -= STTStream_AudioLevel;
+                                STTStream.Dispose();
+                                STTStream = null;
+                            }
+                            STTStream = SpeechToTextStream.Create();
+                            if (STTStream != null)
+                            {
+                                byte[] byteArray = new byte[fileStream.Size];
+                                fileStream.ReadAsync(byteArray.AsBuffer(), (uint)fileStream.Size, Windows.Storage.Streams.InputStreamOptions.Partial).AsTask().Wait();
+                                STTStream.WriteAsync(byteArray.AsBuffer()).AsTask().Wait();
+
+                                Windows.Web.Http.HttpStreamContent content = new Windows.Web.Http.HttpStreamContent(STTStream.AsStream().AsInputStream());
+                                content.Headers.ContentLength = STTStream.GetLength();
+                                System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString() + " bytes");
+                                System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
+                                IProgress<Windows.Web.Http.HttpProgress> progress = new Progress<Windows.Web.Http.HttpProgress>(ProgressHandler);
+                                hrm = await hc.PostAsync(new Uri(speechUrl), content).AsTask(cts.Token, progress);
+                            }
+                        }
+                    }
+                    if (hrm != null)
+                    {
+                        switch (hrm.StatusCode)
+                        {
+                            case Windows.Web.Http.HttpStatusCode.Ok:
+                                var b = await hrm.Content.ReadAsBufferAsync();
+                                string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
+                                if (!string.IsNullOrEmpty(result))
+                                    r = new SpeechToTextResponse(result);
+                                break;
+
+                            case Windows.Web.Http.HttpStatusCode.Forbidden:
+                                string token = await RenewToken();
+                                if (string.IsNullOrEmpty(token))
+                                {
+                                    loop++;
+                                }
+                                break;
+
+                            default:
+                                int code = (int)hrm.StatusCode;
+                                string HttpError = "Http Response Error: " + code.ToString() + " reason: " + hrm.ReasonPhrase.ToString();
+                                System.Diagnostics.Debug.WriteLine(HttpError);
+                                r = new SpeechToTextResponse(string.Empty, HttpError);
+                                break;
                         }
                     }
                 }
-                if (hrm != null)
+                catch (Exception ex)
                 {
-                    SpeechToTextResponse r = null;
-                    switch (hrm.StatusCode)
-                    {
-                        case Windows.Web.Http.HttpStatusCode.Ok:
-                            var b = await hrm.Content.ReadAsBufferAsync();
-                            string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
-                            if (!string.IsNullOrEmpty(result))
-                                r = new SpeechToTextResponse(result);
-                            break;
-
-                        default:
-                            int code = (int)hrm.StatusCode;
-                            string HttpError = "Http Response Error: " + code.ToString() + " reason: " + hrm.ReasonPhrase.ToString();
-                            System.Diagnostics.Debug.WriteLine(HttpError);
-                            r = new SpeechToTextResponse(string.Empty, HttpError);
-                            break;
-                    }
-                    return r;
+                    System.Diagnostics.Debug.WriteLine("Exception while sending the audio file:" + ex.Message);
                 }
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("Exception while sending the audio file:" + ex.Message);
-            }
-            return null;
+            return r;
         }
         /// <summary>
         /// SaveBuffer method

@@ -30,6 +30,13 @@ namespace SpeechToTextUWPSampleApp
     {
         Windows.Media.Playback.MediaPlayer mediaPlayer;
         SpeechToTextClient client;
+        ulong maxSize = 3840000;
+        UInt16 level = 300;
+        UInt16 duration = 400;
+        bool isRecordingInMemory = false;
+        bool isRecordingInFile = false;
+        bool isRecordingContinuously = false;
+
         string[] LanguageArray = 
             {"ca-ES","de-DE","zh-TW", "zh-HK","ru-RU","es-ES", "ja-JP","ar-EG", "da-DK","en-AU" ,"en-CA","en-GB" ,"en-IN", "en-US" , "en-NZ","es-MX","fi-FI",
               "fr-FR","fr-CA" ,"it-IT","ko-KR" , "nb-NO","nl-NL","pt-BR" ,"pt-PT"  ,             
@@ -98,6 +105,13 @@ namespace SpeechToTextUWPSampleApp
             // Create Cognitive Service SpeechToText Client
             client = new SpeechToTextClient();
 
+            // Initialize level and duration
+            Level.Text = level.ToString();
+            Duration.Text = duration.ToString();
+            Level.TextChanged += Level_TextChanged;
+            Duration.TextChanged += Duration_TextChanged;
+
+
             // Cognitive Service SpeechToText GetToken 
             if (!string.IsNullOrEmpty(subscriptionKey.Text))
             {
@@ -109,6 +123,58 @@ namespace SpeechToTextUWPSampleApp
             }
 
         }
+
+        /// <summary>
+        /// This method is called when the Duration TextBox changed  
+        /// </summary>
+        private void Duration_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            TextBox tb = sender as TextBox;
+            if (tb != null)
+            {
+                uint n;
+                if (!uint.TryParse(tb.Text, out n))
+                {
+                    tb.Text = duration.ToString();
+                }
+                else
+                {
+                    if ((n > 0) && (n < 65535))
+                    {
+                        duration = (ushort) n;
+                    }
+                    else
+                        tb.Text = duration.ToString();
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// This method is called when the Level TextBox changed  
+        /// </summary>
+        private void Level_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            TextBox tb = sender as TextBox;
+            if (tb != null)
+            {
+                uint n;
+                if (!uint.TryParse(tb.Text, out n))
+                {
+                    tb.Text = level.ToString();
+                }
+                else
+                {
+                    if((n>0)&&(n<65535))
+                    {
+                        level = (ushort)n;
+                    }
+                    else
+                        tb.Text = level.ToString();
+                }
+            }
+        }
+
         /// <summary>
         /// Method OnNavigatedFrom
         /// </summary>
@@ -149,12 +215,16 @@ namespace SpeechToTextUWPSampleApp
 
         #region Settings
         const string keySubscription = "subscriptionKey";
+        const string keyLevel = "levelKey";
+        const string keyDuration = "durationKey";
         /// <summary>
         /// Function to save all the persistent attributes
         /// </summary>
         public bool SaveSettings()
         {
             SaveSettingsValue(keySubscription,subscriptionKey.Text);
+            SaveSettingsValue(keyLevel, level.ToString());
+            SaveSettingsValue(keyDuration, duration.ToString());
             return true;
         }
         /// <summary>
@@ -165,6 +235,13 @@ namespace SpeechToTextUWPSampleApp
             string s = ReadSettingsValue(keySubscription) as string;
             if (!string.IsNullOrEmpty(s))
                 subscriptionKey.Text = s;
+            s = ReadSettingsValue(keyLevel) as string;
+            if (!string.IsNullOrEmpty(s))
+                UInt16.TryParse(s, out level);
+            s = ReadSettingsValue(keyDuration) as string;
+            if (!string.IsNullOrEmpty(s))
+                UInt16.TryParse(s, out duration);
+
             return true;
         }
         /// <summary>
@@ -609,20 +686,34 @@ namespace SpeechToTextUWPSampleApp
                      {
                          if ((client == null) || (!client.IsRecording()))
                          {
+                             convertAudioButton.IsEnabled = true;
+                             recordAudioButton.IsEnabled = true;
+                             continuousConvertAudioButton.IsEnabled = true;
+
                              convertAudioButton.Content = "\xE717";
                              recordAudioButton.Content = "\xE720";
                              continuousConvertAudioButton.Content = "\xE895";
                          }
                          else
                          {
+                             if (isRecordingInMemory == true)
+                                 convertAudioButton.IsEnabled = true;
+                             else
+                                 convertAudioButton.IsEnabled = false;
+                             if (isRecordingInFile == true)
+                                 recordAudioButton.IsEnabled = true;
+                             else
+                                 recordAudioButton.IsEnabled = false;
+                             if (isRecordingContinuously == true)
+                                 continuousConvertAudioButton.IsEnabled = true;
+                             else
+                                 continuousConvertAudioButton.IsEnabled = false;
+
                              convertAudioButton.Content = "\xE778";
                              recordAudioButton.Content = "\xE78C";
                              continuousConvertAudioButton.Content = "\xE8D8";
                          }
                          openButton.IsEnabled = true;
-                         convertAudioButton.IsEnabled = true;
-                         continuousConvertAudioButton.IsEnabled = true;
-                         recordAudioButton.IsEnabled = true;
                          mediaUri.IsEnabled = true;
 
                          if (!string.IsNullOrEmpty(mediaUri.Text))
@@ -706,6 +797,7 @@ namespace SpeechToTextUWPSampleApp
                         {
                             if (await client.StartRecording())
                             {
+                                isRecordingInMemory = true;
                                 client.AudioLevel += Client_AudioLevel;
                                 client.AudioCaptureError += Client_AudioCaptureError;
                                 LogMessage("Start Recording...");
@@ -720,6 +812,7 @@ namespace SpeechToTextUWPSampleApp
                     {
                         LogMessage("Stop Recording...");
                         await client.StopRecording();
+                        isRecordingInMemory = false;
                         client.AudioLevel -= Client_AudioLevel;
                         client.AudioCaptureError -= Client_AudioCaptureError;
                         ClearLevel();
@@ -777,11 +870,10 @@ namespace SpeechToTextUWPSampleApp
                     {
                         if (await client.CleanupRecording())
                         {
-                            ulong maxSize = 320000;
-                            UInt16 level = 300;
-                            UInt16 duration = 400;
+
                             if (await client.StartContinuousRecording(maxSize, duration,level))
                             {
+                                isRecordingContinuously = true;
                                 client.BufferReady += Client_BufferReady;
                                 client.AudioLevel += Client_AudioLevel;
                                 client.AudioCaptureError += Client_AudioCaptureError;
@@ -797,6 +889,7 @@ namespace SpeechToTextUWPSampleApp
                     {
                         LogMessage("Stop Recording...");
                         await client.StopRecording();
+                        isRecordingContinuously = false;
                         client.BufferReady -= Client_BufferReady;
                         client.AudioLevel -= Client_AudioLevel;
                         client.AudioCaptureError -= Client_AudioCaptureError;
@@ -861,6 +954,7 @@ namespace SpeechToTextUWPSampleApp
                     {
                         if (await client.StartRecording())
                         {
+                            isRecordingInFile = true;
                             client.AudioLevel += Client_AudioLevel;
                             client.AudioCaptureError += Client_AudioCaptureError;
                             LogMessage("Start Recording...");
@@ -875,6 +969,7 @@ namespace SpeechToTextUWPSampleApp
                 {
                     LogMessage("Stop Recording...");
                     await client.StopRecording();
+                    isRecordingInFile = false;
                     client.AudioLevel -= Client_AudioLevel;
                     client.AudioCaptureError -= Client_AudioCaptureError;
                     ClearLevel();
