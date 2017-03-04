@@ -13,7 +13,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.IO;
 
-namespace SpeechToTextUWPSampleApp
+namespace SpeechToText
 {
     /// <summary>
     /// class SpeechToTextClient: SpeechToText UWP Client
@@ -26,7 +26,7 @@ namespace SpeechToTextUWPSampleApp
     {
         private string SubscriptionKey;
         private string Token;
-        private SpeechToTextStream STTStream;
+        private SpeechToTextMainStream STTStream;
         private const string AuthUrl = "https://api.cognitive.microsoft.com/sts/v1.0/issueToken";
         private const string SpeechUrl = "https://speech.platform.bing.com/recognize";
 
@@ -163,7 +163,7 @@ namespace SpeechToTextUWPSampleApp
         /// </param>
         /// <return>The AudioStream in the queue, null if the queue is empty.
         /// </return>
-        public AudioStream GetAudioStream()
+        public SpeechToTextAudioStream GetAudioStream()
         {
             return STTStream.GetAudioStream();
         }
@@ -188,7 +188,7 @@ namespace SpeechToTextUWPSampleApp
             {
                 try
                 {
-                    string os = "Windows" + Information.SystemInformation.SystemVersion;
+                    string os = "Windows" + SpeechToText.SystemInformation.SystemVersion;
                     string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
                     string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
                     Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
@@ -258,7 +258,7 @@ namespace SpeechToTextUWPSampleApp
         /// </param>
         /// <return>The result of the SpeechToText REST API.
         /// </return>
-        public async System.Threading.Tasks.Task<SpeechToTextResponse> SendAudioStream(string locale, AudioStream stream )
+        public async System.Threading.Tasks.Task<SpeechToTextResponse> SendAudioStream(string locale, SpeechToTextAudioStream stream )
         {
             SpeechToTextResponse r = null;
             int loop = 1;
@@ -267,7 +267,7 @@ namespace SpeechToTextUWPSampleApp
             {
                 try
                 {
-                    string os = "Windows" + Information.SystemInformation.SystemVersion;
+                    string os = "Windows" + SpeechToText.SystemInformation.SystemVersion;
                     string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
                     string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
                     Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
@@ -346,7 +346,7 @@ namespace SpeechToTextUWPSampleApp
             {
                 try
                 {
-                    string os = "Windows" + Information.SystemInformation.SystemVersion;
+                    string os = "Windows" + SpeechToText.SystemInformation.SystemVersion;
                     string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
                     string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
                     Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
@@ -366,7 +366,7 @@ namespace SpeechToTextUWPSampleApp
                                 STTStream.Dispose();
                                 STTStream = null;
                             }
-                            STTStream = SpeechToTextStream.Create();
+                            STTStream = SpeechToTextMainStream.Create();
                             if (STTStream != null)
                             {
                                 byte[] byteArray = new byte[fileStream.Size];
@@ -509,11 +509,9 @@ namespace SpeechToTextUWPSampleApp
         /// </param>
         /// <return>return true if successful.
         /// </return>
-        public async System.Threading.Tasks.Task<bool> StartContinuousRecording(ulong MaxStreamSizeInBytes, UInt16 ThresholdDuration, UInt16 ThresholdLevel)
+        public async System.Threading.Tasks.Task<bool> StartRecording(ulong MaxStreamSizeInBytes = 0)
         {
-            thresholdDuration = ThresholdDuration;
-            thresholdLevel = ThresholdLevel;
-            return await StartRecording(MaxStreamSizeInBytes);
+            return await StartContinuousRecording(MaxStreamSizeInBytes,0,0);
         }
         /// <summary>
         /// StartRecording method
@@ -524,8 +522,10 @@ namespace SpeechToTextUWPSampleApp
         /// </param>
         /// <return>return true if successful.
         /// </return>STTStream
-        public async System.Threading.Tasks.Task<bool> StartRecording(ulong MaxStreamSizeInBytes = 0)
+        public async System.Threading.Tasks.Task<bool> StartContinuousRecording(ulong MaxStreamSizeInBytes, UInt16 ThresholdDuration, UInt16 ThresholdLevel)
         {
+            thresholdDuration = ThresholdDuration;
+            thresholdLevel = ThresholdLevel;
             bool bResult = false;
             maxStreamSizeInBytes = MaxStreamSizeInBytes;
             if (isRecordingInitialized != true)
@@ -537,7 +537,7 @@ namespace SpeechToTextUWPSampleApp
                 STTStream.Dispose();
                 STTStream = null;
             }
-            STTStream = SpeechToTextStream.Create(maxStreamSizeInBytes, thresholdDuration, thresholdLevel);
+            STTStream = SpeechToTextMainStream.Create(maxStreamSizeInBytes, thresholdDuration, thresholdLevel);
             STTStream.AudioLevel += STTStream_AudioLevel;
             STTStream.BufferReady += STTStream_BufferReady;
 

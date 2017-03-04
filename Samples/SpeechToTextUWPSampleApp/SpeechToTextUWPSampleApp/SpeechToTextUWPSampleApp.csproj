@@ -98,15 +98,15 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SpeechToTextClient.cs" />
-    <Compile Include="AudioStream.cs" />
-    <Compile Include="SpeechToTextStream.cs" />
+    <Compile Include="SpeechToText\SpeechToTextClient.cs" />
+    <Compile Include="SpeechToText\SpeechToTextAudioStream.cs" />
+    <Compile Include="SpeechToText\SpeechToTextMainStream.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SpeechToTextResponse.cs" />
-    <Compile Include="SystemInformation.cs" />
+    <Compile Include="SpeechToText\SpeechToTextResponse.cs" />
+    <Compile Include="SpeechToText\SystemInformation.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">

@@ -17,7 +17,8 @@ using System.Linq;
 using System.Text;
 using Windows.Data.Json;
 
-namespace SpeechToTextUWPSampleApp
+namespace SpeechToText
+
 {
     /// <summary>
     /// class SpeechToTextConfidence 

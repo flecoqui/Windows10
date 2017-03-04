@@ -16,10 +16,10 @@ using System.Threading.Tasks;
 using Windows.Storage.Streams;
 using System.Runtime.InteropServices.WindowsRuntime;
 
-namespace SpeechToTextUWPSampleApp
+namespace SpeechToText
 {
     /// <summary>
-    /// class AudioStream
+    /// class SpeechToTextAudioStream
     /// </summary>
     /// <info>
     /// Class used to:
@@ -29,7 +29,7 @@ namespace SpeechToTextUWPSampleApp
     /// of data to store or transmit.
     /// Moreover, it removes the JUNK chunk from the WAV header.
     /// </info>
-    public class AudioStream : IRandomAccessStream
+    public class SpeechToTextAudioStream : IRandomAccessStream
     {
         private uint nChannels;
         private uint nSamplesPerSec;
@@ -38,11 +38,9 @@ namespace SpeechToTextUWPSampleApp
         private uint wBitsPerSample;
         private ulong audioStart = 0;
         private ulong audioEnd = 0;
-        private Windows.Storage.Streams.InMemoryRandomAccessStream triggerStream;
-        private bool bSendingTriggerStream;
         private Windows.Storage.Streams.IRandomAccessStream internalStream;
         private Windows.Storage.Streams.IInputStream inputStream;
-        public static AudioStream Create(
+        public static SpeechToTextAudioStream Create(
             uint Channels, 
             uint SamplesPerSec, 
             uint AvgBytesPerSec,
@@ -51,18 +49,18 @@ namespace SpeechToTextUWPSampleApp
             ulong AudioStart
             )
         {
-            AudioStream stts = null;
+            SpeechToTextAudioStream stts = null;
             try
             {
-                stts = new AudioStream(Channels, SamplesPerSec, AvgBytesPerSec, BlockAlign, BitsPerSample, AudioStart);
+                stts = new SpeechToTextAudioStream(Channels, SamplesPerSec, AvgBytesPerSec, BlockAlign, BitsPerSample, AudioStart);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Exception while creating AudioStream: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("Exception while creating SpeechToTextAudioStream: " + ex.Message);
             }
             return stts;
         }
-        private AudioStream(
+        private SpeechToTextAudioStream(
             uint Channels,
             uint SamplesPerSec,
             uint AvgBytesPerSec,
@@ -77,8 +75,7 @@ namespace SpeechToTextUWPSampleApp
             wBitsPerSample = BitsPerSample;
             audioStart = AudioStart;
 
-            triggerStream = null;
-            bSendingTriggerStream = false;
+
             internalStream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
             inputStream = internalStream.GetInputStreamAt(0);
         }
@@ -218,11 +215,5 @@ namespace SpeechToTextUWPSampleApp
                 return ts;
             }
         }
-
-        #region private
-
-        #endregion private
-
-
     }
 }

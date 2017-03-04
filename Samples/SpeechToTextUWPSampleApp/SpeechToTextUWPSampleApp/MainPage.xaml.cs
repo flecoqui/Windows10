@@ -20,9 +20,27 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.ViewManagement;
+using SpeechToText;
 
 namespace SpeechToTextUWPSampleApp
 {
+    public class WaitingCursor : IDisposable
+    {
+        public WaitingCursor()
+        {
+            if (Window.Current.CoreWindow.PointerCursor.Type != Windows.UI.Core.CoreCursorType.Wait)
+            {
+                Window.Current.CoreWindow.PointerCursor =
+                    new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
+            }
+        }
+        public void Dispose()
+        {
+            Window.Current.CoreWindow.PointerCursor =
+                new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
+
+        }
+    }
     /// <summary>
     /// Main page for the application.
     /// </summary>
@@ -88,11 +106,11 @@ namespace SpeechToTextUWPSampleApp
             language.SelectedItem = "en-US";
 
             // Get Subscription ID from the local settings
-            ReadSettings();
+            ReadSettingsAndState();
             
             // Update control and play first video
             UpdateControls();
-            convertAudioButton.Focus(FocusState.Programmatic);
+            memoryRecordingButton.Focus(FocusState.Programmatic);
 
             
             // Register Suspend/Resume
@@ -100,7 +118,7 @@ namespace SpeechToTextUWPSampleApp
             Application.Current.Resuming += Current_Resuming;
             
             // Display OS, Device information
-            LogMessage(Information.SystemInformation.GetString());
+            LogMessage(SpeechToText.SystemInformation.GetString());
             
             // Create Cognitive Service SpeechToText Client
             client = new SpeechToTextClient();
@@ -191,7 +209,12 @@ namespace SpeechToTextUWPSampleApp
         void Current_Resuming(object sender, object e)
         {
             LogMessage("Resuming");
-            //ReadSettings();
+            ReadSettingsAndState();
+
+            // if the application was continously recording
+            // restart recording
+            if (isRecordingContinuously == true)
+                ContinuousRecording_Click(null, null);
 
             // Resotre Playback Rate
             if (mediaPlayer.PlaybackSession.PlaybackRate != 1)
@@ -204,12 +227,15 @@ namespace SpeechToTextUWPSampleApp
         {
             LogMessage("Suspending");
             var deferal = e.SuspendingOperation.GetDeferral();
+            SaveSettingsAndState();
             if (client.IsRecording())
             {
                 LogMessage("Stop Recording...");
                 await client.StopRecording();
+                isRecordingInFile = false;
+                isRecordingInMemory = false;
+                isRecordingContinuously = false;
             }
-            SaveSettings();
             deferal.Complete();
         }
 
@@ -217,20 +243,22 @@ namespace SpeechToTextUWPSampleApp
         const string keySubscription = "subscriptionKey";
         const string keyLevel = "levelKey";
         const string keyDuration = "durationKey";
+        const string keyIsRecordingContinuously = "isRecordingContinuouslyKey";
         /// <summary>
         /// Function to save all the persistent attributes
         /// </summary>
-        public bool SaveSettings()
+        public bool SaveSettingsAndState()
         {
             SaveSettingsValue(keySubscription,subscriptionKey.Text);
             SaveSettingsValue(keyLevel, level.ToString());
             SaveSettingsValue(keyDuration, duration.ToString());
+            SaveSettingsValue(keyIsRecordingContinuously,isRecordingContinuously.ToString());
             return true;
         }
         /// <summary>
         /// Function to read all the persistent attributes
         /// </summary>
-        public bool ReadSettings()
+        public bool ReadSettingsAndState()
         {
             string s = ReadSettingsValue(keySubscription) as string;
             if (!string.IsNullOrEmpty(s))
@@ -241,7 +269,9 @@ namespace SpeechToTextUWPSampleApp
             s = ReadSettingsValue(keyDuration) as string;
             if (!string.IsNullOrEmpty(s))
                 UInt16.TryParse(s, out duration);
-
+            s = ReadSettingsValue(keyIsRecordingContinuously) as string;
+            if (!string.IsNullOrEmpty(s))
+                bool.TryParse(s, out isRecordingContinuously);
             return true;
         }
         /// <summary>
@@ -632,6 +662,7 @@ namespace SpeechToTextUWPSampleApp
         #region LevelAndError
         DateTime LastLevelTime = DateTime.Now;
         double maxValue = 0;
+        bool bDrawingMessage = false;
         async void Client_AudioLevel(object sender, double reading)
         {
             if ((DateTime.Now - LastLevelTime).TotalMilliseconds > 200)
@@ -650,25 +681,54 @@ namespace SpeechToTextUWPSampleApp
                 await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
                     () =>
                     {
-                        DrawLevel(value);
+                        DrawLevel(value,Windows.UI.Colors.Cyan);
                     });
             }
         }
-        void DrawLevel(double value)
+        void DrawLevel(double value, Windows.UI.Color cr )
         {
+            if ((bDrawingMessage == true)&&(cr==Windows.UI.Colors.Cyan))
+                return;
             if (CanvasGraph.Children.Count > 0) CanvasGraph.Children.Clear();
             Windows.UI.Xaml.Shapes.Line line = new Windows.UI.Xaml.Shapes.Line() { X1 = 0, Y1 = CanvasGraph.Height / 2, X2 = ((value * CanvasGraph.Width) / maxValue), Y2 = CanvasGraph.Height / 2 };
             line.StrokeThickness = CanvasGraph.Height;
-            line.Stroke = new SolidColorBrush(Windows.UI.Colors.Cyan);
+            line.Stroke = new SolidColorBrush(cr);
             CanvasGraph.Children.Add(line);
         }
-        void ClearLevel()
+        void DrawError()
         {
+            bDrawingMessage = true;
+            DrawLevel(maxValue, Windows.UI.Colors.Red);
+            var t = System.Threading.Tasks.Task.Run(async delegate
+            {
+                await System.Threading.Tasks.Task.Delay(2000);
+                ClearCanvas();
+            });
+        }
+        void DrawOk()
+        {
+            bDrawingMessage = true;
+            DrawLevel(maxValue, Windows.UI.Colors.GreenYellow);
+            var t = System.Threading.Tasks.Task.Run(async delegate
+            {
+                await System.Threading.Tasks.Task.Delay(2000);
+                ClearCanvas();
+            });
+        }
+        void ClearCanvas()
+        {
+            bDrawingMessage = false;
             if (CanvasGraph.Children.Count > 0) CanvasGraph.Children.Clear();
         }
-        private void Client_AudioCaptureError(object sender, string message)
+        private async void Client_AudioCaptureError(object sender, string message)
         {
             LogMessage("Audio Capture Error: " + message );
+            LogMessage("Stop Recording...");
+            await client.StopRecording();
+            isRecordingInMemory = false;
+            client.AudioLevel -= Client_AudioLevel;
+            client.AudioCaptureError -= Client_AudioCaptureError;
+            ClearCanvas();
             UpdateControls();
         }
         #endregion LevelAndError
@@ -686,32 +746,32 @@ namespace SpeechToTextUWPSampleApp
                      {
                          if ((client == null) || (!client.IsRecording()))
                          {
-                             convertAudioButton.IsEnabled = true;
-                             recordAudioButton.IsEnabled = true;
-                             continuousConvertAudioButton.IsEnabled = true;
+                             memoryRecordingButton.IsEnabled = true;
+                             fileRecordingButton.IsEnabled = true;
+                             continuousRecordingButton.IsEnabled = true;
 
-                             convertAudioButton.Content = "\xE717";
-                             recordAudioButton.Content = "\xE720";
-                             continuousConvertAudioButton.Content = "\xE895";
+                             memoryRecordingButton.Content = "\xE717";
+                             fileRecordingButton.Content = "\xE720";
+                             continuousRecordingButton.Content = "\xE895";
                          }
                          else
                          {
                              if (isRecordingInMemory == true)
-                                 convertAudioButton.IsEnabled = true;
+                                 memoryRecordingButton.IsEnabled = true;
                              else
-                                 convertAudioButton.IsEnabled = false;
+                                 memoryRecordingButton.IsEnabled = false;
                              if (isRecordingInFile == true)
-                                 recordAudioButton.IsEnabled = true;
+                                 fileRecordingButton.IsEnabled = true;
                              else
-                                 recordAudioButton.IsEnabled = false;
+                                 fileRecordingButton.IsEnabled = false;
                              if (isRecordingContinuously == true)
-                                 continuousConvertAudioButton.IsEnabled = true;
+                                 continuousRecordingButton.IsEnabled = true;
                              else
-                                 continuousConvertAudioButton.IsEnabled = false;
+                                 continuousRecordingButton.IsEnabled = false;
 
-                             convertAudioButton.Content = "\xE778";
-                             recordAudioButton.Content = "\xE78C";
-                             continuousConvertAudioButton.Content = "\xE8D8";
+                             memoryRecordingButton.Content = "\xE778";
+                             fileRecordingButton.Content = "\xE78C";
+                             continuousRecordingButton.Content = "\xE8D8";
                          }
                          openButton.IsEnabled = true;
                          mediaUri.IsEnabled = true;
@@ -770,80 +830,94 @@ namespace SpeechToTextUWPSampleApp
                      }
                  });
         }
-
+        bool bInProgress = false;
         /// <summary>
         /// sendAudioBuffer method which :
         /// - record audio sample in the buffer
         /// - send the buffer to SpeechToText REST API once the recording is done
         /// </summary>
-        private async void sendAudioBuffer_Click(object sender, RoutedEventArgs e)
+        private async void MemoryRecording_Click(object sender, RoutedEventArgs e)
         {
-            if(client!=null)
+            if (bInProgress == true)
+                return;
+            bInProgress = true;
+            try
             {
-                if((!client.HasToken())&&(!string.IsNullOrEmpty(subscriptionKey.Text)))
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
+
+                if (client != null)
                 {
-                    string token = await client.GetToken(subscriptionKey.Text);
-                    if (string.IsNullOrEmpty(token))
+                    if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
-                        // Save subscription key
-                        SaveSettings();
-                    }
-                }
-                if (client.HasToken())
-                {
-                    if (client.IsRecording() == false)
-                    {
-                        if (await client.CleanupRecording())
+                        string token = await client.GetToken(subscriptionKey.Text);
+                        if (!string.IsNullOrEmpty(token))
                         {
-                            if (await client.StartRecording())
+                            // Save subscription key
+                            SaveSettingsAndState();
+                        }
+                    }
+                    if (client.HasToken())
+                    {
+                        if (client.IsRecording() == false)
+                        {
+                            if (await client.CleanupRecording())
                             {
-                                isRecordingInMemory = true;
-                                client.AudioLevel += Client_AudioLevel;
-                                client.AudioCaptureError += Client_AudioCaptureError;
-                                LogMessage("Start Recording...");
+                                if (await client.StartRecording())
+                                {
+                                    isRecordingInMemory = true;
+                                    client.AudioLevel += Client_AudioLevel;
+                                    client.AudioCaptureError += Client_AudioCaptureError;
+                                    LogMessage("Start Recording...");
+                                }
+                                else
+                                    LogMessage("Start Recording failed");
                             }
                             else
-                                LogMessage("Start Recording failed");
+                                LogMessage("CleanupRecording failed");
                         }
                         else
-                            LogMessage("CleanupRecording failed");
+                        {
+                            LogMessage("Stop Recording...");
+                            await client.StopRecording();
+                            isRecordingInMemory = false;
+                            client.AudioLevel -= Client_AudioLevel;
+                            client.AudioCaptureError -= Client_AudioCaptureError;
+                            ClearCanvas();
+                            string locale = language.SelectedItem.ToString();
+                            LogMessage("Sending Memory Buffer...");
+                            SpeechToTextResponse result = await client.SendBuffer(locale);
+                            if (result != null)
+                            {
+                                string httpError = result.GetHttpError();
+                                if (!string.IsNullOrEmpty(httpError))
+                                {
+                                    resultText.Text = httpError;
+                                    LogMessage("Http Error: " + httpError.ToString());
+                                }
+                                else
+                                {
+                                    if (result.Status() == "error")
+                                        resultText.Text = "error";
+                                    else
+                                        resultText.Text = result.Result();
+                                    LogMessage("Result: " + result.ToString());
+                                }
+                            }
+                            else
+                                LogMessage("Error while sending buffer");
+
+                        }
                     }
                     else
-                    {
-                        LogMessage("Stop Recording...");
-                        await client.StopRecording();
-                        isRecordingInMemory = false;
-                        client.AudioLevel -= Client_AudioLevel;
-                        client.AudioCaptureError -= Client_AudioCaptureError;
-                        ClearLevel();
-                        string locale = language.SelectedItem.ToString();
-                        SpeechToTextResponse result = await client.SendBuffer(locale);
-                        if (result != null)
-                        {
-                            string httpError = result.GetHttpError();
-                            if (!string.IsNullOrEmpty(httpError))
-                            {
-                                resultText.Text = httpError;
-                                LogMessage("Http Error: " + httpError.ToString());
-                            }
-                            else
-                            {
-                                if (result.Status() == "error")
-                                    resultText.Text = "error";
-                                else
-                                    resultText.Text = result.Result();
-                                LogMessage("Result: " + result.ToString());
-                            }
-                        }
-                        else
-                            LogMessage("Error while sending buffer");
-
-                    }
+                        LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
                 }
-                else
-                    LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
+                UpdateControls();
             }
-            UpdateControls();
+            finally
+            {
+                bInProgress = false;
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
+            }
 
         }
         /// <summary>
@@ -851,55 +925,68 @@ namespace SpeechToTextUWPSampleApp
         /// - record audio sample permanently in the buffer
         /// - send the buffer to SpeechToText REST API once the recording is done
         /// </summary>
-        private async void sendContinuousAudioBuffer_Click(object sender, RoutedEventArgs e)
+        private async void ContinuousRecording_Click(object sender, RoutedEventArgs e)
         {
-            if (client != null)
+            if (bInProgress == true)
+                return;
+            bInProgress = true;
+            try
             {
-                if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
-                {
-                    string token = await client.GetToken(subscriptionKey.Text);
-                    if (string.IsNullOrEmpty(token))
-                    {
-                        // Save subscription key
-                        SaveSettings();
-                    }
-                }
-                if (client.HasToken())
-                {
-                    if (client.IsRecording() == false)
-                    {
-                        if (await client.CleanupRecording())
-                        {
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
 
-                            if (await client.StartContinuousRecording(maxSize, duration,level))
+                if (client != null)
+                {
+                    if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
+                    {
+                        string token = await client.GetToken(subscriptionKey.Text);
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            // Save subscription key
+                            SaveSettingsAndState();
+                        }
+                    }
+                    if (client.HasToken())
+                    {
+                        if (client.IsRecording() == false)
+                        {
+                            if (await client.CleanupRecording())
                             {
-                                isRecordingContinuously = true;
-                                client.BufferReady += Client_BufferReady;
-                                client.AudioLevel += Client_AudioLevel;
-                                client.AudioCaptureError += Client_AudioCaptureError;
-                                LogMessage("Start Recording...");
+
+                                if (await client.StartContinuousRecording(maxSize, duration, level))
+                                {
+                                    isRecordingContinuously = true;
+                                    client.BufferReady += Client_BufferReady;
+                                    client.AudioLevel += Client_AudioLevel;
+                                    client.AudioCaptureError += Client_AudioCaptureError;
+                                    LogMessage("Start Recording...");
+                                }
+                                else
+                                    LogMessage("Start Recording failed");
                             }
                             else
-                                LogMessage("Start Recording failed");
+                                LogMessage("CleanupRecording failed");
                         }
                         else
-                            LogMessage("CleanupRecording failed");
+                        {
+                            LogMessage("Stop Recording...");
+                            await client.StopRecording();
+                            isRecordingContinuously = false;
+                            client.BufferReady -= Client_BufferReady;
+                            client.AudioLevel -= Client_AudioLevel;
+                            client.AudioCaptureError -= Client_AudioCaptureError;
+                            ClearCanvas();
+                        }
                     }
                     else
-                    {
-                        LogMessage("Stop Recording...");
-                        await client.StopRecording();
-                        isRecordingContinuously = false;
-                        client.BufferReady -= Client_BufferReady;
-                        client.AudioLevel -= Client_AudioLevel;
-                        client.AudioCaptureError -= Client_AudioCaptureError;
-                        ClearLevel();
-                    }
+                        LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
                 }
-                else
-                    LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
+                UpdateControls();
             }
-            UpdateControls();
+            finally
+            {
+                bInProgress = false;
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
+            }
 
         }
 
@@ -908,7 +995,7 @@ namespace SpeechToTextUWPSampleApp
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
            async () =>
             {
-                AudioStream stream;
+                SpeechToTextAudioStream stream;
                 while ((stream = client.GetAudioStream()) !=null)
                 {
                     string locale = language.SelectedItem.ToString();
@@ -923,13 +1010,20 @@ namespace SpeechToTextUWPSampleApp
                         {
                             resultText.Text = httpError;
                             LogMessage("Http Error: " + httpError.ToString());
+                            DrawError();
                         }
                         else
                         {
                             if (result.Status() == "error")
+                            {
                                 resultText.Text = "error";
+                                DrawError();
+                            }
                             else
+                            {
                                 resultText.Text = result.Result();
+                                DrawOk();
+                            }
                             LogMessage("Result for buffer from: " + start.ToString() + " seconds to: " + end.ToString() + " seconds duration : " + (end-start).ToString() + " seconds \r\n" + result.ToString());
                         }
                     }
@@ -944,65 +1038,77 @@ namespace SpeechToTextUWPSampleApp
         /// - record audio sample in the buffer
         /// - store the buffer in a storagefile on disk once the recording is done
         /// </summary>
-        private async void recordAudio_Click(object sender, RoutedEventArgs e)
+        private async void FileRecording_Click(object sender, RoutedEventArgs e)
         {
-            if (client != null)
+            if (bInProgress == true)
+                return;
+            bInProgress = true;
+            try
             {
-                if (client.IsRecording() == false)
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
+                if (client != null)
                 {
-                    if (await client.CleanupRecording())
+                    if (client.IsRecording() == false)
                     {
-                        if (await client.StartRecording())
+                        if (await client.CleanupRecording())
                         {
-                            isRecordingInFile = true;
-                            client.AudioLevel += Client_AudioLevel;
-                            client.AudioCaptureError += Client_AudioCaptureError;
-                            LogMessage("Start Recording...");
-                        }
-                        else
-                            LogMessage("Start Recording failed");
-                    }
-                    else
-                        LogMessage("CleanupRecording failed");
-                }
-                else
-                {
-                    LogMessage("Stop Recording...");
-                    await client.StopRecording();
-                    isRecordingInFile = false;
-                    client.AudioLevel -= Client_AudioLevel;
-                    client.AudioCaptureError -= Client_AudioCaptureError;
-                    ClearLevel();
-                    if (client.GetBufferLength() > 0)
-                    {
-                        var filePicker = new Windows.Storage.Pickers.FileSavePicker();
-                        filePicker.DefaultFileExtension = ".wav";
-                        filePicker.SuggestedFileName = "record.wav";
-                        filePicker.FileTypeChoices.Add("WAV files", new List<string>() { ".wav" });
-                        filePicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.VideosLibrary;
-                        filePicker.SettingsIdentifier = "WavPicker";
-                        filePicker.CommitButtonText = "Save buffer into a WAV File";
-
-                        var wavFile = await filePicker.PickSaveFileAsync();
-                        if (wavFile != null)
-                        {
-                            string fileToken = Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(wavFile);
-                            if (await client.SaveBuffer(wavFile))
+                            if (await client.StartRecording())
                             {
-                                mediaUri.Text = "file://" + wavFile.Path;
-                                LogMessage("Record buffer saved in file: " + wavFile.Path.ToString());
-                                UpdateControls();
+                                isRecordingInFile = true;
+                                client.AudioLevel += Client_AudioLevel;
+                                client.AudioCaptureError += Client_AudioCaptureError;
+                                LogMessage("Start Recording...");
                             }
                             else
-                                LogMessage("Error while saving record buffer in file: " + wavFile.Path.ToString());
+                                LogMessage("Start Recording failed");
                         }
+                        else
+                            LogMessage("CleanupRecording failed");
                     }
                     else
-                        LogMessage("Buffer empty nothing to save" );
-                }
-            }
+                    {
+                        LogMessage("Stop Recording...");
+                        await client.StopRecording();
+                        isRecordingInFile = false;
+                        client.AudioLevel -= Client_AudioLevel;
+                        client.AudioCaptureError -= Client_AudioCaptureError;
+                        ClearCanvas();
+                        if (client.GetBufferLength() > 0)
+                        {
+                            var filePicker = new Windows.Storage.Pickers.FileSavePicker();
+                            filePicker.DefaultFileExtension = ".wav";
+                            filePicker.SuggestedFileName = "record.wav";
+                            filePicker.FileTypeChoices.Add("WAV files", new List<string>() { ".wav" });
+                            filePicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.VideosLibrary;
+                            filePicker.SettingsIdentifier = "WavPicker";
+                            filePicker.CommitButtonText = "Save buffer into a WAV File";
 
-            UpdateControls();
+                            var wavFile = await filePicker.PickSaveFileAsync();
+                            if (wavFile != null)
+                            {
+                                string fileToken = Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(wavFile);
+                                if (await client.SaveBuffer(wavFile))
+                                {
+                                    mediaUri.Text = "file://" + wavFile.Path;
+                                    LogMessage("Record buffer saved in file: " + wavFile.Path.ToString());
+                                    UpdateControls();
+                                }
+                                else
+                                    LogMessage("Error while saving record buffer in file: " + wavFile.Path.ToString());
+                            }
+                        }
+                        else
+                            LogMessage("Buffer empty nothing to save");
+                    }
+                }
+
+                UpdateControls();
+            }
+            finally
+            {
+                bInProgress = false;
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
+            }
         }
 
 
@@ -1041,50 +1147,68 @@ namespace SpeechToTextUWPSampleApp
         /// </summary>
         private async void sendWAVFile_Click(object sender, RoutedEventArgs e)
         {
-            if (client != null)
+            if (bInProgress == true)
+                return;
+            bInProgress = true;
+            try
             {
-                if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
+                if (client != null)
                 {
-                    string token = await client.GetToken(subscriptionKey.Text);
-                    if (string.IsNullOrEmpty(token))
+                    if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
-                        // Save subscription key
-                        SaveSettings();
-                    }
-                }
-
-                if (client.HasToken())
-                {
-                    string locale = language.SelectedItem.ToString();
-                    var file = await GetFileFromLocalPathUrl(mediaUri.Text);
-                    if (file != null)
-                    {
-                        string convertedText = string.Empty;
-                        LogMessage("Sending StorageFile: " + file.Path.ToString());
-                        SpeechToTextResponse result = await client.SendStorageFile(file, locale);
-                        if (result != null)
+                        using (WaitingCursor cursor = new WaitingCursor())
                         {
-                            string httpError = result.GetHttpError();
-                            if (!string.IsNullOrEmpty(httpError))
+                            string token = await client.GetToken(subscriptionKey.Text);
+                            if (!string.IsNullOrEmpty(token))
                             {
-                                resultText.Text = httpError;
-                                LogMessage("Http Error: " + httpError.ToString());
-                            }
-                            else
-                            {
-                                if (result.Status() == "error")
-                                    resultText.Text = "error";
-                                else
-                                    resultText.Text = result.Result();
-                                LogMessage("Result: " + result.ToString());
+                                // Save subscription key
+                                SaveSettingsAndState();
                             }
                         }
-                        else
-                            LogMessage("Error while sending file");
                     }
+
+                    if (client.HasToken())
+                    {
+                        string locale = language.SelectedItem.ToString();
+                        var file = await GetFileFromLocalPathUrl(mediaUri.Text);
+                        if (file != null)
+                        {
+                            using (WaitingCursor cursor = new WaitingCursor())
+                            {
+                                string convertedText = string.Empty;
+                                LogMessage("Sending StorageFile: " + file.Path.ToString());
+                                SpeechToTextResponse result = await client.SendStorageFile(file, locale);
+                                if (result != null)
+                                {
+                                    string httpError = result.GetHttpError();
+                                    if (!string.IsNullOrEmpty(httpError))
+                                    {
+                                        resultText.Text = httpError;
+                                        LogMessage("Http Error: " + httpError.ToString());
+                                    }
+                                    else
+                                    {
+                                        if (result.Status() == "error")
+                                            resultText.Text = "error";
+                                        else
+                                            resultText.Text = result.Result();
+                                        LogMessage("Result: " + result.ToString());
+                                    }
+                                }
+                                else
+                                    LogMessage("Error while sending file");
+                            }
+                        }
+                    }
+                    else
+                        LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
                 }
-                else
-                    LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
+            }
+            finally
+            {
+                bInProgress = false;
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
             }
 
         }

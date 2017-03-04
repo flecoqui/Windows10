@@ -17,7 +17,7 @@ using Windows.Storage.Streams;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Collections.Concurrent;
 
-namespace SpeechToTextUWPSampleApp
+namespace SpeechToText
 {
     /// <summary>
     /// class Chunk
@@ -102,7 +102,7 @@ namespace SpeechToTextUWPSampleApp
         public static readonly Guid MF_MT_AUDIO_AVG_BYTES_PER_SECOND = new Guid("1aab75c8-cfef-451c-ab95-ac034b8e1731");
     }
     /// <summary>
-    /// class SpeechToTextStream
+    /// class SpeechToTextMainStream
     /// </summary>
     /// <info>
     /// Class used to:
@@ -112,7 +112,7 @@ namespace SpeechToTextUWPSampleApp
     /// of data to store or transmit.
     /// Moreover, it removes the JUNK chunk from the WAV header.
     /// </info>
-    public class SpeechToTextStream : IRandomAccessStream
+    public class SpeechToTextMainStream : IRandomAccessStream
     {
         private Chunk fmt = null;
         private Chunk data = null;
@@ -122,7 +122,6 @@ namespace SpeechToTextUWPSampleApp
         private uint nBlockAlign;
         private uint wBitsPerSample;
         private ulong wavHeaderLength = 0;
-        //private uint posLastWriteData = 0;
         private ulong ReadDataIndex = 0;
         private ulong WriteDataIndex = 0;
         private ulong seekOffset = 0;
@@ -133,25 +132,24 @@ namespace SpeechToTextUWPSampleApp
         private uint thresholdLevel = 0;
         private ulong thresholdStart = 0;
         private ulong thresholdEnd = 0;
-        private AudioStream audioStream;
-        //private bool bSendingTriggerStream;
+        private SpeechToTextAudioStream audioStream;
         private Windows.Storage.Streams.IRandomAccessStream internalStream;
         private Windows.Storage.Streams.IInputStream inputStream;
-        private ConcurrentQueue<AudioStream> audioQueue;
-        public static SpeechToTextStream Create(ulong maxSizeInBytes = 0, uint thresholdDuration = 0, uint thresholdLevel = 0)
+        private ConcurrentQueue<SpeechToTextAudioStream> audioQueue;
+        public static SpeechToTextMainStream Create(ulong maxSizeInBytes = 0, uint thresholdDuration = 0, uint thresholdLevel = 0)
         {
-            SpeechToTextStream stts = null;
+            SpeechToTextMainStream stts = null;
             try
             {
-                stts = new SpeechToTextStream(maxSizeInBytes, thresholdDuration, thresholdLevel);
+                stts = new SpeechToTextMainStream(maxSizeInBytes, thresholdDuration, thresholdLevel);
             }
             catch(Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Exception while creating SpeechToTextStream: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("Exception while creating SpeechToTextMainStream: " + ex.Message);
             }
             return stts;
         }
-        private SpeechToTextStream(ulong MaxSizeInBytes = 0, uint ThresholdDuration = 0,uint ThresholdLevel = 0)
+        private SpeechToTextMainStream(ulong MaxSizeInBytes = 0, uint ThresholdDuration = 0,uint ThresholdLevel = 0)
         {
             tresholdDuration = ThresholdDuration;
             thresholdDurationInBytes = 0;
@@ -163,7 +161,7 @@ namespace SpeechToTextUWPSampleApp
             audioStream = null;
             internalStream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
             inputStream = internalStream.GetInputStreamAt(0);
-            audioQueue = new ConcurrentQueue<AudioStream>();
+            audioQueue = new ConcurrentQueue<SpeechToTextAudioStream>();
         }
         public ulong GetLength()
         {
@@ -171,9 +169,7 @@ namespace SpeechToTextUWPSampleApp
             uint minwavHeaderLength = 4 + fmt.length + 8 + 8 + 8;
             if (wavHeaderLength > minwavHeaderLength)
                 delta = (uint)wavHeaderLength - minwavHeaderLength;
-//            if (posLastWriteData >= wavHeaderLength)
-//                return posLastWriteData - delta;
-//            return posLastWriteData;
+
             if (internalStream.Size  >= wavHeaderLength)
                 return internalStream.Size - delta;
             return internalStream.Size;
@@ -378,7 +374,7 @@ namespace SpeechToTextUWPSampleApp
                                         {
                                             System.Diagnostics.Debug.WriteLine("Audio Level sufficient to start recording");
                                             thresholdStart = WriteDataIndex - thresholdDurationInBytes;
-                                            audioStream = AudioStream.Create(nChannels, nSamplesPerSec, nAvgBytesPerSec, nBlockAlign, wBitsPerSample, thresholdStart);
+                                            audioStream = SpeechToTextAudioStream.Create(nChannels, nSamplesPerSec, nAvgBytesPerSec, nBlockAlign, wBitsPerSample, thresholdStart);
                                             var headerBuffer = CreateWAVHeaderBuffer(0);
                                             if ((audioStream != null) && (headerBuffer != null))
                                             {
@@ -461,9 +457,9 @@ namespace SpeechToTextUWPSampleApp
         {
             return internalStream.FlushAsync();
         }
-        public AudioStream GetAudioStream()
+        public SpeechToTextAudioStream GetAudioStream()
         {
-            AudioStream audioStream = null;
+            SpeechToTextAudioStream audioStream = null;
             if (audioQueue != null)
             {
                 if (audioQueue.TryDequeue(out audioStream))
