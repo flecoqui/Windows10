@@ -94,6 +94,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <Content Include="Assets\Music.png" />
     <Content Include="Assets\PHOTO.png" />
     <Content Include="DataModel\MediaData.json" />
     <None Include="AudioVideoPlayer_StoreKey.pfx" />

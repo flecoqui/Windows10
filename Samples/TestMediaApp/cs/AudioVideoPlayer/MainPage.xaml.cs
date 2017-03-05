@@ -385,12 +385,14 @@ namespace AudioVideoPlayer
 
             try
             {
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
+
                 MediaDataSource.Clear();
                 LogMessage(string.IsNullOrEmpty(path) ? "Loading default playlist" : "Loading playlist :" + path);
                 audio_video = await MediaDataSource.GetGroupAsync(path, "audio_video_picture");
                 if ((audio_video != null) && (audio_video.Items.Count > 0))
                 {
-                    LogMessage("MainPage Loading Data successful");
+                    LogMessage("Loading playlist successful with " + audio_video.Items.Count.ToString() + " items");
                     TestTitle.Text = audio_video.Title;
                     try
                     {
@@ -408,7 +410,12 @@ namespace AudioVideoPlayer
             }
             catch (Exception ex)
             {
-                LogMessage("MainPage Loading Data failed: " + ex.Message);
+                LogMessage("Loading playlist failed: " + ex.Message);
+
+            }
+            finally
+            {
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
 
             }
             return false;
@@ -477,6 +484,23 @@ namespace AudioVideoPlayer
         /// </summary>
         private async void MediaElement_CurrentStateChanged(Windows.Media.Playback.MediaPlayer sender, Object e)
         {
+            switch (sender.PlaybackSession.MediaPlayer.CurrentState)
+            {
+                case Windows.Media.Playback.MediaPlayerState.Playing:
+                    SystemControls.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Playing;
+                    break;
+                case Windows.Media.Playback.MediaPlayerState.Paused:
+                    SystemControls.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Paused;
+                    break;
+                case Windows.Media.Playback.MediaPlayerState.Stopped:
+                    SystemControls.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Stopped;
+                    break;
+                case Windows.Media.Playback.MediaPlayerState.Closed:
+                    SystemControls.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Closed;
+                    break;
+                default:
+                    break;
+            }
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
                  () =>
                  {
@@ -716,12 +740,14 @@ namespace AudioVideoPlayer
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
                         LogMessage("Previous from SystemMediaTransportControls");
+                        minus_Click(null, null);
                     });
                     break;
                 case Windows.Media.SystemMediaTransportControlsButton.Next:
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
                         LogMessage("Next from SystemMediaTransportControls");
+                        plus_Click(null, null);
                     });
                     break;
                 case Windows.Media.SystemMediaTransportControlsButton.Rewind:
@@ -1894,16 +1920,45 @@ namespace AudioVideoPlayer
             }
         }
         /// <summary>
+        /// Return poster stream
+        /// </summary>
+        private async System.Threading.Tasks.Task<Windows.Storage.Streams.RandomAccessStreamReference> CreatePosterStream(string poster)
+        {
+            Windows.Storage.Streams.RandomAccessStreamReference s = null;
+            if (!string.IsNullOrEmpty(poster))
+            {
+                if (poster.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
+                {
+                    Windows.Storage.StorageFile file = await GetFileFromLocalPathUrl(poster);
+                    if (file == null)
+                        file = await Windows.Storage.StorageFile.GetFileFromApplicationUriAsync(new System.Uri("ms-appx:///Assets/Music.png"));
+                    if (file != null)
+                        s = Windows.Storage.Streams.RandomAccessStreamReference.CreateFromFile(file);
+                }
+                else
+                    s = Windows.Storage.Streams.RandomAccessStreamReference.CreateFromUri(new Uri(poster));
+            }
+            return s;
+        }
+        /// <summary>
         /// This method Update the SystemControls Display information
         /// </summary>
-        private void UpdateControlsDisplayUpdater(string title, string content, string poster)
+        private async System.Threading.Tasks.Task<bool> UpdateControlsDisplayUpdater(string title, string content, string poster)
         {
-//            SystemControls.DisplayUpdater.ClearAll();
+            //            SystemControls.DisplayUpdater.ClearAll();
+            SystemControls.IsPlayEnabled = true;
+            SystemControls.IsPauseEnabled = true;
+            if ((comboStream.Items.Count > 1)&&(bAutoSkip))
+            {
+                SystemControls.IsPreviousEnabled = true;
+                SystemControls.IsNextEnabled = true;
+            }
             if (IsPicture(content))
             {
                 SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Image;
                 SystemControls.DisplayUpdater.ImageProperties.Title = title;
                 SystemControls.DisplayUpdater.ImageProperties.Subtitle = content;
+                SystemControls.DisplayUpdater.Thumbnail = await CreatePosterStream(poster);
                 SystemControls.DisplayUpdater.Update();               
             }
             //else { 
@@ -1912,7 +1967,8 @@ namespace AudioVideoPlayer
                 SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Music;
                 SystemControls.DisplayUpdater.MusicProperties.Title = title;
                 SystemControls.DisplayUpdater.MusicProperties.Artist = content;
-               SystemControls.DisplayUpdater.Update();
+                SystemControls.DisplayUpdater.Thumbnail = await CreatePosterStream(poster);
+                SystemControls.DisplayUpdater.Update();
             }
             
             else
@@ -1921,8 +1977,10 @@ namespace AudioVideoPlayer
                 SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Video;
                 SystemControls.DisplayUpdater.VideoProperties.Title = title;
                 SystemControls.DisplayUpdater.VideoProperties.Subtitle = content;
+                SystemControls.DisplayUpdater.Thumbnail = await CreatePosterStream(poster);
                 SystemControls.DisplayUpdater.Update();
             }
+            return true;
         }
 
         /// <summary>
@@ -1937,6 +1995,11 @@ namespace AudioVideoPlayer
                     try
                     {
                         Windows.Storage.StorageFile file = await GetFileFromLocalPathUrl(PosterUrl);
+                        if (file == null)
+                        {
+                            var uri = new System.Uri("ms-appx:///Assets/Music.png");
+                            file = await Windows.Storage.StorageFile.GetFileFromApplicationUriAsync(uri);
+                        }
                         if (file != null)
                         {
                             using (var fileStream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read))
@@ -2104,7 +2167,7 @@ namespace AudioVideoPlayer
                     CurrentMediaUrl = content;
                     CurrentPosterUrl = poster;
 
-                    UpdateControlsDisplayUpdater(title, content, poster);
+                    await UpdateControlsDisplayUpdater(title, content, poster);
                     // Set Window Mode
                     SetWindowMode(WindowState);
                     return true;
@@ -2278,6 +2341,7 @@ namespace AudioVideoPlayer
                             mediaPlayer.SetFileSource(file);
                             return true;
                         }*/
+                        return true;
                     }
                     else
                         LogMessage("Failed to load media file: " + Content);
