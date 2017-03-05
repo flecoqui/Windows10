@@ -24,23 +24,6 @@ using SpeechToText;
 
 namespace SpeechToTextUWPSampleApp
 {
-    public class WaitingCursor : IDisposable
-    {
-        public WaitingCursor()
-        {
-            if (Window.Current.CoreWindow.PointerCursor.Type != Windows.UI.Core.CoreCursorType.Wait)
-            {
-                Window.Current.CoreWindow.PointerCursor =
-                    new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
-            }
-        }
-        public void Dispose()
-        {
-            Window.Current.CoreWindow.PointerCursor =
-                new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
-
-        }
-    }
     /// <summary>
     /// Main page for the application.
     /// </summary>
@@ -133,11 +116,12 @@ namespace SpeechToTextUWPSampleApp
             // Cognitive Service SpeechToText GetToken 
             if (!string.IsNullOrEmpty(subscriptionKey.Text))
             {
+                LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
                 string s = await client.GetToken(subscriptionKey.Text);
                 if (!string.IsNullOrEmpty(s))
-                    LogMessage("GetToken for subscription Key: " + subscriptionKey.Text);
+                    LogMessage("Getting Token successful Token: " + s.ToString());
                 else
-                    LogMessage("GetToken failed for subscription Key: " + subscriptionKey.Text);
+                    LogMessage("Getting Token failed for subscription Key: " + subscriptionKey.Text);
             }
 
         }
@@ -219,6 +203,9 @@ namespace SpeechToTextUWPSampleApp
             // Resotre Playback Rate
             if (mediaPlayer.PlaybackSession.PlaybackRate != 1)
                 mediaPlayer.PlaybackSession.PlaybackRate = 1;
+
+            //Update Controls
+            UpdateControls();
         }
         /// <summary>
         /// This method is called when the application is suspending
@@ -849,9 +836,11 @@ namespace SpeechToTextUWPSampleApp
                 {
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
+                        LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
                         string token = await client.GetToken(subscriptionKey.Text);
                         if (!string.IsNullOrEmpty(token))
                         {
+                            LogMessage("Getting Token successful Token: " + token.ToString());
                             // Save subscription key
                             SaveSettingsAndState();
                         }
@@ -938,9 +927,11 @@ namespace SpeechToTextUWPSampleApp
                 {
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
+                        LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
                         string token = await client.GetToken(subscriptionKey.Text);
                         if (!string.IsNullOrEmpty(token))
                         {
+                            LogMessage("Getting Token successful Token: " + token.ToString());
                             // Save subscription key
                             SaveSettingsAndState();
                         }
@@ -1157,14 +1148,13 @@ namespace SpeechToTextUWPSampleApp
                 {
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
-                        using (WaitingCursor cursor = new WaitingCursor())
+                        LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
+                        string token = await client.GetToken(subscriptionKey.Text);
+                        if (!string.IsNullOrEmpty(token))
                         {
-                            string token = await client.GetToken(subscriptionKey.Text);
-                            if (!string.IsNullOrEmpty(token))
-                            {
-                                // Save subscription key
-                                SaveSettingsAndState();
-                            }
+                            LogMessage("Getting Token successful Token: " + token.ToString());
+                            // Save subscription key
+                            SaveSettingsAndState();
                         }
                     }
 
@@ -1174,8 +1164,6 @@ namespace SpeechToTextUWPSampleApp
                         var file = await GetFileFromLocalPathUrl(mediaUri.Text);
                         if (file != null)
                         {
-                            using (WaitingCursor cursor = new WaitingCursor())
-                            {
                                 string convertedText = string.Empty;
                                 LogMessage("Sending StorageFile: " + file.Path.ToString());
                                 SpeechToTextResponse result = await client.SendStorageFile(file, locale);
@@ -1199,7 +1187,6 @@ namespace SpeechToTextUWPSampleApp
                                 else
                                     LogMessage("Error while sending file");
                             }
-                        }
                     }
                     else
                         LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
