@@ -108,6 +108,8 @@ namespace SpeechToText
     /// Class used to:
     /// - record the audio samples in StorageFile
     /// - forward the audio samples towards the SpeechToText REST API
+    /// - extract audio buffer based on the audio level and measurement duration. 
+    ///   Those audio buffers are stored in a queue      
     /// This class automatically update the WAV Header based on the length 
     /// of data to store or transmit.
     /// Moreover, it removes the JUNK chunk from the WAV header.

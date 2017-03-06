@@ -162,12 +162,12 @@ First, select the language in the "Language" Combo Box:
 
 For continuous recording, you can define the two following parameters:
 
-1. The minimum average audio level necessary to trigger the recording, it's a value between 0 and 65535. By default the value is 300. You can tune this value after several microphone tests.
-2. The duration in milliseconds for the calculation of the average audio level. With this parameter you define the period during which the average level is measured. By default the value is 1000 ms.  
+1. The minimum audio level average necessary to trigger the recording, it's a value between 0 and 65535. By default the value is 300. You can tune this value after several microphone tests.
+2. The duration in milliseconds for the calculation of the audio level average . With this parameter you define the period during which the audio level is measured. By default the value is 1000 ms.  
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/levelduration.png).
 
-As soon as the average audio level is over the Level, all the audio samples will be recorded till the average audio level becomes below the same level.
+As soon as the audio level average is over the Level, all the audio samples will be recorded till the audio level average becomes below the same level.
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/graph.png).
 

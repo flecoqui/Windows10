@@ -59,7 +59,7 @@ namespace SpeechToText
         /// <param name="subscriptionKey">SubscriptionKey associated with the SpeechToText 
         /// Cognitive Service subscription.
         /// </param>
-        /// <return>Token which is used to all the SpeechToText REST API.
+        /// <return>Token which is used for all calls to the SpeechToText REST API.
         /// </return>
         public async System.Threading.Tasks.Task<string> GetToken(string subscriptionKey )
         {
@@ -104,7 +104,7 @@ namespace SpeechToText
         /// </summary>
         /// <param>
         /// </param>
-        /// <return>Token which is used to all the SpeechToText REST API.
+        /// <return>Token which is used to all the calls to the SpeechToText REST API.
         /// </return>
         public async System.Threading.Tasks.Task<string> RenewToken()
         {
@@ -158,10 +158,11 @@ namespace SpeechToText
         }
         /// <summary>
         /// GetAudioStream method
+        /// This method return the audio buffer (stream) which has been acquired while the client is continuously recording the audio.
         /// </summary>
         /// <param>
         /// </param>
-        /// <return>The AudioStream in the queue, null if the queue is empty.
+        /// <return>The SpeechToTextAudioStream in the queue, null if the queue is empty.
         /// </return>
         public SpeechToTextAudioStream GetAudioStream()
         {
@@ -169,13 +170,10 @@ namespace SpeechToText
         }
         /// <summary>
         /// SendBuffer method
+        /// This method sends the current audio buffer towards Cognitive Services REST API
         /// </summary>
         /// <param name="locale">language associated with the current buffer/recording.
         /// for instance en-US, fr-FR, pt-BR, ...
-        /// </param>
-        /// <param name="start">start position of the buffer to transmit.
-        /// </param>
-        /// <param name="end">start position of the buffer to transmit.
         /// </param>
         /// <return>The result of the SpeechToText REST API.
         /// </return>
@@ -250,6 +248,9 @@ namespace SpeechToText
         }
         /// <summary>
         /// SendAudioStream method
+        /// This method sends a SpeechToTextAudioStream towards Cognitive Services REST API.
+        /// Usually, the method GetAudioStream returns the SpeechToTextAudioStream (if available) then the method SendAudioStream 
+        /// sends a SpeechToTextAudioStream towards Cognitive Services REST API.
         /// </summary>
         /// <param name="locale">language associated with the current buffer/recording.
         /// for instance en-US, fr-FR, pt-BR, ...
@@ -423,6 +424,12 @@ namespace SpeechToText
         /// <param name="wavFile">StorageFile where the audio buffer 
         /// will be stored.
         /// </param>
+        /// <param name="start">the position in the buffer of the first byte to save in a file. 
+        /// by default the value is 0.
+        /// </param>
+        /// <param name="end">the position in the buffer of the last byte to save in a file
+        /// by default the value is 0, if the value is 0 the whole buffer will be stored in a a file
+        /// </param>
         /// <return>true if successful.
         /// </return>
         public async System.Threading.Tasks.Task<bool> SaveBuffer(Windows.Storage.StorageFile wavFile, UInt64 start = 0, UInt64 end = 0)
@@ -477,21 +484,18 @@ namespace SpeechToText
         /// <summary>
         /// IsRecording method
         /// </summary>
-        /// <param>Return the length of the audio buffer
-        /// </param>
-        /// <return>the length of the WAV buffer in uint.
+        /// <return>Return true if the Client is currently recording
         /// </return>
         public bool IsRecording()
         {
             return isRecording;
         }
         /// <summary>
-                 /// GetBufferLength method
-                 /// </summary>
-                 /// <param>Return the length of the audio buffer
-                 /// </param>
-                 /// <return>the length of the WAV buffer in uint.
-                 /// </return>
+        /// GetBufferLength method
+        /// Return the length of the current audio buffer
+        /// </summary>
+        /// <return>the length of the WAV buffer in ulong.
+        /// </return>
         public ulong GetBufferLength()
         {
             if (STTStream != null)
@@ -502,10 +506,13 @@ namespace SpeechToText
         }
         /// <summary>
         /// StartRecording method
-        /// </summary>
-        /// <param>
         /// Start to record audio using the microphone.
-        /// The audio stream in stored in memory
+        /// The audio stream in stored in memory with no limit of size.
+        /// </summary>
+        /// <param name="MaxStreamSizeInBytes">
+        /// This parameter defines the max size of the buffer in memory. When the size of the buffer is over this limit, the 
+        /// client create another stream and remove the previouw stream. 
+        /// By default the value is 0, in that case the audio stream in stored in memory with no limit of size.
         /// </param>
         /// <return>return true if successful.
         /// </return>
@@ -515,13 +522,26 @@ namespace SpeechToText
         }
         /// <summary>
         /// StartRecording method
-        /// </summary>
-        /// <param>
         /// Start to record audio using the microphone.
-        /// The audio stream in stored in memory
+        /// The audio stream in stored in memory with no limit of size.
+        /// </summary>
+        /// <param name="MaxStreamSizeInBytes">
+        /// This parameter defines the max size of the buffer in memory. When the size of the buffer is over this limit, the 
+        /// client create another stream and remove the previouw stream. 
+        /// By default the value is 0, in that case the audio stream in stored in memory with no limit of size.
+        /// </param>
+        /// <param name="ThresholdDuration">
+        /// The duration in milliseconds for the calculation of the average audio level. 
+        /// With this parameter you define the period during which the average level is measured. 
+        /// If the value is 0, no buffer will be sent to Cognitive Services.
+        /// </param>
+        /// <param name="ThresholdLevel">
+        /// The minimum audio level average necessary to trigger the recording, 
+        /// it's a value between 0 and 65535. You can tune this value after several microphone tests.
+        /// If the value is 0, no buffer will be sent to Cognitive Services.
         /// </param>
         /// <return>return true if successful.
-        /// </return>STTStream
+        /// </return>
         public async System.Threading.Tasks.Task<bool> StartContinuousRecording(ulong MaxStreamSizeInBytes, UInt16 ThresholdDuration, UInt16 ThresholdLevel)
         {
             thresholdDuration = ThresholdDuration;
