@@ -85,7 +85,7 @@ after few seconds click on the same button "Stop Record" to stop the recording.
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stoprecordinginfile.png)
 
 And then select the WAV file where you want to store the recording.
-The path of the WAV file is displayed in the Edit box "Path" to select a WAV file.
+The path of the WAV file is automatically copied in the Edit box "Path" used to select a WAV file.
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/path.png) 
 
