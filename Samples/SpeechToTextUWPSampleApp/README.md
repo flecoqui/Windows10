@@ -215,9 +215,11 @@ Next steps
 
 The Speech-To-Text UWP Sample Applicaton could be improved to support the following features:
 <p/>
+
 1. Integration with LUIS Cognitive Services for continuous recording
 2. Support of MP3, AAC, WMA audio files 
- 
+
+
 
 
 
