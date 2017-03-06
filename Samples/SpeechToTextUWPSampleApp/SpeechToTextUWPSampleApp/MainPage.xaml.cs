@@ -33,7 +33,7 @@ namespace SpeechToTextUWPSampleApp
         SpeechToTextClient client;
         ulong maxSize = 3840000;
         UInt16 level = 300;
-        UInt16 duration = 400;
+        UInt16 duration = 1000;
         bool isRecordingInMemory = false;
         bool isRecordingInFile = false;
         bool isRecordingContinuously = false;

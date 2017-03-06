@@ -11,10 +11,11 @@ This Speech-To-Text UWP Sample Application  can:
 <p/>
 -   **Record**: record spoken audio into a WAV file, 
 -   **Play**: play the WAV files stored on the local disk,
--   **Convert WAV file**: Convert the WAV file to text,
--   **Convert live audio**: Convert live audio to text.
+-   **Convert WAV file**: Convert the WAV file to text with Cognitive Services,
+-   **Convert live audio**: Convert live audio to text with Cognitive Services, the audio buffer is sent to Cogntive Services at the end of the recording session.
+-   **Convert continuously live audio**: Convert continuously live audio to text with Cognitive Services, in that case, the audio buffers are sent to Cognitive Services if the audio level is sufficient during a configurable period.
 
-The spoken audio is recorded in WAV file in the following format:
+The spoken audio is recorded into a WAV file in the following format:
 <p/>
 -   **Number of Channels**: one channel, 
 -   **Samples per second**: 16000,
@@ -60,9 +61,9 @@ Once the application is installed on your device, you can launch it and the main
 
 ### Main page
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/mainpage.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/main.png)
 
-The application is used to record spoken audio into a WAV file, play the WAV files stored on the local disk, convert the WAV file to text, convert live audio to text.
+The application is used to record spoken audio into a WAV file, play the WAV files stored on the local disk, convert the WAV file to text, convert live audio to text and convert continuously live audio to text .
 
 ### Entering your subscription Key
 Once the application is launched, you can enter your subscription key which will be used for the communication with Speech-To-Text Cognitive Services.
@@ -75,9 +76,13 @@ Click on the button "Record" to start the recording.
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/record.png)
 
-Now you can speak, after few seconds click on the same button "Stop Record" to stop the recording.
+Now you can speak, you can see the audio level in cyan
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stoprecord.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stopliverecord.png)
+
+after few seconds click on the same button "Stop Record" to stop the recording.
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stoprecordinginfile.png)
 
 And then select the WAV file where you want to store the recording.
 The path of the WAV file is displayed in the Edit box "Path" to select a WAV file.
@@ -120,7 +125,7 @@ Finally click on the button "Upload" to upload the file towards the Cognitive Se
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/upload.png) 
 
-After less than one second, the result is displayed in the "Result" Edit box: 
+Once the file is uploaded, after less than one second, the result is displayed in the "Result" Edit box: 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
 
@@ -132,16 +137,62 @@ First, select the language in the "Language" Combo Box:
 
 Then click on the button "Convert" to start the recording of Live Spoken Audio.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/convert.png) 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/liverecord.png) 
 
-Now you can speak, after few seconds click on the same button "Stop Convert" to stop the recording and transmit the audio stream.
+Now you can speak, you can see the audio level in cyan
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stoprecord.png) 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stopliverecord.png)
+
+after few seconds click on the same button "Stop Convert" to stop the recording and transmit the audio buffer to Cognitive Services.
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stopliverecordbutton.png) 
 
 After less than one second, the result is displayed in the "Result" Edit box: 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
 
+
+### Converting continuously Live Spoken Audio to Text
+You can also directly convert the live Spoken Audio continuously to text. 
+First, select the language in the "Language" Combo Box: 
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/language.png).
+
+For continuous recording, you can define the two following parameters:
+
+1. The minimum average audio level necessary to trigger the recording, it's a value between 0 and 65535. By default the value is 300. You can tune this value after several microphone tests.
+2. The duration for the calculation of the average audio level. With this parameter you define the period during which the average level is measured. 
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/levelduration.png).
+
+As soon as the average audio level is over the Level, all the audio samples will be recorded till the average audio level becomes below the same level.
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/graph.png).
+
+Then click on the button "Continuous Record" to start the recording of Live Spoken Audio.
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/continuousrecord.png) 
+
+Now you can speak, you can see the audio level in cyan
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/audiolevel.png)
+
+once the audio level is sufficient the Live Spoken Audio is recorded till the audio level become too low. Then the audio buffer is sent to Cognitive Services.
+The result is displayed, a green rectangle is displayed, if the conversion is successul:
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result_ok.png) 
+
+a red rectangle is displayed, if the conversion failed:
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result_error.png) 
+
+Moreover, if the application is suspended, the continuous recording is stopped. When the application will resume, the continous recording will start automatically.
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/resuming.png) 
+
+IF you want to stop the continuous recording click on the same button:
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stopcontinuousrecording.png) 
 
 
 Building the application
@@ -162,7 +213,8 @@ Next steps
 
 The Speech-To-Text UWP Sample Applicaton could be improved to support the following features:
 <p/>
-1.  Continuous recording and spoken audio conversion to text
+1. Integration with LUIS Cognitive Services for continuous recording
+2. Support of MP3, AAC, WMA audio files 
  
 
 
