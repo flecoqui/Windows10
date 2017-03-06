@@ -95,7 +95,9 @@ In order to play a WAV file click on the button "Open WAV File" to select a WAV 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/openfile.png) 
 
-Press on the "Play" button.
+Then click on the "Play" button.
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/play.png) 
 
 #### Start over, play, pause and stop 
 
@@ -161,7 +163,7 @@ First, select the language in the "Language" Combo Box:
 For continuous recording, you can define the two following parameters:
 
 1. The minimum average audio level necessary to trigger the recording, it's a value between 0 and 65535. By default the value is 300. You can tune this value after several microphone tests.
-2. The duration for the calculation of the average audio level. With this parameter you define the period during which the average level is measured. 
+2. The duration in milliseconds for the calculation of the average audio level. With this parameter you define the period during which the average level is measured. By default the value is 1000 ms.  
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/levelduration.png).
 
@@ -192,7 +194,7 @@ Moreover, if the application is suspended, the continuous recording is stopped. 
 
 IF you want to stop the continuous recording click on the same button:
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stopcontinuousrecording.png) 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stopcontinuousrecord.png) 
 
 
 Building the application
