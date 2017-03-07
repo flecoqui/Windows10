@@ -119,6 +119,7 @@ namespace AudioVideoPlayer
         protected override  void OnFileActivated(FileActivatedEventArgs args)
         {
             LogMessage("OnFileActivated");
+            base.OnFileActivated(args);
             Frame rootFrame = Window.Current.Content as Frame;
             if (rootFrame == null)
             {
@@ -140,9 +141,13 @@ namespace AudioVideoPlayer
             var p = rootFrame.Content as MainPage;
             if (p != null)
             {
-                var f = args.Files.FirstOrDefault();
-                LogMessage("SetPath:" + f.Path);
-                p.SetPath(f.Path);
+                var f = args.Files.FirstOrDefault() as Windows.Storage.StorageFile;
+                if (f != null)
+                {
+                    Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(f);
+                    LogMessage("SetPath:" + f.Path);
+                    p.SetPath(f.Path);
+                }
             }
             // Ensure the current window is active 
             Window.Current.Activate();
