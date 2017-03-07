@@ -1982,7 +1982,30 @@ namespace AudioVideoPlayer
             }
             return true;
         }
+        private async System.Threading.Tasks.Task<bool> SetDefaultPoster()
+        {
+            var uri = new System.Uri("ms-appx:///Assets/Music.png");
+            Windows.Storage.StorageFile file = await Windows.Storage.StorageFile.GetFileFromApplicationUriAsync(uri);
+            if (file != null)
+            {
+                using (var fileStream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read))
+                {
+                    if (fileStream != null)
+                    {
+                        Windows.UI.Xaml.Media.Imaging.BitmapImage b = new Windows.UI.Xaml.Media.Imaging.BitmapImage();
+                        if (b != null)
+                        {
+                            b.SetSource(fileStream);
+                            SetPictureSource(b);
+                            SetPictureElementSize();
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
 
+        }
         /// <summary>
         /// This method set the poster source for the MediaElement 
         /// </summary>
@@ -1995,11 +2018,6 @@ namespace AudioVideoPlayer
                     try
                     {
                         Windows.Storage.StorageFile file = await GetFileFromLocalPathUrl(PosterUrl);
-                        if (file == null)
-                        {
-                            var uri = new System.Uri("ms-appx:///Assets/Music.png");
-                            file = await Windows.Storage.StorageFile.GetFileFromApplicationUriAsync(uri);
-                        }
                         if (file != null)
                         {
                             using (var fileStream = await file.OpenAsync(Windows.Storage.FileAccessMode.Read))
@@ -2018,7 +2036,11 @@ namespace AudioVideoPlayer
                             }
                         }
                         else
+                        {
+                            SetDefaultPoster();
                             LogMessage("Failed to load poster: " + PosterUrl);
+                            return true;
+                        }
 
                     }
                     catch (Exception e)
@@ -2070,6 +2092,11 @@ namespace AudioVideoPlayer
                                         return true;
                                     }
                                 }
+                            }
+                            else
+                            {
+                                SetDefaultPoster();
+                                return true;
                             }
                         }
                     }
@@ -2240,7 +2267,7 @@ namespace AudioVideoPlayer
                         string subdirectory = directory;
                         int pos = -1;
                         if ((pos = directory.IndexOf('\\')) > 0)
-                            subdirectory = directory.Substring(0, pos); 
+                            subdirectory = directory.Substring(0, pos);
                         folder = await folder.GetFolderAsync(subdirectory);
                         if (folder != null)
                         {
@@ -2254,7 +2281,10 @@ namespace AudioVideoPlayer
                         file = await folder.GetFileAsync(filename);
                 }
                 else
+                {
+                  
                     file = await Windows.Storage.StorageFile.GetFileFromPathAsync(path);
+                }
             }
             catch(Exception e)
             {
