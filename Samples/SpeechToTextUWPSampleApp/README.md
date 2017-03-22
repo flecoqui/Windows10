@@ -29,9 +29,9 @@ You can sign up [here](https://www.microsoft.com/cognitive-services/en-us/sign-u
 Installing the application
 ----------------------------
 You can install the application on:
-<p/>
-- ** Personal Computer Platform **: a desktop running Windows 10 RS1
-- ** Windows 10 Mobile Platform **: a phone running Windows 10 RS1
+
+- **Personal Computer Platform**: a desktop running Windows 10 RS1
+- **Windows 10 Mobile Platform**: a phone running Windows 10 RS1
 
 The applications packages for x86, x64 and ARM are available there :
 [ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/SpeechToTextUWPSampleApp/Releases/LatestRelease.zip)
