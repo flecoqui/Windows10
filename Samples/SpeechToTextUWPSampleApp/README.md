@@ -16,12 +16,11 @@ This Speech-To-Text UWP Sample Application  can:
 - **Convert continuously live audio**: Convert continuously live audio to text with Cognitive Services, in that case, the audio buffers are sent to Cognitive Services if the audio level is sufficient during a configurable period.
 
 The spoken audio is recorded into a WAV file in the following format:
-<p/>
 
-** Number of Channels **: one channel, 
-** Samples per second **: 16000,
-** Bits per sample **: 16 bits,
-** Average Bytes per second **: 256 kbit/s.
+- **Number of Channels**: one channel, 
+- **Samples per second**: 16000,
+- **Bits per sample**: 16 bits,
+- **Average Bytes per second**: 256 kbit/s.
 
 In order to use the application you need a Cognitive Services Speech-To-Text subscription Key.
 You can sign up [here](https://www.microsoft.com/cognitive-services/en-us/sign-up)  
