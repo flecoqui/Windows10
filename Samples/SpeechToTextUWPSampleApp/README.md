@@ -9,18 +9,18 @@ Overview
 --------------
 This Speech-To-Text UWP Sample Application  can:
 <p/>
--   **Record**: record spoken audio into a WAV file, 
--   **Play**: play the WAV files stored on the local disk,
--   **Convert WAV file**: Convert the WAV file to text with Cognitive Services,
--   **Convert live audio**: Convert live audio to text with Cognitive Services, the audio buffer is sent to Cogntive Services at the end of the recording session.
--   **Convert continuously live audio**: Convert continuously live audio to text with Cognitive Services, in that case, the audio buffers are sent to Cognitive Services if the audio level is sufficient during a configurable period.
+-   ** Record **: record spoken audio into a WAV file, 
+-   ** Play **: play the WAV files stored on the local disk,
+-   ** Convert WAV file **: Convert the WAV file to text with Cognitive Services,
+-   ** Convert live audio **: Convert live audio to text with Cognitive Services, the audio buffer is sent to Cogntive Services at the end of the recording session.
+-   ** Convert continuously live audio **: Convert continuously live audio to text with Cognitive Services, in that case, the audio buffers are sent to Cognitive Services if the audio level is sufficient during a configurable period.
 
 The spoken audio is recorded into a WAV file in the following format:
 <p/>
--   **Number of Channels**: one channel, 
--   **Samples per second**: 16000,
--   **Bits per sample**: 16 bits,
--   **Average Bytes per second**: 256 kbit/s.
+-   ** Number of Channels **: one channel, 
+-   ** Samples per second **: 16000,
+-   ** Bits per sample **: 16 bits,
+-   ** Average Bytes per second **: 256 kbit/s.
 
 In order to use the application you need a Cognitive Services Speech-To-Text subscription Key.
 You can sign up [here](https://www.microsoft.com/cognitive-services/en-us/sign-up)  
@@ -30,8 +30,8 @@ Installing the application
 ----------------------------
 You can install the application on:
 <p/>
-- **Personal Computer Platform**: a desktop running Windows 10 RS1
-- **Windows 10 Mobile Platform**: a phone running Windows 10 RS1
+- ** Personal Computer Platform **: a desktop running Windows 10 RS1
+- ** Windows 10 Mobile Platform **: a phone running Windows 10 RS1
 
 The applications packages for x86, x64 and ARM are available there :
 [ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/SpeechToTextUWPSampleApp/Releases/LatestRelease.zip)
