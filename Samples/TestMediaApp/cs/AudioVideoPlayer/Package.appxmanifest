@@ -9,7 +9,7 @@
          >
 -->
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" IgnorableNamespaces="uap uap3 mp">
-  <Identity Name="52458FLECOQUI.TestMediaApp" Publisher="CN=0F2C9F5D-19D3-44D5-AC3F-64AB88C40609" Version="1.1.9.0" />
+  <Identity Name="52458FLECOQUI.TestMediaApp" Publisher="CN=0F2C9F5D-19D3-44D5-AC3F-64AB88C40609" Version="1.1.10.0" />
   <mp:PhoneIdentity PhoneProductId="05e68787-2114-4574-bb0d-000000000001" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>TestMediaApp</DisplayName>
