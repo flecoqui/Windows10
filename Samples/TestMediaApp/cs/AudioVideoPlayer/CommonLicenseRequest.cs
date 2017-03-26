@@ -37,14 +37,15 @@ namespace AudioVideoPlayer
         /// </summary>
         /// <param name="licenseServerUri">License Server URI to retrieve the PlayReady license.</param>
         /// <param name="httpRequestContent">HttpContent including the Challenge transmitted to the PlayReady server.</param>
-        public async virtual Task<IHttpContent> AcquireLicense(Uri licenseServerUri, IHttpContent httpRequestContent)
+        public async virtual Task<IHttpContent> AcquireLicense(Uri licenseServerUri, Windows.Web.Http.Headers.HttpCredentialsHeaderValue Authorization , IHttpContent httpRequestContent)
         {
             try
             {
                 HttpClient httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Add("msprdrm_server_redirect_compat", "false");
                 httpClient.DefaultRequestHeaders.Add("msprdrm_server_exception_compat", "false");
-
+                if(Authorization!=null)
+                    httpClient.DefaultRequestHeaders.Authorization = Authorization;
                 HttpResponseMessage response = await httpClient.PostAsync(licenseServerUri, httpRequestContent);
                 response.EnsureSuccessStatusCode();
 

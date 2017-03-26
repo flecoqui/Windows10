@@ -557,7 +557,7 @@ namespace AudioVideoPlayer
         /// </summary>
         private void MediaElement_MediaFailed(Windows.Media.Playback.MediaPlayer sender, Windows.Media.Playback.MediaPlayerFailedEventArgs e)
         {
-            LogMessage("Media failed: " + e.ErrorMessage);
+            LogMessage("Media failed: " + e.ErrorMessage + (e.ExtendedErrorCode !=null? " Error: " + e.ExtendedErrorCode.Message: ""));
             CurrentMediaUrl = string.Empty;
             CurrentPosterUrl = string.Empty;
             ReleaseDisplay();
@@ -1760,8 +1760,12 @@ namespace AudioVideoPlayer
                 {
                     foreach (var var in h)
                     {
-                        LogMessage("Adding in the Http Header key: " + var.Key +" Value: " + var.Value);
-                        hc.TryAppendWithoutValidation(var.Key, var.Value);
+                        // If not a Bearer add key, value
+                        if ((!string.Equals(var.Key, "Authorization", StringComparison.OrdinalIgnoreCase)) || (!var.Value.StartsWith("Bearer", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            LogMessage("Adding in the Http Header key: " + var.Key + " Value: " + var.Value);
+                            hc.TryAppendWithoutValidation(var.Key, var.Value);
+                        }
                     }
                 }
             }
@@ -1773,6 +1777,30 @@ namespace AudioVideoPlayer
         /// <summary>
         /// This method set the http headers 
         /// </summary>
+        private void SetHttpHeaders(Dictionary<string, string> h, Windows.Web.Http.Headers.HttpContentHeaderCollection hc)
+        {
+            try
+            {
+                if ((h != null) && (hc != null))
+                {
+                    foreach (var var in h)
+                    {
+                        // If not a Bearer add key, value
+                        if ((!string.Equals(var.Key, "Authorization", StringComparison.OrdinalIgnoreCase)) || (!var.Value.StartsWith("Bearer", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            LogMessage("Adding in the Http Header key: " + var.Key + " Value: " + var.Value);
+                            hc.TryAppendWithoutValidation(var.Key, var.Value);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                LogMessage("Exception while setting the http headers: " + e.Message);
+            }
+        }        /// <summary>
+                 /// This method set the http headers 
+                 /// </summary>
         private void SetHttpHeaders(IReadOnlyDictionary<string, string> hsource, Dictionary<string, string> hdest)
         {
             try
@@ -2639,6 +2667,7 @@ namespace AudioVideoPlayer
         {
             LogMessage("PlaybackBitrateChanged from " + args.OldValue + " to " + args.NewValue);
         }
+
         /// <summary>
         /// Called when the download of a DASH or HLS chunk is requested
         /// </summary>
@@ -2650,10 +2679,12 @@ namespace AudioVideoPlayer
             var deferral = args.GetDeferral();
             if (deferral != null)
             {
+
                 args.Result.ResourceUri = args.ResourceUri;
                 args.Result.ContentType = args.ResourceType.ToString();
                 var filter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
                 filter.CacheControl.WriteBehavior = Windows.Web.Http.Filters.HttpCacheWriteBehavior.NoCache;
+
                 using (var httpClient = new Windows.Web.Http.HttpClient(filter))
                 {
                     try
@@ -2662,7 +2693,22 @@ namespace AudioVideoPlayer
                         if (httpHeaders != null)
                         {
                             SetHttpHeaders(httpHeaders, request.Headers);
+                            // Add Authorization Header if Key requested
+                            if (args.ResourceType == Windows.Media.Streaming.Adaptive.AdaptiveMediaSourceResourceType.Key)
+                            {
+                                if ((httpHeaders != null) && (httpHeaders.ContainsKey("Authorization")))
+                                {
+                                    
+                                    string s = httpHeaders["Authorization"];
+                                    if (s.StartsWith("bearer=", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        string Token = s.Substring(7);
+                                        request.Headers.Authorization = new Windows.Web.Http.Headers.HttpCredentialsHeaderValue("Bearer", Token); 
+                                    }
+                                }
+                            }
                         }
+                        
                         Windows.Web.Http.HttpResponseMessage response = await httpClient.SendRequestAsync(request);
                        // args.Result.ExtendedStatus = (uint)response.StatusCode;
                         if (response.IsSuccessStatusCode)
@@ -2844,9 +2890,22 @@ namespace AudioVideoPlayer
                         else
                             httpContent.Headers.TryAppendWithoutValidation(strHeaderName.ToString(), strHeaderValue);
                     }
+                    // Add custom header for license acquisition
+                    SetHttpHeaders(httpHeaders, httpContent.Headers);
+                    Windows.Web.Http.Headers.HttpCredentialsHeaderValue Authorization = null;
+                    if ((httpHeaders != null) && (httpHeaders.ContainsKey("Authorization")))
+                    {
+
+                        string s = httpHeaders["Authorization"];
+                        if (s.StartsWith("bearer=", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string Token = s.Substring(7);
+                            Authorization = new Windows.Web.Http.Headers.HttpCredentialsHeaderValue("Bearer", Token);
+                        }
+                    }
                     CommonLicenseRequest licenseAcquision = new CommonLicenseRequest();
                     
-                    Windows.Web.Http.IHttpContent responseHttpContent = await licenseAcquision.AcquireLicense(new Uri(Url), httpContent);
+                    Windows.Web.Http.IHttpContent responseHttpContent = await licenseAcquision.AcquireLicense(new Uri(Url), Authorization, httpContent);
                     if (responseHttpContent != null)
                     {
                         //string res = await responseHttpContent.ReadAsStringAsync();
@@ -2864,6 +2923,7 @@ namespace AudioVideoPlayer
                 else
                 {
                     LogMessage("ProtectionManager PlayReady License Acquisition Service Request in progress - URL: " + licenseRequest.Uri.ToString());
+                  
                     await licenseRequest.BeginServiceRequest();
                     bResult = true;
                 }
@@ -3597,5 +3657,6 @@ namespace AudioVideoPlayer
         #endregion
 
     }
+
 
 }
