@@ -1,0 +1,40 @@
+﻿<Page
+    x:Class="TestVideoZoom.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TestVideoZoom"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" >
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+
+        <StackPanel Orientation="Vertical" Width="320" HorizontalAlignment="Left" >
+            <Grid Canvas.ZIndex="1" >
+                <Image x:Name="backgroundVideo"  Source="Assets/Screen169.png" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="UniformToFill"></Image>
+                <MediaElement x:Name="mediaElement"  AutoPlay="True" AreTransportControlsEnabled="False" Source="http://b028.wpc.azureedge.net/80B028/Samples/a38e6323-95e9-4f1f-9b38-75eba91704e4/5f2ce531-d508-49fb-8152-647eba422aec.ism/Manifest(format=m3u8-aapl-v3)"  
+                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="Uniform" Tapped="mediaElement_Tapped" >
+            <MediaElement.RenderTransform>
+                <ScaleTransform x:Name="PlayerScale" ScaleX="1" ScaleY="1"/>
+            </MediaElement.RenderTransform>
+            <MediaElement.Resources>
+                <Storyboard x:Name="MyStoryboardMax">
+                    <DoubleAnimation Storyboard.TargetName="PlayerScale" Storyboard.TargetProperty="(ScaleTransform.ScaleX)" To="3.1" Duration="0:0:1" AutoReverse="false"/>
+                    <DoubleAnimation Storyboard.TargetName="PlayerScale" Storyboard.TargetProperty="(ScaleTransform.ScaleY)" To="3.1" Duration="0:0:1" AutoReverse="false"/>
+                </Storyboard>
+                <Storyboard x:Name="MyStoryboardMin">
+                    <DoubleAnimation Storyboard.TargetName="PlayerScale" Storyboard.TargetProperty="(ScaleTransform.ScaleX)" To="1" Duration="0:0:1" AutoReverse="false"/>
+                    <DoubleAnimation Storyboard.TargetName="PlayerScale" Storyboard.TargetProperty="(ScaleTransform.ScaleY)" To="1" Duration="0:0:1" AutoReverse="false"/>
+                </Storyboard>
+            </MediaElement.Resources>
+        </MediaElement>
+    </Grid>
+    <TextBlock Canvas.ZIndex="0" x:Name="Title" Grid.Column="0" Grid.Row="1"
+                               Margin="4,4,0,4"
+                               Text="Channel 1" 
+                               Style="{ThemeResource BodyTextBlockStyle}" 
+                               HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Grid>
+</Page>
