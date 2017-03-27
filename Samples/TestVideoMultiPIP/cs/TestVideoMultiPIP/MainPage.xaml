@@ -1,0 +1,69 @@
+﻿<Page
+    x:Class="TestVideoMultiPIP.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TestVideoMultiPIP"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" >
+    <Page.Resources>
+
+        <!--#region DataTemplate-->
+        <!-- When using x:Bind, you need to set x:DataType -->        
+        <DataTemplate x:Name="MediaGridViewTemplate" x:DataType="local:MediaItem">
+            <StackPanel Orientation="Vertical" Width="320" Height="240">
+                <Grid  >
+                    <Image x:Name="backgroundVideo"  Source="Assets/Screen169.png" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="UniformToFill"></Image>
+                    <MediaElement Name="{x:Bind title}"  AutoPlay="True" AreTransportControlsEnabled="False" Source="{x:Bind mediaUrl}"  
+                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="Uniform" Tapped="mediaElement_Tapped" >
+                        <MediaElement.RenderTransform>
+                            <ScaleTransform x:Name="PlayerScale" ScaleX="1" ScaleY="1"/>
+                        </MediaElement.RenderTransform>
+                        <MediaElement.Resources>
+                            <Storyboard x:Name="MyStoryboardMax">
+                                <DoubleAnimation Storyboard.TargetName="PlayerScale" Storyboard.TargetProperty="(ScaleTransform.ScaleX)" To="3.1" Duration="0:0:1" AutoReverse="false"/>
+                                <DoubleAnimation Storyboard.TargetName="PlayerScale" Storyboard.TargetProperty="(ScaleTransform.ScaleY)" To="3.1" Duration="0:0:1" AutoReverse="false"/>
+                            </Storyboard>
+                            <Storyboard x:Name="MyStoryboardMin">
+                                <DoubleAnimation Storyboard.TargetName="PlayerScale" Storyboard.TargetProperty="(ScaleTransform.ScaleX)" To="1" Duration="0:0:1" AutoReverse="false"/>
+                                <DoubleAnimation Storyboard.TargetName="PlayerScale" Storyboard.TargetProperty="(ScaleTransform.ScaleY)" To="1" Duration="0:0:1" AutoReverse="false"/>
+                            </Storyboard>
+                        </MediaElement.Resources>
+                    </MediaElement>
+                </Grid>
+                <TextBlock x:Name="Title" 
+                               Margin="4,4,0,4"
+                               Text="{x:Bind title}" 
+                               x:Phase="2" 
+                               Style="{ThemeResource BodyTextBlockStyle}" 
+                               HorizontalAlignment="Center"/>
+            </StackPanel>
+        </DataTemplate>
+        
+
+    </Page.Resources>
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <GridView ItemsSource="{x:Bind mediaList}"
+                  ItemTemplate="{StaticResource MediaGridViewTemplate}"
+                  Grid.Row="1"
+                  Grid.ColumnSpan="2" SelectionChanged="GridView_SelectionChanged">
+            <GridView.ItemContainerTransitions>
+                <TransitionCollection>
+                    <RepositionThemeTransition />
+                </TransitionCollection>
+            </GridView.ItemContainerTransitions>
+        </GridView>
+
+
+    </Grid>
+</Page>
