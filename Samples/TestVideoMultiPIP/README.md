@@ -3,9 +3,9 @@
   samplefwlink: http://go.microsoft.com/fwlink/p/?LinkId=620563&clcid=0x409
 --->
 
-# Test Video Animation sample
+# Test Video Multi-PIP sample
 
-How to create an Windows 10 application supporting Zoomin/Zoomout video animation.
+How to create an Windows 10 application supporting Multi-PIP with audio selection and RepositionThemeTransition.
 
 To be completed
 
