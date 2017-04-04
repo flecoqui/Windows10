@@ -81,6 +81,8 @@ namespace AudioVideoPlayer
         // attribute used to register Smooth Streaming component
         private Microsoft.Media.AdaptiveStreaming.AdaptiveSourceManager smoothStreamingManager = null;
 
+        // Current Title if any
+        private string CurrentTitle;
         // Url of the current playing media 
         private string CurrentMediaUrl;
         // Url of the poster of the current playing media 
@@ -140,16 +142,23 @@ namespace AudioVideoPlayer
             // this event is handled for you.
             LogMessage("MainPage OnNavigatedTo");
             await ReadSettings();
-            // Bind player to element
-            mediaPlayer = new Windows.Media.Playback.MediaPlayer();
-            mediaPlayerElement.SetMediaPlayer(mediaPlayer);
                        
             if (e.NavigationMode != NavigationMode.New)
                 RestoreState();
 
             // Register Suspend/Resume
-            Application.Current.Suspending += Current_Suspending;
-            Application.Current.Resuming += Current_Resuming;
+            Application.Current.EnteredBackground += Current_Suspending;
+            Application.Current.LeavingBackground += Current_Resuming;
+
+
+
+            // Bind player to element
+            mediaPlayer = new Windows.Media.Playback.MediaPlayer();
+            mediaPlayerElement.SetMediaPlayer(mediaPlayer);
+            mediaPlayer.CommandManager.IsEnabled = false;
+
+            // Register UI components and events
+            await RegisterUI();
 
 
             // Register Smooth Streaming component
@@ -158,10 +167,6 @@ namespace AudioVideoPlayer
             RegisterPlayReady();
             // Register Device Watcher
             RegisterDeviceWatcher();
-
-            // Register UI components and events
-            await RegisterUI();
-
             // Register Companion
             RegisterCompanion();
             // Initialize the Companion mode (Remote or Player)
@@ -208,8 +213,8 @@ namespace AudioVideoPlayer
         {
             LogMessage("MainPage OnNavigatedFrom");
             // Unregister Suspend/Resume
-            Application.Current.Suspending -= Current_Suspending;
-            Application.Current.Resuming -= Current_Resuming;
+            Application.Current.EnteredBackground -= Current_Suspending;
+            Application.Current.LeavingBackground -= Current_Resuming;
 
             // Register Smooth Streaming component
             UnregisterSmoothStreaming();
@@ -221,7 +226,10 @@ namespace AudioVideoPlayer
             // Unregister UI components and events
             UnregisterUI();
 
+            // Save State
             SaveState();
+            //Save Settings
+            SaveSettings();
         }
         /// <summary>
         /// This method Register the UI components .
@@ -233,7 +241,14 @@ namespace AudioVideoPlayer
             {
                 SystemControls = Windows.Media.SystemMediaTransportControls.GetForCurrentView();
                 if (SystemControls != null)
+                {
+                    SystemControls.IsEnabled = false;
                     SystemControls.ButtonPressed += SystemControls_ButtonPressed;
+                    SystemControls.IsPlayEnabled = true;
+                    SystemControls.IsPauseEnabled = true;
+                    SystemControls.IsStopEnabled = true;
+                    SystemControls.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Closed;
+                }
             }
             // DisplayInformation used to detect orientation changes
             displayInformation = Windows.Graphics.Display.DisplayInformation.GetForCurrentView();
@@ -271,23 +286,18 @@ namespace AudioVideoPlayer
             if (picturePopup == null)
                 CreatePicturePopup();
 
-            /*
-            if (IsFullScreen())
-                WindowState = WindowMediaState.FullScreen;
-            else if (IsFullWindow())
-                WindowState = WindowMediaState.FullWindow;
-            else
-                WindowState = WindowMediaState.WindowMode;
-            */
 
             // Initialize mediaPlayer events
             mediaPlayer.MediaOpened += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, object>(MediaElement_MediaOpened);
             mediaPlayer.MediaFailed += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, Windows.Media.Playback.MediaPlayerFailedEventArgs>(MediaElement_MediaFailed);
             mediaPlayer.MediaEnded += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, object>(MediaElement_MediaEnded);
-            mediaPlayer.CurrentStateChanged += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, object>(MediaElement_CurrentStateChanged);
+            mediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
+            //mediaPlayer.CurrentStateChanged += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, object>(MediaElement_CurrentStateChanged);
             mediaPlayerElement.DoubleTapped += doubleTapped;
             IsFullWindowToken = mediaPlayerElement.RegisterPropertyChangedCallback(MediaPlayerElement.IsFullWindowProperty, new DependencyPropertyChangedCallback(IsFullWindowChanged));
-
+            
+            // Booking network for background task
+            BookNetworkForBackground();
 
 
             // Combobox event
@@ -315,6 +325,8 @@ namespace AudioVideoPlayer
             }
             return bResult;
         }
+
+
         /// <summary>
         /// This method Unregister the UI components .
         /// </summary>
@@ -350,9 +362,11 @@ namespace AudioVideoPlayer
             mediaPlayer.MediaOpened -= MediaElement_MediaOpened;
             mediaPlayer.MediaFailed -= MediaElement_MediaFailed;
             mediaPlayer.MediaEnded -= MediaElement_MediaEnded;
-            mediaPlayer.CurrentStateChanged -= MediaElement_CurrentStateChanged;
+            mediaPlayer.PlaybackSession.PlaybackStateChanged -= PlaybackSession_PlaybackStateChanged;
+//            mediaPlayer.CurrentStateChanged -= MediaElement_CurrentStateChanged;
             mediaPlayerElement.DoubleTapped -= doubleTapped;
             mediaPlayerElement.UnregisterPropertyChangedCallback(MediaElement.IsFullWindowProperty, IsFullWindowToken);
+
 
 
 
@@ -440,6 +454,49 @@ namespace AudioVideoPlayer
         #endregion
 
         #region MediaElement
+        /// <summary>
+        /// Local Media Player use to keep the network up while in background mode
+        /// </summary>
+        Windows.Media.Playback.MediaPlayer localMediaPlayer = null;
+        Windows.Media.Core.MediaBinder localMediaBinder = null;
+        Windows.Media.Core.MediaSource localMediaSource = null;
+        public bool BookNetworkForBackground()
+        {
+            bool result = false;
+            try
+            {
+                localMediaBinder = new Windows.Media.Core.MediaBinder();
+                if (localMediaBinder != null)
+                {
+                    localMediaBinder.Binding += localMediaBinder_Binding;
+                    localMediaSource = Windows.Media.Core.MediaSource.CreateFromMediaBinder(localMediaBinder);
+                    if (localMediaSource != null)
+                    {
+                        localMediaPlayer = new Windows.Media.Playback.MediaPlayer();
+                        if (localMediaPlayer != null)
+                        {
+                            localMediaPlayer.CommandManager.IsEnabled = false;
+                            localMediaPlayer.Source = localMediaSource;
+                            result = true;
+                            LogMessage("Booking network for Background task successful");
+                            return result;
+                        }
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                LogMessage("Exception while booking network for Background task: Exception: " + ex.Message);
+            }
+            LogMessage("Booking network for Background task failed");
+            return result;
+        }
+        private void localMediaBinder_Binding(Windows.Media.Core.MediaBinder sender, Windows.Media.Core.MediaBindingEventArgs args)
+        {
+            var d = args.GetDeferral();
+            LogMessage("Booking network for Background task running...");
+        }
+
         // Displayinformation 
         Windows.Graphics.Display.DisplayInformation displayInformation;
 
@@ -482,20 +539,24 @@ namespace AudioVideoPlayer
         /// <summary>
         /// This method is called when the Media State changed .
         /// </summary>
-        private async void MediaElement_CurrentStateChanged(Windows.Media.Playback.MediaPlayer sender, Object e)
+        private async void PlaybackSession_PlaybackStateChanged(Windows.Media.Playback.MediaPlaybackSession sender, object args)
         {
-            switch (sender.PlaybackSession.MediaPlayer.CurrentState)
+            switch (sender.PlaybackState)
             {
-                case Windows.Media.Playback.MediaPlayerState.Playing:
+                case Windows.Media.Playback.MediaPlaybackState.Playing:
                     SystemControls.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Playing;
                     break;
-                case Windows.Media.Playback.MediaPlayerState.Paused:
-                    SystemControls.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Paused;
+                case Windows.Media.Playback.MediaPlaybackState.Paused:
+                    if(mediaPlayer.PlaybackSession.Position == TimeSpan.Zero)
+                        SystemControls.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Stopped;
+                    else
+                        SystemControls.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Paused;
                     break;
-                case Windows.Media.Playback.MediaPlayerState.Stopped:
-                    SystemControls.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Stopped;
+                case Windows.Media.Playback.MediaPlaybackState.Buffering:
                     break;
-                case Windows.Media.Playback.MediaPlayerState.Closed:
+                case Windows.Media.Playback.MediaPlaybackState.Opening:
+                    break;
+                case Windows.Media.Playback.MediaPlaybackState.None:
                     SystemControls.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Closed;
                     break;
                 default:
@@ -504,19 +565,12 @@ namespace AudioVideoPlayer
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
                  () =>
                  {
-                     Windows.Media.Playback.MediaPlayer m;
-                     if ((sender != null) &&
-                         ((m = (Windows.Media.Playback.MediaPlayer)sender) != null))
-                     {
-                         LogMessage("Media CurrentState Changed: " + m.PlaybackSession.PlaybackState.ToString());
-                         if ((m.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.None) ||
-                             (m.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused))
-                             ReleaseDisplay();
-                         if (m.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
-                             RequestDisplay();
-                     }
-                     else
-                         LogMessage("Media CurrentState Changed: ");
+                    LogMessage("Media CurrentState Changed: " + sender.PlaybackState.ToString());
+                    if ((sender.PlaybackState == Windows.Media.Playback.MediaPlaybackState.None) ||
+                        (sender.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused))
+                        ReleaseDisplay();
+                    if (sender.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
+                        RequestDisplay();
                      UpdateControls();
                  });
 
@@ -732,8 +786,8 @@ namespace AudioVideoPlayer
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
                         LogMessage("Stop from SystemMediaTransportControls");
-//                        mediaPlayer.Stop();
-                        mediaPlayer.Source = null;
+                        mediaPlayer.Pause();
+                        mediaPlayer.PlaybackSession.Position = TimeSpan.Zero;
                     });
                     break;
                 case Windows.Media.SystemMediaTransportControlsButton.Previous:
@@ -820,26 +874,18 @@ namespace AudioVideoPlayer
         void Current_Resuming(object sender, object e)
         {
             LogMessage("Resuming");
-            //await ReadSettings();
-            RestoreState();
-            // Register for orientation change
-            displayInformation.OrientationChanged += displayInformation_OrientationChanged;
-
-            // Resotre Playback Rate
-            if (mediaPlayer.PlaybackSession.PlaybackRate != 1)
-                mediaPlayer.PlaybackSession.PlaybackRate = 1;
         }
         /// <summary>
         /// This method is called when the application is suspending
         /// </summary>
-        void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
+        void Current_Suspending(System.Object sender, Windows.ApplicationModel.EnteredBackgroundEventArgs e)
         {
             LogMessage("Suspending");
-            var deferal = e.SuspendingOperation.GetDeferral();
+            var deferal = e.GetDeferral();
             // Register for orientation change
-            displayInformation.OrientationChanged -= displayInformation_OrientationChanged;
+//            displayInformation.OrientationChanged -= displayInformation_OrientationChanged;
             SaveSettings();
-            SaveState();
+//            SaveState();
             deferal.Complete();
         }
         #endregion
@@ -1964,7 +2010,28 @@ namespace AudioVideoPlayer
                         s = Windows.Storage.Streams.RandomAccessStreamReference.CreateFromFile(file);
                 }
                 else
+                {
                     s = Windows.Storage.Streams.RandomAccessStreamReference.CreateFromUri(new Uri(poster));
+                    //using (var client = new Windows.Web.Http.HttpClient())
+                    //{
+
+                    //    var response = await client.GetAsync(new Uri(poster));
+                    //    var b = new Windows.UI.Xaml.Media.Imaging.BitmapImage();
+                    //    if (response != null && response.StatusCode == Windows.Web.Http.HttpStatusCode.Ok)
+                    //    {
+                    //        using (var stream = await response.Content.ReadAsInputStreamAsync())
+                    //        {
+                    //            var memStream = new MemoryStream();
+                    //            if(memStream!=null)
+                    //            {
+                    //                await stream.AsStreamForRead().CopyToAsync(memStream);
+                    //                memStream.Position = 0;
+                    //                s = Windows.Storage.Streams.RandomAccessStreamReference.CreateFromStream(memStream.AsRandomAccessStream());
+                    //            }
+                    //        }
+                    //    }
+                    //}
+                }
             }
             return s;
         }
@@ -1973,41 +2040,43 @@ namespace AudioVideoPlayer
         /// </summary>
         private async System.Threading.Tasks.Task<bool> UpdateControlsDisplayUpdater(string title, string content, string poster)
         {
-            //            SystemControls.DisplayUpdater.ClearAll();
-            SystemControls.IsPlayEnabled = true;
-            SystemControls.IsPauseEnabled = true;
+            LogMessage("Updating SystemControls");
             if ((comboStream.Items.Count > 1)&&(bAutoSkip))
             {
                 SystemControls.IsPreviousEnabled = true;
-                SystemControls.IsNextEnabled = true;
+                SystemControls.IsNextEnabled = true;             
             }
-            if (IsPicture(content))
-            {
-                SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Image;
-                SystemControls.DisplayUpdater.ImageProperties.Title = title;
-                SystemControls.DisplayUpdater.ImageProperties.Subtitle = content;
-                SystemControls.DisplayUpdater.Thumbnail = await CreatePosterStream(poster);
-                SystemControls.DisplayUpdater.Update();               
-            }
-            //else { 
-            else if(IsMusic(content)){
-            //    SystemControls.DisplayUpdater.ClearAll();
-                SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Music;
-                SystemControls.DisplayUpdater.MusicProperties.Title = title;
-                SystemControls.DisplayUpdater.MusicProperties.Artist = content;
-                SystemControls.DisplayUpdater.Thumbnail = await CreatePosterStream(poster);
-                SystemControls.DisplayUpdater.Update();
-            }
-            
+            if (string.IsNullOrEmpty(content))
+                SystemControls.DisplayUpdater.ClearAll();
             else
             {
-              //  SystemControls.DisplayUpdater.ClearAll();
-                SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Video;
-                SystemControls.DisplayUpdater.VideoProperties.Title = title;
-                SystemControls.DisplayUpdater.VideoProperties.Subtitle = content;
-                SystemControls.DisplayUpdater.Thumbnail = await CreatePosterStream(poster);
-                SystemControls.DisplayUpdater.Update();
+                if (IsPicture(content))
+                {
+                    SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Image;
+                    SystemControls.DisplayUpdater.ImageProperties.Title = title;
+                    SystemControls.DisplayUpdater.ImageProperties.Subtitle = content;
+                    SystemControls.DisplayUpdater.Thumbnail = await CreatePosterStream(poster);
+                    LogMessage("Updating SystemControls done for image");
+                }
+                else if (IsMusic(content))
+                {
+                    SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Music;
+                    SystemControls.DisplayUpdater.MusicProperties.Title = title;
+                    SystemControls.DisplayUpdater.MusicProperties.Artist = content;
+                    SystemControls.DisplayUpdater.Thumbnail = await CreatePosterStream(poster);
+                    LogMessage("Updating SystemControls done for music");
+                }
+                else
+                {
+                    SystemControls.DisplayUpdater.Type = Windows.Media.MediaPlaybackType.Video;
+                    SystemControls.DisplayUpdater.VideoProperties.Title = title;
+                    SystemControls.DisplayUpdater.VideoProperties.Subtitle = content;
+                    SystemControls.DisplayUpdater.Thumbnail = await CreatePosterStream(poster);
+                    LogMessage("Updating SystemControls done for video");
+
+                }
             }
+            SystemControls.DisplayUpdater.Update();
             return true;
         }
         private async System.Threading.Tasks.Task<bool> SetDefaultPoster()
@@ -2221,7 +2290,8 @@ namespace AudioVideoPlayer
                     CurrentDuration = new TimeSpan(duration * 10000);
                     CurrentMediaUrl = content;
                     CurrentPosterUrl = poster;
-
+                    CurrentTitle = title;
+                    SystemControls.IsEnabled = true;
                     await UpdateControlsDisplayUpdater(title, content, poster);
                     // Set Window Mode
                     SetWindowMode(WindowState);
