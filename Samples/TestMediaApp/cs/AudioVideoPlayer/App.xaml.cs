@@ -270,7 +270,7 @@ namespace AudioVideoPlayer
         {
             // Place the application into "background mode" and note the
             // transition with a flag.
-            LogMessage("Entered background");
+            LogMessage("App Entered background");
             isInBackgroundMode = true;
 
             // Unload view content if needed.
@@ -289,7 +289,7 @@ namespace AudioVideoPlayer
         private void App_LeavingBackground(object sender, LeavingBackgroundEventArgs e)
         {
             // Mark the transition out of background mode.
-            LogMessage("Leaving background");
+            LogMessage("App Leaving background");
             isInBackgroundMode = false;
 
             // Reastore view content if it was previously unloaded.

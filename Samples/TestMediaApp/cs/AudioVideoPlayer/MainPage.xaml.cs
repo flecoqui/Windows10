@@ -147,10 +147,12 @@ namespace AudioVideoPlayer
                 RestoreState();
 
             // Register Suspend/Resume
-            Application.Current.EnteredBackground += Current_Suspending;
-            Application.Current.LeavingBackground += Current_Resuming;
+            Application.Current.EnteredBackground += EnteredBackground;
+            Application.Current.LeavingBackground += LeavingBackground;
 
 
+            // Booking network for background task
+            BookNetworkForBackground();
 
             // Bind player to element
             mediaPlayer = new Windows.Media.Playback.MediaPlayer();
@@ -213,8 +215,8 @@ namespace AudioVideoPlayer
         {
             LogMessage("MainPage OnNavigatedFrom");
             // Unregister Suspend/Resume
-            Application.Current.EnteredBackground -= Current_Suspending;
-            Application.Current.LeavingBackground -= Current_Resuming;
+            Application.Current.EnteredBackground -= EnteredBackground;
+            Application.Current.LeavingBackground -= LeavingBackground;
 
             // Register Smooth Streaming component
             UnregisterSmoothStreaming();
@@ -295,10 +297,10 @@ namespace AudioVideoPlayer
             //mediaPlayer.CurrentStateChanged += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, object>(MediaElement_CurrentStateChanged);
             mediaPlayerElement.DoubleTapped += doubleTapped;
             IsFullWindowToken = mediaPlayerElement.RegisterPropertyChangedCallback(MediaPlayerElement.IsFullWindowProperty, new DependencyPropertyChangedCallback(IsFullWindowChanged));
-            
-            // Booking network for background task
-            BookNetworkForBackground();
 
+            // Booking network for background task
+//            BookNetworkForBackground();
+            //CreateFakePlayerToBookNetworkForBackground();
 
             // Combobox event
             comboStream.SelectionChanged += ComboStream_SelectionChanged;
@@ -460,28 +462,38 @@ namespace AudioVideoPlayer
         Windows.Media.Playback.MediaPlayer localMediaPlayer = null;
         Windows.Media.Core.MediaBinder localMediaBinder = null;
         Windows.Media.Core.MediaSource localMediaSource = null;
+        // Methode used to keep the netwotk on while the application is in background.
+        // it creates a fake MediaPlayer playing from a MediaBinder source.
+        // On Phone you need to create this MediaPlayer before the MediaPlayer used by the application.
         public bool BookNetworkForBackground()
         {
             bool result = false;
             try
             {
-                localMediaBinder = new Windows.Media.Core.MediaBinder();
-                if (localMediaBinder != null)
+                if (localMediaBinder == null)
                 {
-                    localMediaBinder.Binding += localMediaBinder_Binding;
-                    localMediaSource = Windows.Media.Core.MediaSource.CreateFromMediaBinder(localMediaBinder);
-                    if (localMediaSource != null)
+                    localMediaBinder = new Windows.Media.Core.MediaBinder();
+                    if (localMediaBinder != null)
                     {
-                        localMediaPlayer = new Windows.Media.Playback.MediaPlayer();
-                        if (localMediaPlayer != null)
-                        {
-                            localMediaPlayer.CommandManager.IsEnabled = false;
-                            localMediaPlayer.Source = localMediaSource;
-                            result = true;
-                            LogMessage("Booking network for Background task successful");
-                            return result;
-                        }
+                        localMediaBinder.Binding += localMediaBinder_Binding;
                     }
+                }
+                if (localMediaSource == null)
+                {
+                    localMediaSource = Windows.Media.Core.MediaSource.CreateFromMediaBinder(localMediaBinder);
+                }
+                if (localMediaPlayer == null)
+                {
+                    localMediaPlayer = new Windows.Media.Playback.MediaPlayer();
+                    if (localMediaPlayer != null)
+                    {
+                        localMediaPlayer.CommandManager.IsEnabled = false;
+                        localMediaPlayer.Source = localMediaSource;
+                        result = true;
+                        LogMessage("Booking network for Background task successful");
+                        return result;
+                    }
+
                 }
             }
             catch(Exception ex)
@@ -491,6 +503,7 @@ namespace AudioVideoPlayer
             LogMessage("Booking network for Background task failed");
             return result;
         }
+        // Method used to keep the network on while the application is in background
         private void localMediaBinder_Binding(Windows.Media.Core.MediaBinder sender, Windows.Media.Core.MediaBindingEventArgs args)
         {
             var d = args.GetDeferral();
@@ -871,20 +884,22 @@ namespace AudioVideoPlayer
         /// <summary>
         /// This method is called when the application is resuming
         /// </summary>
-        void Current_Resuming(object sender, object e)
+        void LeavingBackground(object sender, object e)
         {
-            LogMessage("Resuming");
+            LogMessage("LeavingBackground in XAML Page");
         }
         /// <summary>
         /// This method is called when the application is suspending
         /// </summary>
-        void Current_Suspending(System.Object sender, Windows.ApplicationModel.EnteredBackgroundEventArgs e)
+        void EnteredBackground(System.Object sender, Windows.ApplicationModel.EnteredBackgroundEventArgs e)
         {
-            LogMessage("Suspending");
+            LogMessage("EnteredBackground in XAML Page");
             var deferal = e.GetDeferral();
             // Register for orientation change
 //            displayInformation.OrientationChanged -= displayInformation_OrientationChanged;
             SaveSettings();
+            //BookNetworkForBackground();
+            //CreateFakeMediaSourceToBookNetworkForBackground();
 //            SaveState();
             deferal.Complete();
         }
