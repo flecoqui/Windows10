@@ -118,12 +118,25 @@ namespace AudioVideoPlayer
             this.InitializeComponent();
             LogMessage("Application MainPage Initialized");
         }
+        // localPath is used to store the path of the content to be played
+        string localPath = string.Empty;
         public async void SetPath(string path)
         {
-            mediaUri.Text = "file://" + path;
-            if(AutoSkip.IsChecked == true)
+            if (IsDataLoaded())
             {
-                await StartPlay(mediaUri.Text, mediaUri.Text, null, 0, 0);
+                // If the playlist is loaded the application can directly 
+                // play the content
+                mediaUri.Text = "file://" + path;
+                if (AutoSkip.IsChecked == true)
+                {
+                    await StartPlay(mediaUri.Text, mediaUri.Text, null, 0, 0);
+                }
+            }
+            else
+            {
+                // Once the data are loaded 
+                // the content will be played.
+                localPath = "file://" + path;                
             }
         }
         /// <summary>
@@ -195,7 +208,14 @@ namespace AudioVideoPlayer
 
             // Start to play the first asset
             if (bAutoSkip)
+            {
+                // If the path has been set before
+                // the application will use this path 
+                // to play the content
+                if(!string.IsNullOrEmpty(localPath))
+                    mediaUri.Text = localPath;
                 PlayCurrentUrl();
+            }
 
             // Update control and play first video
             UpdateControls();
@@ -390,18 +410,29 @@ namespace AudioVideoPlayer
             }
             return bResult;
         }
+        // MediaDataGroup used to load the playlist
+        MediaDataGroup audio_video = null;
+        /// <summary>
+        /// Method LoadingData which loads the JSON playlist file
+        /// </summary>
+        bool IsDataLoaded()
+        {
+            if ((audio_video != null) && (audio_video.Items.Count > 0))
+                return true;
+            return false;
+        }
         /// <summary>
         /// Method LoadingData which loads the JSON playlist file
         /// </summary>
         async System.Threading.Tasks.Task<bool> LoadingData(string path)
         {
 
-            MediaDataGroup audio_video = null;
             string oldPath = MediaDataSource.MediaDataPath;
 
             try
             {
                 Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
+                UpdateControls(true);
 
                 MediaDataSource.Clear();
                 LogMessage(string.IsNullOrEmpty(path) ? "Loading default playlist" : "Loading playlist :" + path);
@@ -432,6 +463,7 @@ namespace AudioVideoPlayer
             finally
             {
                 Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
+                UpdateControls();
 
             }
             return false;
@@ -1055,28 +1087,30 @@ namespace AudioVideoPlayer
         /// <summary>
         /// UpdateControls Method which update the controls on the page  
         /// </summary>
-        async void UpdateControls()
+        async void UpdateControls(bool bDisable = false)
         {
 
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
                  () =>
                  {
-                     if(Remote.IsChecked==true)
+                     if (bDisable == true)
                      {
-                         playButton.IsEnabled = true;
-                         playPauseButton.IsEnabled = true;
-                         pausePlayButton.IsEnabled = true;
-                         stopButton.IsEnabled = true;
+                         Remote.IsEnabled = false;
+                         playButton.IsEnabled = false;
+                         playPauseButton.IsEnabled = false;
+                         pausePlayButton.IsEnabled = false;
+                         stopButton.IsEnabled = false;
 
-                         minusButton.IsEnabled = true;
-                         plusButton.IsEnabled = true;
 
-                         muteButton.IsEnabled = true;
-                         volumeDownButton.IsEnabled = true;
-                         volumeUpButton.IsEnabled = true;
+                         minusButton.IsEnabled = false;
+                         plusButton.IsEnabled = false;
 
-                         fullscreenButton.IsEnabled = true;
-                         fullwindowButton.IsEnabled = true;
+                         muteButton.IsEnabled = false;
+                         volumeDownButton.IsEnabled = false;
+                         volumeUpButton.IsEnabled = false;
+
+                         fullscreenButton.IsEnabled = false;
+                         fullwindowButton.IsEnabled = false;
 
                          playlistButton.IsEnabled = false;
                          comboStream.IsEnabled = false;
@@ -1087,81 +1121,109 @@ namespace AudioVideoPlayer
                      }
                      else
                      {
-                         playlistButton.IsEnabled = true;
-                         comboStream.IsEnabled = true;
-                         mediaUri.IsEnabled = true;
-                         minBitrate.IsEnabled = true;
-                         maxBitrate.IsEnabled = true;
-                         AutoSkip.IsEnabled = true;
-
-                         if ((comboStream.Items.Count > 0)||(!string.IsNullOrEmpty(mediaUri.Text)))
+                         Remote.IsEnabled = true;
+                         if (Remote.IsChecked == true)
                          {
                              playButton.IsEnabled = true;
-
+                             playPauseButton.IsEnabled = true;
+                             pausePlayButton.IsEnabled = true;
+                             stopButton.IsEnabled = true;
 
                              minusButton.IsEnabled = true;
                              plusButton.IsEnabled = true;
+
                              muteButton.IsEnabled = true;
                              volumeDownButton.IsEnabled = true;
                              volumeUpButton.IsEnabled = true;
 
-                             playPauseButton.IsEnabled = false;
-                             pausePlayButton.IsEnabled = false;
-                             stopButton.IsEnabled = false;
+                             fullscreenButton.IsEnabled = true;
+                             fullwindowButton.IsEnabled = true;
+
+                             playlistButton.IsEnabled = false;
+                             comboStream.IsEnabled = false;
+                             mediaUri.IsEnabled = false;
+                             minBitrate.IsEnabled = false;
+                             maxBitrate.IsEnabled = false;
+                             AutoSkip.IsEnabled = false;
+                         }
+                         else
+                         {
+                             playlistButton.IsEnabled = true;
+                             comboStream.IsEnabled = true;
+                             mediaUri.IsEnabled = true;
+                             minBitrate.IsEnabled = true;
+                             maxBitrate.IsEnabled = true;
+                             AutoSkip.IsEnabled = true;
+
+                             if ((comboStream.Items.Count > 0) || (!string.IsNullOrEmpty(mediaUri.Text)))
+                             {
+                                 playButton.IsEnabled = true;
 
 
-                             if (IsPicture(CurrentMediaUrl))
-                             {
-                                 fullscreenButton.IsEnabled = true;
-                                 fullwindowButton.IsEnabled = true;
-                             }
-                             else
-                             {
-                                 if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Opening)
+                                 minusButton.IsEnabled = true;
+                                 plusButton.IsEnabled = true;
+                                 muteButton.IsEnabled = true;
+                                 volumeDownButton.IsEnabled = true;
+                                 volumeUpButton.IsEnabled = true;
+
+                                 playPauseButton.IsEnabled = false;
+                                 pausePlayButton.IsEnabled = false;
+                                 stopButton.IsEnabled = false;
+
+
+                                 if (IsPicture(CurrentMediaUrl))
                                  {
                                      fullscreenButton.IsEnabled = true;
                                      fullwindowButton.IsEnabled = true;
                                  }
-                                 else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
+                                 else
                                  {
-                                     //if (string.Equals(mediaUri.Text, CurrentMediaUrl))
-                                     //{
+                                     if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Opening)
+                                     {
+                                         fullscreenButton.IsEnabled = true;
+                                         fullwindowButton.IsEnabled = true;
+                                     }
+                                     else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
+                                     {
+                                         //if (string.Equals(mediaUri.Text, CurrentMediaUrl))
+                                         //{
                                          playPauseButton.IsEnabled = false;
                                          pausePlayButton.IsEnabled = true;
                                          stopButton.IsEnabled = true;
-                                     //}
+                                         //}
+                                     }
+                                     else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
+                                     {
+                                         playPauseButton.IsEnabled = true;
+                                         stopButton.IsEnabled = true;
+                                     }
+                                     else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.None)
+                                     {
+                                         //   mediaPlayerElement.AreTransportControlsEnabled = false;
+                                         fullscreenButton.IsEnabled = false;
+                                         fullwindowButton.IsEnabled = false;
+                                     }
                                  }
-                                 else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Paused)
+                                 // Volume buttons control
+                                 if (mediaPlayer.IsMuted)
+                                     muteButton.Content = "\xE767";
+                                 else
+                                     muteButton.Content = "\xE74F";
+                                 if (mediaPlayer.Volume == 0)
                                  {
-                                     playPauseButton.IsEnabled = true;
-                                     stopButton.IsEnabled = true;
+                                     volumeDownButton.IsEnabled = false;
+                                     volumeUpButton.IsEnabled = true;
                                  }
-                                 else if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.None)
+                                 else if (mediaPlayer.Volume >= 1)
                                  {
-                                     //   mediaPlayerElement.AreTransportControlsEnabled = false;
-                                     fullscreenButton.IsEnabled = false;
-                                     fullwindowButton.IsEnabled = false;
+                                     volumeDownButton.IsEnabled = true;
+                                     volumeUpButton.IsEnabled = false;
                                  }
-                             }
-                             // Volume buttons control
-                             if (mediaPlayer.IsMuted)
-                                 muteButton.Content = "\xE767";
-                             else
-                                 muteButton.Content = "\xE74F";
-                             if (mediaPlayer.Volume == 0)
-                             {
-                                 volumeDownButton.IsEnabled = false;
-                                 volumeUpButton.IsEnabled = true;
-                             }
-                             else if (mediaPlayer.Volume >= 1)
-                             {
-                                 volumeDownButton.IsEnabled = true;
-                                 volumeUpButton.IsEnabled = false;
-                             }
-                             else
-                             {
-                                 volumeDownButton.IsEnabled = true;
-                                 volumeUpButton.IsEnabled = true;
+                                 else
+                                 {
+                                     volumeDownButton.IsEnabled = true;
+                                     volumeUpButton.IsEnabled = true;
+                                 }
                              }
                          }
                      }
@@ -1294,8 +1356,9 @@ namespace AudioVideoPlayer
                 if (await LoadingData(file.Path) == false)
                     await LoadingData(string.Empty);
                 //Update control and play first video
+                if (bAutoSkip)
+                    PlayCurrentUrl();
                 UpdateControls();
-                PlayCurrentUrl();
             }
         }
 
@@ -1996,7 +2059,10 @@ namespace AudioVideoPlayer
             MediaItem item = comboStream.SelectedItem as MediaItem;
             if (item != null)
             {
-                await StartPlay(item.Title, mediaUri.Text, item.PosterContent, item.Start, item.Duration);
+                if(string.Equals(mediaUri.Text,item.Content)!=true)
+                    await StartPlay(mediaUri.Text, mediaUri.Text, null, 0, 0);
+                else
+                    await StartPlay(item.Title, mediaUri.Text, item.PosterContent, item.Start, item.Duration);
                 UpdateControls();
             }
             else
@@ -3435,8 +3501,8 @@ namespace AudioVideoPlayer
                                 await LoadingData(Path);
                                 MediaItem ms = comboStream.SelectedItem as MediaItem;
                                 mediaUri.Text = ms.Content;
-                                PlayCurrentUrl();
-                                // Update control and play first video
+                                if (bAutoSkip)
+                                    PlayCurrentUrl();
                                 UpdateControls();
                             }
                         }

@@ -1,1 +1,0 @@
-C:\git\flecoqui\Windows10\Samples\TestMediaApp\cs\AudioVideoPlayer\AppPackages\AudioVideoPlayer_1.1.11.0\AudioVideoPlayer_1.1.11.0_x86_x64_arm.appxbundle
