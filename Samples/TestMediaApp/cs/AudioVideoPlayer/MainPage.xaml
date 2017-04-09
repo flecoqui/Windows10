@@ -106,12 +106,13 @@
                     <Button IsEnabled="False" Content="&#xE767;" x:Name="volumeDownButton" ToolTipService.ToolTip="Volume down"  FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="volumeDown_Click" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                    <Button IsEnabled="False" Content="&#xE768;" x:Name="playButton" ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="play_Click"/>
+                    <Button IsEnabled="False" Content="&#xE768;" x:Name="playButton"  ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="play_Click" Canvas.ZIndex="0" />
                     <Button IsEnabled="False" Content="&#xE768;" x:Name="playPauseButton" ToolTipService.ToolTip="Pause the stream currently played by the MediaElement"  FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playPause_Click"/>
                     <Button IsEnabled="False" Content="&#xE769;" x:Name="pausePlayButton" ToolTipService.ToolTip="Resume the stream currently puased by the MediaElement"   FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="pausePlay_Click"/>
                     <Button IsEnabled="False" Content="&#xE71A;" x:Name="stopButton" ToolTipService.ToolTip="Stop the stream currently played by the MediaElement"   FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="stop_Click"/>
-                    <CheckBox VerticalAlignment="Center" x:Name="Remote" ToolTipService.ToolTip="Select automically the Companion mode server or client"   FlowDirection="RightToLeft" HorizontalAlignment="Stretch" Margin="-38,0,0,0" Content="Remote:" Canvas.ZIndex="-1"  />
+                    <CheckBox VerticalAlignment="Center" MaxWidth="40" BorderThickness="0" BorderBrush="Transparent" x:Name="Remote"  ToolTipService.ToolTip="Select automically the Companion mode server or client"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="-38,0,0,0" Content="Remote:"  FontSize="12" Canvas.ZIndex="-1" />
                     <Image x:Name="streamLogo" Width="40" Height="40" VerticalAlignment="Center" Margin="1,1,1,1" />
+
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
                     <CheckBox VerticalAlignment="Center" x:Name="AutoSkip" Checked="AutoSkip_Checked" Unchecked="AutoSkip_Unchecked" ToolTipService.ToolTip="Select automically the next stream at the end of the MediaElement"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="-55,0,0,0" Content="Auto:"  />

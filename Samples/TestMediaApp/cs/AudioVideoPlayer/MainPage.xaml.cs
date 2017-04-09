@@ -206,6 +206,7 @@ namespace AudioVideoPlayer
                 }
             }
 
+
             // Start to play the first asset
             if (bAutoSkip)
             {
@@ -219,7 +220,6 @@ namespace AudioVideoPlayer
 
             // Update control and play first video
             UpdateControls();
-
 
             // Display OS, Device information
             LogMessage(Information.SystemInformation.GetString());
@@ -335,6 +335,7 @@ namespace AudioVideoPlayer
             maxBitrate.Text = MaxBitRate.ToString();
             maxBitrate.TextChanged += BitrateTextChanged;
             minBitrate.TextChanged += BitrateTextChanged;
+
 
             // Start timer
             timer = new DispatcherTimer();
@@ -493,6 +494,7 @@ namespace AudioVideoPlayer
         /// </summary>
         Windows.Media.Playback.MediaPlayer localMediaPlayer = null;
         Windows.Media.Core.MediaBinder localMediaBinder = null;
+        System.Threading.ManualResetEvent localMediaResetEvent = null;
         Windows.Media.Core.MediaSource localMediaSource = null;
         // Methode used to keep the netwotk on while the application is in background.
         // it creates a fake MediaPlayer playing from a MediaBinder source.
@@ -502,6 +504,10 @@ namespace AudioVideoPlayer
             bool result = false;
             try
             {
+                if(localMediaResetEvent == null)
+                {
+                    localMediaResetEvent = new System.Threading.ManualResetEvent(false);
+                }
                 if (localMediaBinder == null)
                 {
                     localMediaBinder = new Windows.Media.Core.MediaBinder();
@@ -540,6 +546,8 @@ namespace AudioVideoPlayer
         {
             var d = args.GetDeferral();
             LogMessage("Booking network for Background task running...");
+            localMediaResetEvent.WaitOne();
+            LogMessage("Booking network for Background task ending...");
         }
 
         // Displayinformation 
@@ -916,9 +924,16 @@ namespace AudioVideoPlayer
         /// <summary>
         /// This method is called when the application is resuming
         /// </summary>
-        void LeavingBackground(object sender, object e)
+        async void LeavingBackground(object sender, object e)
         {
             LogMessage("LeavingBackground in XAML Page");
+
+            // Hack for the Application running on XBOX One to avoid displaying "Remote" border  
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                playButton.Focus(FocusState.Pointer);
+            }
+            );
         }
         /// <summary>
         /// This method is called when the application is suspending
@@ -3369,13 +3384,21 @@ namespace AudioVideoPlayer
         /// </summary>
         public bool RegisterDeviceWatcher()
         {
-            deviceWatcher = Windows.Devices.Enumeration.DeviceInformation.CreateWatcher(Windows.Devices.Enumeration.DeviceClass.PortableStorageDevice);
-            if (deviceWatcher != null)
+            try
             {
-                deviceWatcher.Added += DeviceAdded;
-                deviceWatcher.Removed += DeviceRemoved;
-                deviceWatcher.Start();
-                return true;
+                LogMessage("Registering DeviceWatcher...");
+                deviceWatcher = Windows.Devices.Enumeration.DeviceInformation.CreateWatcher(Windows.Devices.Enumeration.DeviceClass.PortableStorageDevice);
+                if (deviceWatcher != null)
+                {
+                    deviceWatcher.Added += DeviceAdded;
+                    deviceWatcher.Removed += DeviceRemoved;
+                    deviceWatcher.Start();
+                    return true;
+                }
+            }
+            catch(Exception e)
+            {
+                LogMessage("Exception while registering DeviceWatcher: " + e.Message);
             }
             return false;
         }
@@ -3396,25 +3419,38 @@ namespace AudioVideoPlayer
         }
         private async System.Threading.Tasks.Task<bool> DisplayExternalStorage()
         {
-            var devices = Windows.Storage.KnownFolders.RemovableDevices;
-            IReadOnlyList<Windows.Storage.StorageFolder> rootFolders = await devices.GetFoldersAsync();
-            if ((rootFolders != null) && (rootFolders.Count > 0))
+            try
             {
-                LogMessage("List of external Devices:");
-                foreach (Windows.Storage.StorageFolder rootFolder in rootFolders)
+
+                var devices = Windows.Storage.KnownFolders.RemovableDevices;
+                IReadOnlyList<Windows.Storage.StorageFolder> rootFolders = await devices.GetFoldersAsync();
+                if ((rootFolders != null) && (rootFolders.Count > 0))
                 {
-                    LogMessage("  External Device: " + rootFolder.Name + " path: " + rootFolder.Path);
+                    LogMessage("List of external Devices:");
+                    foreach (Windows.Storage.StorageFolder rootFolder in rootFolders)
+                    {
+                        LogMessage("  External Device: " + rootFolder.Name + " path: " + rootFolder.Path);
+                    }
                 }
             }
+            catch (Exception e)
+            {
+                LogMessage("Exception while displaying Removable Devices: " + e.Message);
+            }
+
             return true;
 
         }
         private async void DeviceAdded(Windows.Devices.Enumeration.DeviceWatcher dw, Windows.Devices.Enumeration.DeviceInformation di)
         {
+
+
+            LogMessage("Removable Device Added...");
             await DisplayExternalStorage();
         }
         private async void DeviceRemoved(Windows.Devices.Enumeration.DeviceWatcher dw, Windows.Devices.Enumeration.DeviceInformationUpdate diu)
         {
+            LogMessage("Removable Device Removed...");
             await DisplayExternalStorage();
         }
         #endregion

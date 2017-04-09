@@ -193,6 +193,11 @@ namespace AudioVideoPlayer
         /// </summary>
         void Construct()
         {
+            // During the transition from foreground to background the
+            // memory limit allowed for the application changes. The application
+            // has a short time to respond by bringing its memory usage
+            // under the new limit.
+            MemoryManager.AppMemoryUsageLimitChanging += MemoryManager_AppMemoryUsageLimitChanging;
             // When an application is backgrounded it is expected to reach
             // a lower memory target to maintain priority to keep running.
             // Subscribe to the event that informs the app of this change.
@@ -234,7 +239,33 @@ namespace AudioVideoPlayer
         {
             LogMessage("Resuming");
         }
+        /// <summary>
+        /// Raised when the memory limit for the app is changing, such as when the app
+        /// enters the background.
+        /// </summary>
+        /// <remarks>
+        /// If the app is using more than the new limit, it must reduce memory within 2 seconds
+        /// on some platforms in order to avoid being suspended or terminated.
+        /// 
+        /// While some platforms will allow the application
+        /// to continue running over the limit, reducing usage in the time
+        /// allotted will enable the best experience across the broadest range of devices.
+        /// </remarks>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MemoryManager_AppMemoryUsageLimitChanging(object sender, AppMemoryUsageLimitChangingEventArgs e)
+        {
+            LogMessage("Memory usage limit changing from "
+                + (e.OldLimit / 1024) + "K to "
+                + (e.NewLimit / 1024) + "K");
 
+            // If app memory usage is over the limit about to be enforced,
+            // then reduce usage within 2 seconds to avoid suspending.
+            if (MemoryManager.AppMemoryUsage >= e.NewLimit)
+            {
+                ReduceMemoryUsage(e.NewLimit);
+            }
+        }
         /// <summary>
         /// Handle system notifications that the app has increased its
         /// memory usage level compared to its current target.
@@ -253,12 +284,15 @@ namespace AudioVideoPlayer
             // Optionally log a debug message describing the increase
             LogMessage("Memory usage increased");
 
-            // Unload view content if needed. 
-            //
+            // Obtain the current usage level
+            var level = MemoryManager.AppMemoryUsageLevel;
+            // Check the usage level to determine whether reducing memory is necessary.
             // Memory usage may have been fine when initially entering the background but
-            // a short time later memory targets could change or the app might
-            // just be using more memory and needs to trim back.
-            UnloadViewContentIfNeeded();
+            // a short time later the app might be using more memory and need to trim back.
+            if (level == AppMemoryUsageLevel.OverLimit || level == AppMemoryUsageLevel.High)
+            {
+                ReduceMemoryUsage(MemoryManager.AppMemoryUsageLimit);
+            }
         }
 
         /// <summary>
@@ -273,12 +307,6 @@ namespace AudioVideoPlayer
             LogMessage("App Entered background");
             isInBackgroundMode = true;
 
-            // Unload view content if needed.
-            //
-            // If the AppMemoryUsageLevel changed and triggered AppMemoryUsageIncreased
-            // before the app entered background mode then the view is still loaded
-            // and we need to unload it now.
-            UnloadViewContentIfNeeded();
         }
 
         /// <summary>
@@ -301,18 +329,52 @@ namespace AudioVideoPlayer
         }
 
         /// <summary>
-        /// Unload view content if needed.
+        /// Reduces application memory usage.
         /// </summary>
         /// <remarks>
-        /// When the app enters the background or receives a memory usage increased
-        /// event it can optionally unload its view content in order to reduce
-        /// memory usage and the chance of being suspended.
+        /// When the app enters the background, receives a memory limit changing
+        /// event, or receives a memory usage increased
+        /// event it can optionally unload cached data or even its view content in 
+        /// order to reduce memory usage and the chance of being suspended.
         /// 
-        /// This must be called from both event handlers because an application may already
+        /// This must be called from multiple event handlers because an application may already
         /// be in a high memory usage state when entering the background or it
         /// may be in a low memory usage state with no need to unload resources yet
         /// and only enter a higher state later.
         /// </remarks>
+        public void ReduceMemoryUsage(ulong limit)
+        {
+            // If the app has caches or other memory it can free, now is the time.
+            // << App can release memory here >>
+
+            // Additionally, if the application is currently
+            // in background mode and still has a view with content
+            // then the view can be released to save memory and 
+            // can be recreated again later when leaving the background.
+            if (isInBackgroundMode && Window.Current.Content != null)
+            {
+                LogMessage("Unloading view");
+
+                // Clear the view content. Note that views should rely on
+                // events like Page.Unloaded to further release resources. Be careful
+                // to also release event handlers in views since references can
+                // prevent objects from being collected. C++ developers should take
+                // special care to use weak references for event handlers where appropriate.
+                Window.Current.Content = null;
+
+                // Finally, clearing the content above and calling GC.Collect() below 
+                // is what will trigger each Page.Unloaded handler to be called.
+                // In order for the resources each page has allocated to be released,
+                // it is necessary that each Page also call GC.Collect() from its
+                // Page.Unloaded handler.
+            }
+
+            // Run the GC to collect released resources, including triggering
+            // each Page.Unloaded handler to run.
+            GC.Collect();
+
+            LogMessage("Finished reducing memory usage");
+        }
         public void UnloadViewContentIfNeeded()
         {
             // Obtain the current usage level
