@@ -14,6 +14,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Windows.Media.Playback;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -30,22 +31,115 @@ namespace TestVideoZoom
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        public MediaItem mediaItem = null;
         public MainPage()
         {
+            mediaItem = new MediaItem { title = "Channel 1", mediaUrl = "http://b028.wpc.azureedge.net/80B028/Samples/a38e6323-95e9-4f1f-9b38-75eba91704e4/5f2ce531-d508-49fb-8152-647eba422aec.ism/Manifest(format=m3u8-aapl-v3)", imageUrl = "" };
+            //mediaItem = new MediaItem { title = "Channel 1", mediaUrl = "video://channel2.mp4", imageUrl = "" };
             this.InitializeComponent();
+        }
+        protected async override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
             // Set Minimum size for the view
             ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size
             {
                 Height = 240,
                 Width = 320
             });
+            // Hide Systray on phone
+            if (Windows.Foundation.Metadata.ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
+            {
+                // Hide Status bar
+                var statusBar = Windows.UI.ViewManagement.StatusBar.GetForCurrentView();
+                await statusBar.HideAsync();
+            }
 
         }
+        private void Player_MediaEnded(MediaPlayer sender, object args)
+        {
+            sender.PlaybackSession.Position = TimeSpan.Zero;
+            sender.Play();
+        }
+        MediaItem GetItem()
+        {
+            return mediaItem;
+        }
+        private async void MediaPlayerElement_Loaded(object sender, RoutedEventArgs e)
+        {
+            MediaPlayerElement mediaPlayerElement = sender as MediaPlayerElement;
+            if (mediaPlayerElement != null)
+            {
+                System.Diagnostics.Debug.WriteLine("MPE: " + mediaPlayerElement.Name + " loaded");
+                MediaItem item = GetItem();
+                if (item != null)
+                {
+                    var player = new MediaPlayer();
+                    if (player != null)
+                    {
+                        string url = item.mediaUrl;
+                        player.MediaEnded += Player_MediaEnded;
+                        player.AutoPlay = true;
+                        player.IsMuted = false;
+                        if (!url.StartsWith("video://"))
+                        {
+                            var uri = new Uri(url);
+                            if (uri != null)
+                            {
+                                player.Source = Windows.Media.Core.MediaSource.CreateFromUri(uri);
+                            }
+                        }
+                        else
+                        {
+                            var path = url.Replace("video://", "");
+                            if (path != null)
+                            {
+                                try
+                                {
+                                    Windows.Storage.StorageFolder folder = Windows.Storage.KnownFolders.VideosLibrary;
+                                    Windows.Storage.StorageFile file = null;
+                                    string ext = System.IO.Path.GetExtension(path);
+                                    string filename = System.IO.Path.GetFileName(path);
+                                    string directory = System.IO.Path.GetDirectoryName(path);
+                                    while (!string.IsNullOrEmpty(directory))
+                                    {
 
+                                        string subdirectory = directory;
+                                        int pos = -1;
+                                        if ((pos = directory.IndexOf('\\')) > 0)
+                                            subdirectory = directory.Substring(0, pos);
+                                        folder = await folder.GetFolderAsync(subdirectory);
+                                        if (folder != null)
+                                        {
+                                            if (pos > 0)
+                                                directory = directory.Substring(pos + 1);
+                                            else
+                                                directory = string.Empty;
+                                        }
+                                    }
+                                    if (folder != null)
+                                    {
+                                        file = await folder.GetFileAsync(filename);
+                                        if (file != null)
+                                            player.Source = Windows.Media.Core.MediaSource.CreateFromStorageFile(file);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine("Exception while opening file: " + ex.Message);
+                                }
+                            }
+
+                        }
+                        mediaPlayerElement.SetMediaPlayer(player);
+                    }
+                }
+            }
+        }
         bool bMin = true;
         private void mediaElement_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            MediaElement loc = sender as MediaElement;
+            MediaPlayerElement loc = sender as MediaPlayerElement;
             if (loc != null)
             {
                 if (bMin == true)
