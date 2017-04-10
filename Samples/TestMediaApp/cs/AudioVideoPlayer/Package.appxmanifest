@@ -34,6 +34,11 @@
         </uap:InitialRotationPreference>
       </uap:VisualElements>
       <Extensions>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="tma" DesiredView="useMore">
+            <uap:DisplayName>TestMediaApp</uap:DisplayName>
+          </uap:Protocol>
+        </uap:Extension>
         <uap:Extension Category="windows.fileTypeAssociation">
           <uap:FileTypeAssociation Name="testmediaapp">
             <uap:DisplayName>TestMediaApp</uap:DisplayName>
