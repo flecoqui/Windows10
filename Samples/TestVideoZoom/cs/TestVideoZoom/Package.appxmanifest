@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="0334226f-96f5-48fc-8f42-4f2f4a2722b6" Publisher="CN=flecoqui" Version="1.0.0.0" />
-  <mp:PhoneIdentity PhoneProductId="0334226f-96f5-48fc-8f42-4f2f4a2722b6" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+  <Identity Name="0334226f-96f5-48fc-8f42-4f2f4a2722f6" Publisher="CN=flecoqui" Version="1.0.0.0" />
+  <mp:PhoneIdentity PhoneProductId="0334226f-96f5-48fc-8f42-4f2f4a2722f6" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>TestVideoZoom</DisplayName>
     <PublisherDisplayName>flecoqui</PublisherDisplayName>
