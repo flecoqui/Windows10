@@ -152,31 +152,27 @@ namespace AudioVideoPlayer
             // Ensure the current window is active 
             Window.Current.Activate();
         }
-        /*
-        protected  override void OnActivated(IActivatedEventArgs args)
+        protected override void OnActivated(IActivatedEventArgs args)
         {
-            base.OnActivated(args);
-            if (Window.Current.Content == null)
+            LogMessage("OnActivated");
+            Frame rootFrame = Window.Current.Content as Frame;
+            if (rootFrame == null)
             {
-                OnLaunched(null);
+                rootFrame = new Frame();
+                rootFrame.Navigate(typeof(MainPage));
+                Window.Current.Content = rootFrame;
             }
 
-            switch (args.Kind)
+            // Protocol activation is the only type of activation that this app handles
+            if (args.Kind == ActivationKind.Protocol)
             {
-                case ActivationKind.Protocol:
-                    OnLaunched(null);
-                    break;
-                case ActivationKind.VoiceCommand:
-                    OnLaunched(null);
-                    break;
-                case ActivationKind.ToastNotification:
-                    OnLaunched(null);
-                    break;
+                LogMessage("OnProtocolActivated");
+                ProtocolActivatedEventArgs protocolArgs = args as ProtocolActivatedEventArgs;
             }
+
+            Window.Current.Activate();
 
         }
-
-    */
 
         #region RS1
         /// <summary>

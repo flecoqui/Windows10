@@ -314,13 +314,9 @@ namespace AudioVideoPlayer
             mediaPlayer.MediaFailed += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, Windows.Media.Playback.MediaPlayerFailedEventArgs>(MediaElement_MediaFailed);
             mediaPlayer.MediaEnded += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, object>(MediaElement_MediaEnded);
             mediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
-            //mediaPlayer.CurrentStateChanged += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, object>(MediaElement_CurrentStateChanged);
+           // mediaPlayer.PlaybackSession.SeekableRangesChanged += PlaybackSession_SeekableRangesChanged;
             mediaPlayerElement.DoubleTapped += doubleTapped;
             IsFullWindowToken = mediaPlayerElement.RegisterPropertyChangedCallback(MediaPlayerElement.IsFullWindowProperty, new DependencyPropertyChangedCallback(IsFullWindowChanged));
-
-            // Booking network for background task
-//            BookNetworkForBackground();
-            //CreateFakePlayerToBookNetworkForBackground();
 
             // Combobox event
             comboStream.SelectionChanged += ComboStream_SelectionChanged;
@@ -386,7 +382,7 @@ namespace AudioVideoPlayer
             mediaPlayer.MediaFailed -= MediaElement_MediaFailed;
             mediaPlayer.MediaEnded -= MediaElement_MediaEnded;
             mediaPlayer.PlaybackSession.PlaybackStateChanged -= PlaybackSession_PlaybackStateChanged;
-//            mediaPlayer.CurrentStateChanged -= MediaElement_CurrentStateChanged;
+//            mediaPlayer.PlaybackSession.SeekableRangesChanged -= PlaybackSession_SeekableRangesChanged;
             mediaPlayerElement.DoubleTapped -= doubleTapped;
             mediaPlayerElement.UnregisterPropertyChangedCallback(MediaElement.IsFullWindowProperty, IsFullWindowToken);
 
@@ -589,6 +585,24 @@ namespace AudioVideoPlayer
                      }
                  });
         }
+        /// <summary>
+        /// This method is called to display the live buffer window with Creator Update SDK.
+        /// </summary>
+        private void PlaybackSession_SeekableRangesChanged(Windows.Media.Playback.MediaPlaybackSession sender, object args)
+        {
+            //var ranges = sender.GetSeekableRanges();
+            //if ((ranges != null) && (adaptiveMediaSource != null))
+            //{
+            //    foreach (var time in ranges)
+            //    {
+            //        var times = adaptiveMediaSource.GetCorrelatedTimes();
+            //        if (times != null)
+            //            LogMessage("Video Buffer available from StartTime: " + time.Start.ToString() + " till EndTime: " + time.End.ToString() + " Current Position: " + times.Position.ToString() + " ProgramDateTime: " + times.ProgramDateTime.ToString());
+            //    }
+            //}
+
+        }
+
         /// <summary>
         /// This method is called when the Media State changed .
         /// </summary>
@@ -2800,6 +2814,12 @@ namespace AudioVideoPlayer
                         }
                     }
                 }
+                else if (args.UpdateType == Microsoft.Media.AdaptiveStreaming.AdaptiveSourceStatusUpdateType.StartEndTime)
+                {
+                    LogMessage("Smooth Streaming Time changed - Start " + (new TimeSpan(args.StartTime)).ToString() + " End: " + (new TimeSpan(Math.Max(args.EndTime, args.StartTime + args.AdaptiveSource.Manifest.Duration))).ToString() + " Live: " + (new TimeSpan(args.EndTime)).ToString() + " Position: " + mediaPlayer.PlaybackSession.Position.ToString());
+
+                }
+
             }
         }
         public IAsyncOperation<Microsoft.Media.AdaptiveStreaming.DownloaderResponse> RequestAsync(Microsoft.Media.AdaptiveStreaming.DownloaderRequest request)
@@ -3371,10 +3391,6 @@ namespace AudioVideoPlayer
         }
         #endregion
 
-        private void mediaUri_TextChanged(object sender, TextChangedEventArgs e)
-        {
-
-        }
 
         #region DeviceWatcher
         private Windows.Devices.Enumeration.DeviceWatcher deviceWatcher;

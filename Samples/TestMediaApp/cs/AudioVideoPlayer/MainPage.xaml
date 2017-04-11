@@ -94,7 +94,7 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                     <TextBlock x:Name="labelUri" Text="URL:" HorizontalAlignment="Left" />
-                    <TextBox x:Name="mediaUri" ToolTipService.ToolTip="Uri of the current selected stream (edit)" IsTabStop="True" TextChanged="mediaUri_TextChanged"  />
+                    <TextBox x:Name="mediaUri" ToolTipService.ToolTip="Uri of the current selected stream (edit)" IsTabStop="True"  />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
                     <Button IsEnabled="False" Content="&#xE892;" x:Name="minusButton" ToolTipService.ToolTip="Select the previous stream in the playlist" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="minus_Click"/>
