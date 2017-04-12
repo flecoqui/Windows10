@@ -7,34 +7,48 @@
 
 Overview
 --------------
-This TestMediaApp  Universal Media Player Application can play video files and audio files, display pictures as well.
+This TestMediaApp  Universal Media Player Application can play video files, audio files and display pictures as well.
+This application has been developped to test the playback of media assets on platforms running Windows 10.
+Those media assets can be protected with DRM like PlayReady.
 This sample application does support the following containers:<p/>
-	-   **Video**: VMV, MP4, MPEG2-TS, HLS, MPEG-DASH, Smooth Streaming 
-	-   **Audio**: WMA, MP3, FLAC
-	-   **Picture**: JPG, PNG
+	-   **Video**: VMV, MP4, MPEG2-TS, MKV, HLS, MPEG-DASH, Smooth Streaming</p> 
+	-   **Audio**: WMA, MP3, FLAC</p>
+	-   **Picture**: JPG, PNG</p>
 
+Actually the application can play all the video and audio format supported natively by Windows 10.
 If the MPEG-DASH assets or the Smooth Streaming assets are protected with PlayReady, the application could play those assets. 
 When the application is launched, it opens a JSON playlist which contains the list of files to play.
 This JSON playlist is by default embedded within the application, the user could select another playlist to play his own content. 
 
-This RS1 Universal Media Player Windows 10 application is an evolution of the [TH2 Universal Media Player Windows 10 application](https://github.com/flecoqui/Windows10/raw/master/Samples/TestMediaApp/).
-This version of the application introduce new features related to Windows 10 Red Stone 1:</p>
+This version of Universal Media Player Windows 10 application is an evolution of the [Anniversary Update (RS1) Universal Media Player Windows 10 application](https://github.com/flecoqui/Windows10/raw/master/Samples/RS1UniversalMediaPlayer/).
+This version of the application introduce new features related to Windows 10 Anniversary Update:</p>
 	- the support of single process background audio </p>
 and new features like:</p>
 	- the support of playback of content stored on a USB devices connected to your desktop or to your XBOX One.</p>
 	- the support of custom http header while downloading on-line video </p>
+	- the support of custom http header compliant with Azure Media Service content protection </p>
 
 
 
 Installing the application
 ----------------------------
 You can install the application on:<p/>
-	- **Personal Computer Platform**: a desktop running Windows 10 RS1</p>
-	- **Windows 10 Mobile Platform**: a phone running Windows 10 RS1</p>
-	- **IOT Platform**: a IOT device running Windows 10 RS1</p>
-	- **XBOX One**: a XBOX One running Windows 10 RS1</p>
+	- **Personal Computer Platform**: a desktop running Windows 10 Anniversary Update (RS1)</p>
+	- **Windows 10 Mobile Platform**: a phone running Windows 10 Anniversary Update (RS1)</p>
+	- **IOT Platform**: a IOT device running Windows 10 Anniversary Update (RS1)</p>
+	- **XBOX One**: a XBOX One running Windows 10 Anniversary Update (RS1)</p>
+	- **Hololens**: an Hololens running Windows 10 Anniversary Update (RS1)</p>
 
-The applications packages for x86, x64 and ARM are available there :
+The application is directly available on Windows Store: [TestMediaApp](https://www.microsoft.com/en-us/store/p/testmediaapp/9n3zwbvdnng4).
+
+**Installing the application from Windows Store:**
+
+To install the application on your device running Windows 10 (Desktop, Laptop, Tablet, XBOX One, Phone, Hololens,...):
+1.  launch Windows Store application,  
+2.  Search for TestMediaApp Application ,  
+3.  Install TestMediaApp  
+
+Moreover, you can install the applications using the packages for x86, x64 and ARM which are available there :
 [ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/TestMediaApp/Releases/LatestRelease.zip)
 
 
