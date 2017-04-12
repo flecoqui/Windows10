@@ -19,20 +19,20 @@ This JSON playlist is by default embedded within the application, the user could
 
 This RS1 Universal Media Player Windows 10 application is an evolution of the [TH2 Universal Media Player Windows 10 application](https://github.com/flecoqui/Windows10/raw/master/Samples/TestMediaApp/).
 This version of the application introduce new features related to Windows 10 Red Stone 1:</p>
-	- the support of single process background audio
+	- the support of single process background audio </p>
 and new features like:</p>
-	- the support of playback of content stored on a USB devices connected to your desktop or to your XBOX One.
-	- the support of custom http header while downloading on-line video 
+	- the support of playback of content stored on a USB devices connected to your desktop or to your XBOX One.</p>
+	- the support of custom http header while downloading on-line video </p>
 
 
 
 Installing the application
 ----------------------------
 You can install the application on:<p/>
-	- **Personal Computer Platform**: a desktop running Windows 10 RS1
-	- **Windows 10 Mobile Platform**: a phone running Windows 10 RS1
-	- **IOT Platform**: a IOT device running Windows 10 RS1
-	- **XBOX One**: a XBOX One running Windows 10 RS1
+	- **Personal Computer Platform**: a desktop running Windows 10 RS1</p>
+	- **Windows 10 Mobile Platform**: a phone running Windows 10 RS1</p>
+	- **IOT Platform**: a IOT device running Windows 10 RS1</p>
+	- **XBOX One**: a XBOX One running Windows 10 RS1</p>
 
 The applications packages for x86, x64 and ARM are available there :
 [ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/TestMediaApp/Releases/LatestRelease.zip)
