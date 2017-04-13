@@ -151,21 +151,23 @@ However you can select another JSON Playlist by selecting another JSON file stor
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/open.png)
 
 <p/>
-	- **UniqueId** : a unique ID associated with the item</p>
-	- **Comment** : a comment associated with the item</p>
-	- **Title** : the title of the item which will be displayed</p>
-	- **ImagePath** : the path to the image which describes the type of item, for instance: MP4, HLS, .... It can be an http uri or a local uri with the prefix: "ms-appx://" for instance: "ms-appx:///Assets/WMV.png".</p>
-	- **Description** : the description of this item</p>
-	- **Content** : the path to the item, it can an http uri, a local file uri for instance: "picture://myfolder/myposter.jpg" for a jpg file in the picture folder of your device. You can use the following prefixes: "file://",  "picture://", "music://", "video://". </p>  
-	- **PosterContent** : the path to an image associated with the item. For instance, if the content is an audio file, a radio uri the poster will be displayed while playing the audio item. </p> 
-	- **Start** : the start position to play the video or audio item in milliseconds.</p>
-	- **Duration** : the play duration for the item in milliseconds.</p>
-	- **HttpHeaders** : this field can define the http header with the following syntax: "{<HttpHeader1>: <HttpHeaderValue1>},<HttpHeader2>: <HttpHeaderValue2>},...,<HttpHeaderN>: <HttpHeaderValueN>}}"</p>
+	- **UniqueId**: a unique ID associated with the item</p>
+	- **Comment**: a comment associated with the item</p>
+	- **Title**: the title of the item which will be displayed</p>
+	- **ImagePath**: the path to the image which describes the type of item, for instance: MP4, HLS, .... It can be an http uri or a local uri with the prefix: "ms-appx://" for instance: "ms-appx:///Assets/WMV.png".</p>
+	- **Description**: the description of this item</p>
+	- **Content**: the path to the item, it can an http uri, a local file uri for instance: "picture://myfolder/myposter.jpg" for a jpg file in the picture folder of your device. You can use the following prefixes: "file://",  "picture://", "music://", "video://". </p>  
+	- **PosterContent**: the path to an image associated with the item. For instance, if the content is an audio file, a radio uri the poster will be displayed while playing the audio item. </p> 
+	- **Start**: the start position to play the video or audio item in milliseconds.</p>
+	- **Duration**: the play duration for the item in milliseconds.</p>
+	- **HttpHeaders**: this field can define the http header with the following syntax: "{[HttpHeader1]: <HttpHeaderValue1>},<HttpHeader2>: \<HttpHeaderValue2\>},...,<HttpHeaderN>: <HttpHeaderValueN>}}"</p>
 	                    moreover, for Azure Media Service SWT Token or JWT Token you can use the following syntax:</p>
 						"{Authorization: Bearer:<JWT/SWT Token>}"</p>
-	- **PlayReadyUrl** : the PlayReady license acquisition url if the content is protected with PlayReady.</p>
-	- **PlayReadyCustomData** : the PlayReady custom data if the content is protected with PlayReady.</p>
-	- **BackgroundAudio** : "true" if the audio item must be played in background audio mode (not implemented yet)</p>
+	- **PlayReadyUrl**: the PlayReady license acquisition url if the content is protected with PlayReady.</p>
+	- **PlayReadyCustomData**: the PlayReady custom data if the content is protected with PlayReady.</p>
+	- **BackgroundAudio**: "true" if the audio item must be played in background audio mode (not implemented yet)</p>
+
+
 
 Sample item for a WMV video over HTTP:
 
