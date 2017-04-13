@@ -428,6 +428,64 @@ Check method EnableSoftwareDRM in the file MAinPage.xaml.cs:
             return true;
         }
 
+### Single Process Background Audio: How to keep the network alive
+
+When the application is playing audio over http in background mode (Single Process Background Audio), the network may be not available after few minutes preventing the application from downloading the next audio file.
+In order to keep the network when the application is in background mode, you need to use the MediaBinder and the Binding event.
+Check method BookNetworkForBackground in the file MainPage.xaml.cs:
+
+        Windows.Media.Playback.MediaPlayer localMediaPlayer = null;
+        Windows.Media.Core.MediaBinder localMediaBinder = null;
+        Windows.Media.Core.MediaSource localMediaSource = null;
+        public bool BookNetworkForBackground()
+        {
+            bool result = false;
+            try
+            {
+                if (localMediaBinder == null)
+                {
+                    localMediaBinder = new Windows.Media.Core.MediaBinder();
+                    if (localMediaBinder != null)
+                    {
+                        localMediaBinder.Binding += localMediaBinder_Binding;
+                    }
+                }
+                if (localMediaSource == null)
+                {
+                    localMediaSource = Windows.Media.Core.MediaSource.CreateFromMediaBinder(localMediaBinder);
+                }
+                if (localMediaPlayer == null)
+                {
+                    localMediaPlayer = new Windows.Media.Playback.MediaPlayer();
+                    if (localMediaPlayer != null)
+                    {
+                        localMediaPlayer.CommandManager.IsEnabled = false;
+                        localMediaPlayer.Source = localMediaSource;
+                        result = true;
+                        LogMessage("Booking network for Background task successful");
+                        return result;
+                    }
+
+                }
+            }
+            catch(Exception ex)
+            {
+                LogMessage("Exception while booking network for Background task: Exception: " + ex.Message);
+            }
+            LogMessage("Booking network for Background task failed");
+            return result;
+        }
+
+Check method localMediaBinder_Binding in the file MainPage.xaml.cs:
+
+        private void localMediaBinder_Binding(Windows.Media.Core.MediaBinder sender, Windows.Media.Core.MediaBindingEventArgs args)
+        {
+            var d = args.GetDeferral();
+            LogMessage("Booking network for Background task running...");
+        }
+
+
+
 
 Building the application
 ----------------
@@ -436,15 +494,14 @@ Building the application
 This version is based on the latest [Universal Smooth Streaming Client SDK](https://visualstudiogallery.msdn.microsoft.com/1e7d4700-7fa8-49b6-8a7b-8d8666685459)
 
 1. If you download the samples ZIP, be sure to unzip the entire archive, not just the folder with the sample you want to build. 
-2. Ensure the Red Stone 1 (RS1) Windows 10 SDK is installed on your machine
+2. Ensure the Anniversary Update (RS1) Windows 10 SDK is installed on your machine
 3. Start Microsoft Visual Studio 2015 and select **File** \> **Open** \> **Project/Solution**.
 3. Starting in the folder where you unzipped the samples, go to the Samples subfolder, then the subfolder for this specific sample, then the subfolder for your preferred language (C++, C#, or JavaScript). Double-click the Visual Studio 2015 Solution (.sln) file.
 4. Press Ctrl+Shift+B, or select **Build** \> **Build Solution**.
 
 
 **Deploying and running the sample**
-1.  To debug the sample and then run it, press F5 or select **Debug** \> **Start Debugging**. To run the sample without debugging, press Ctrl+F5 or select**Debug** \> **Start Without Debugging**.
-
+1.  To debug the sample and then run it, press F5 or select **Debug** \> **Start Debugging**. To run the sample without debugging, press Ctrl+F5 or select **Debug** \> **Start Without Debugging**.
 
 
 

@@ -490,7 +490,7 @@ namespace AudioVideoPlayer
         /// </summary>
         Windows.Media.Playback.MediaPlayer localMediaPlayer = null;
         Windows.Media.Core.MediaBinder localMediaBinder = null;
-        System.Threading.ManualResetEvent localMediaResetEvent = null;
+        // System.Threading.ManualResetEvent localMediaResetEvent = null;
         Windows.Media.Core.MediaSource localMediaSource = null;
         // Methode used to keep the netwotk on while the application is in background.
         // it creates a fake MediaPlayer playing from a MediaBinder source.
@@ -500,10 +500,10 @@ namespace AudioVideoPlayer
             bool result = false;
             try
             {
-                if(localMediaResetEvent == null)
-                {
-                    localMediaResetEvent = new System.Threading.ManualResetEvent(false);
-                }
+           //     if(localMediaResetEvent == null)
+           //     {
+           //         localMediaResetEvent = new System.Threading.ManualResetEvent(false);
+           //     }
                 if (localMediaBinder == null)
                 {
                     localMediaBinder = new Windows.Media.Core.MediaBinder();
@@ -542,8 +542,8 @@ namespace AudioVideoPlayer
         {
             var d = args.GetDeferral();
             LogMessage("Booking network for Background task running...");
-            localMediaResetEvent.WaitOne();
-            LogMessage("Booking network for Background task ending...");
+         //   localMediaResetEvent.WaitOne();
+         //   LogMessage("Booking network for Background task ending...");
         }
 
         // Displayinformation 
