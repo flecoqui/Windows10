@@ -151,21 +151,21 @@ However you can select another JSON Playlist by selecting another JSON file stor
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/open.png)
 
 <p/>
-	- **UniqueId** : a unique ID associated with the item
-	- **Comment** : a comment associated with the item
-	- **Title** : the title of the item which will be displayed
-	- **ImagePath** : the path to the image which describes the type of item, for instance: MP4, HLS, .... It can be an http uri or a local uri with the prefix: "ms-appx://" for instance: "ms-appx:///Assets/WMV.png".
-	- **Description** : the description of this item
-	- **Content** : the path to the item, it can an http uri, a local file uri for instance: "picture://myfolder/myposter.jpg" for a jpg file in the picture folder of your device. You can use the following prefixes: "file://",  "picture://", "music://", "video://".   
-	- **PosterContent** : the path to an image associated with the item. For instance, if the content is an audio file, a radio uri the poster will be displayed while playing the audio item.  
-	- **Start** : the start position to play the video or audio item in milliseconds.
-	- **Duration** : the play duration for the item in milliseconds.
-	- **HttpHeaders** : this field can define the http header with the following syntax: "{<HttpHeader1>: <HttpHeaderValue1>},<HttpHeader2>: <HttpHeaderValue2>},...,<HttpHeaderN>: <HttpHeaderValueN>}}"
-	                    moreover, for Azure Media Service SWT Token or JWT Token you can use the following syntax:
-						"{Authorization: Bearer:<JWT/SWT Token>}"
-	- **PlayReadyUrl** : the PlayReady license acquisition url if the content is protected with PlayReady.
-	- **PlayReadyCustomData** : the PlayReady custom data if the content is protected with PlayReady.
-	- **BackgroundAudio** : "true" if the audio item must be played in background audio mode (not implemented yet)
+	- **UniqueId** : a unique ID associated with the item</p>
+	- **Comment** : a comment associated with the item</p>
+	- **Title** : the title of the item which will be displayed</p>
+	- **ImagePath** : the path to the image which describes the type of item, for instance: MP4, HLS, .... It can be an http uri or a local uri with the prefix: "ms-appx://" for instance: "ms-appx:///Assets/WMV.png".</p>
+	- **Description** : the description of this item</p>
+	- **Content** : the path to the item, it can an http uri, a local file uri for instance: "picture://myfolder/myposter.jpg" for a jpg file in the picture folder of your device. You can use the following prefixes: "file://",  "picture://", "music://", "video://". </p>  
+	- **PosterContent** : the path to an image associated with the item. For instance, if the content is an audio file, a radio uri the poster will be displayed while playing the audio item. </p> 
+	- **Start** : the start position to play the video or audio item in milliseconds.</p>
+	- **Duration** : the play duration for the item in milliseconds.</p>
+	- **HttpHeaders** : this field can define the http header with the following syntax: "{<HttpHeader1>: <HttpHeaderValue1>},<HttpHeader2>: <HttpHeaderValue2>},...,<HttpHeaderN>: <HttpHeaderValueN>}}"</p>
+	                    moreover, for Azure Media Service SWT Token or JWT Token you can use the following syntax:</p>
+						"{Authorization: Bearer:<JWT/SWT Token>}"</p>
+	- **PlayReadyUrl** : the PlayReady license acquisition url if the content is protected with PlayReady.</p>
+	- **PlayReadyCustomData** : the PlayReady custom data if the content is protected with PlayReady.</p>
+	- **BackgroundAudio** : "true" if the audio item must be played in background audio mode (not implemented yet)</p>
 
 Sample item for a WMV video over HTTP:
 
@@ -233,7 +233,7 @@ Sample item for a photo over HTTP which will be displayed during 10 seconds:
           "PosterContent": "",
           "Start": "0",
           "Duration": "10000",
-		  "HttpHeaders": "",
+          "HttpHeaders": "",
           "PlayReadyUrl": "",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
@@ -251,7 +251,7 @@ Sample item for a photo stored in the Pictures known folder on the device runnin
           "PosterContent": "",
           "Start": "0",
           "Duration": "10000",
-		  "HttpHeaders": "",
+          "HttpHeaders": "",
           "PlayReadyUrl": "",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
@@ -269,7 +269,7 @@ Sample item for a video stored in the Videos known folder on the device running 
           "PosterContent": "",
           "Start": "0",
           "Duration": "10000",
-		  "HttpHeaders": "",
+          "HttpHeaders": "",
           "PlayReadyUrl": "",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
@@ -287,7 +287,7 @@ Sample item for an audio file stored in the Music known folder on the device run
           "PosterContent": "",
           "Start": "0",
           "Duration": "10000",
-		  "HttpHeaders": "",
+          "HttpHeaders": "",
           "PlayReadyUrl": "",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
@@ -305,7 +305,7 @@ Sample item for an audio file stored on a removable storage on the device runnin
           "PosterContent": "",
           "Start": "0",
           "Duration": "10000",
-		  "HttpHeaders": "",
+          "HttpHeaders": "",
           "PlayReadyUrl": "",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
