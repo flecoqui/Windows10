@@ -39,7 +39,7 @@ You can install the application on:<p/>
 	- **XBOX One**: a XBOX One running Windows 10 Anniversary Update (RS1)</p>
 	- **Hololens**: an Hololens running Windows 10 Anniversary Update (RS1)</p>
 
-The application is directly available on Windows Store: [TestMediaApp](https://www.microsoft.com/en-us/store/p/testmediaapp/9n3zwbvdnng4).
+The application is directly available on Windows Store: [TestMediaApp](https://www.microsoft.com/en-us/store/p/testmediaapp/9n3zwbvdnng4)
 
 **Installing the application from Windows Store:**
 
@@ -52,14 +52,14 @@ Moreover, you can install the applications using the packages for x86, x64 and A
 [ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/TestMediaApp/Releases/LatestRelease.zip)
 
 
-**Personal Computer installation:**
+**Installing the application with the application package on Personal Computer:**
 
 1.  Download the ZIP file on your computer harddrive
 2.  Unzip the ZIP file
 3.  Launch the PowerShell file Add-AppPackage.ps1. The PowerShell script will install the application on your computer running Windows 10
 
 
-**Phone installation:**
+**Installing the application with the application package on Phone:**
 
 1.  Connect the phone running Windows 10 Mobile to your computer with a USB Cable.
 2.  After few seconds, you should see the phone storage with Windows Explorer running on your computer
@@ -70,7 +70,7 @@ Moreover, you can install the applications using the packages for x86, x64 and A
 7.  Tap on the file AudioVideoPlayer_1.0.XX.O_x86_x64_arm.appxbundle to install the application
 
 
-**IOT installation:**
+**Installing the application with the application package on IOT:**
 <p/>
 You can use [WinAppDeployCmd.exe](https://blogs.windows.com/buildingapps/2015/07/09/just-released-windows-10-application-deployment-tool/) to deploy the application on your IOT device.
 As the application can play video assets check that the IOT Platform does support Video Hardware acceleration to get a smooth user experience.
@@ -104,9 +104,9 @@ Once the asset is selected the `URL` field is updated with the url associated wi
 
 Once the asset is being played by the application you can change the application display mode:
 <p/>
-- **Window Mode**: where all the controls are visible on the main page of the application
-- **Fullscreen Mode**: where the MediaElement (player) covers the entire screen
-- **Full Window Mode**: where the MediaElement (player) covers the main page of the application (Desktop only)
+	- **Window Mode**: where all the controls are visible on the main page of the application </p>
+	- **Fullscreen Mode**: where the MediaElement (player) covers the entire screen </p>
+	- **Full Window Mode**: where the MediaElement (player) covers the main page of the application (Desktop only)</p>
 <p/>
 
 With the first button below, you can switch to Fullscreen mode. Press a key or double tap to switch back to Window Mode.
@@ -126,9 +126,9 @@ Once the application is playing an audio asset or a video asset it's possible to
 
 Once the application is playing an audio asset or a video asset it's possible to:
 <p/>
-- pause/play the current asset
-- start over the current asset
-- stop the current asset 
+	- pause/play the current asset</p>
+	- start over the current asset</p>
+	- stop the current asset </p>
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/playpause.png)
 
@@ -151,18 +151,21 @@ However you can select another JSON Playlist by selecting another JSON file stor
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/open.png)
 
 <p/>
-- **UniqueId** : a unique ID associated with the item
-- **Comment** : a comment associated with the item
-- **Title** : the title of the item which will be displayed
-- **ImagePath** : the path to the image which describes the type of item, for instance: MP4, HLS, .... It can be an http uri or a local uri with the prefix: "ms-appx://" for instance: "ms-appx:///Assets/WMV.png".
-- **Description** : the description of this item
-- **Content** : the path to the item, it can an http uri, a local file uri for instance: "picture://myfolder/myposter.jpg" for a jpg file in the picture folder of your device. You can use the following prefixes: "file://",  "picture://", "music://", "video://".   
-- **PosterContent** : the path to an image associated with the item. For instance, if the content is an audio file, a radio uri the poster will be displayed while playing the audio item.  
-- **Start** : the start position to play the video or audio item in milliseconds.
-- **Duration** : the play duration for the item in milliseconds.
-- **PlayReadyUrl** : the PlayReady license acquisition url if the content is protected with PlayReady.
-- **PlayReadyCustomData** : the PlayReady custom data if the content is protected with PlayReady.
-- **BackgroundAudio** : "true" if the audio item must be played in background audio mode (not implemented yet)
+	- **UniqueId** : a unique ID associated with the item
+	- **Comment** : a comment associated with the item
+	- **Title** : the title of the item which will be displayed
+	- **ImagePath** : the path to the image which describes the type of item, for instance: MP4, HLS, .... It can be an http uri or a local uri with the prefix: "ms-appx://" for instance: "ms-appx:///Assets/WMV.png".
+	- **Description** : the description of this item
+	- **Content** : the path to the item, it can an http uri, a local file uri for instance: "picture://myfolder/myposter.jpg" for a jpg file in the picture folder of your device. You can use the following prefixes: "file://",  "picture://", "music://", "video://".   
+	- **PosterContent** : the path to an image associated with the item. For instance, if the content is an audio file, a radio uri the poster will be displayed while playing the audio item.  
+	- **Start** : the start position to play the video or audio item in milliseconds.
+	- **Duration** : the play duration for the item in milliseconds.
+	- **HttpHeaders** : this field can define the http header with the following syntax: "{<HttpHeader1>: <HttpHeaderValue1>},<HttpHeader2>: <HttpHeaderValue2>},...,<HttpHeaderN>: <HttpHeaderValueN>}}"
+	                    moreover, for Azure Media Service SWT Token or JWT Token you can use the following syntax:
+						"{Authorization: Bearer:<JWT/SWT Token>}"
+	- **PlayReadyUrl** : the PlayReady license acquisition url if the content is protected with PlayReady.
+	- **PlayReadyCustomData** : the PlayReady custom data if the content is protected with PlayReady.
+	- **BackgroundAudio** : "true" if the audio item must be played in background audio mode (not implemented yet)
 
 Sample item for a WMV video over HTTP:
 
@@ -182,7 +185,7 @@ Sample item for a WMV video over HTTP:
           "BackgroundAudio": false
         },
 
-Sample item for a Smooth Streaming video protected with PlayReady over HTTP:
+Sample item for a Smooth Streaming video protected with PlayReady over HTTP and specific Http Headers:
 
         {
           "UniqueId": "video_playready_http_1",
@@ -196,6 +199,24 @@ Sample item for a Smooth Streaming video protected with PlayReady over HTTP:
           "Duration": "0",
           "HttpHeaders": "{test: testHLSHeader},{test2: TestHLSHeader}",
           "PlayReadyUrl": " http://playready.directtaps.net/pr/svc/rightsmanager.asmx?PlayRight=1&FirstPlayExpiration=600",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        },
+
+Sample item for an Azure Media Services stream with SWT Token:
+
+		        {
+          "UniqueId": "video_http_6",
+          "Comment": "#6",
+          "Title": "AES (SWT token) - On Demand [Big Buck Bunny Trailer] (HLS)",
+          "ImagePath": "ms-appx:///Assets/HLS.png",
+          "Description": "AES (SWT token) - On Demand [Big Buck Bunny Trailer] (HLS)",
+          "Content": "http://amssamples.streaming.mediaservices.windows.net/9ead18f1-29f8-453c-8721-4becc00ff611/BigBuckBunnyTrailer.ism/manifest(format=m3u8-aapl-v3)",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "0",
+          "HttpHeaders": "{Authorization: Bearer=urn%3amicrosoft%3aazure%3amediaservices%3acontentkeyidentifier=5f5076de-4322-42f7-a533-6265f686d5b9&Audience=urn%3atest&ExpiresOn=4581880130&Issuer=http%3a%2f%2ftestacs.com%2f&HMACSHA256=%2bx77Qo0CeBzP4aCntfe2sVkbKeKguOUNAebHQb53sLc%3d}",
+          "PlayReadyUrl": "",
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
         },
@@ -218,14 +239,14 @@ Sample item for a photo over HTTP which will be displayed during 10 seconds:
           "BackgroundAudio": false
         },
 
-Sample item for a photo stored in the MyPictures folder on the device running Windows 10:
+Sample item for a photo stored in the Pictures known folder on the device running Windows 10:
 
         {
           "UniqueId": "photo_file_3",
           "Comment": "#113",
           "Title": "Photo local file",
           "ImagePath": "ms-appx:///Assets/PHOTO.png",
-          "Description": "Photo over HTTP 3",
+          "Description": "Photo local 3",
           "Content": "picture://MyFolder\\poster1.jpg",
           "PosterContent": "",
           "Start": "0",
@@ -235,6 +256,61 @@ Sample item for a photo stored in the MyPictures folder on the device running Wi
           "PlayReadyCustomData": "",
           "BackgroundAudio": false
         }
+
+Sample item for a video stored in the Videos known folder on the device running Windows 10:
+
+        {
+          "UniqueId": "video_file_3",
+          "Comment": "#113",
+          "Title": "Video local file",
+          "ImagePath": "ms-appx:///Assets/MP4.png",
+          "Description": "Video local HTTP 3",
+          "Content": "video://MyFolder\\video.mp4",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "10000",
+		  "HttpHeaders": "",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        }
+
+Sample item for an audio file stored in the Music known folder on the device running Windows 10:
+
+        {
+          "UniqueId": "audio_file_3",
+          "Comment": "#113",
+          "Title": "Audio local file",
+          "ImagePath": "ms-appx:///Assets/Music.png",
+          "Description": "Music local 3",
+          "Content": "music://MyFolder\\audio.m4a",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "10000",
+		  "HttpHeaders": "",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        }
+
+Sample item for an audio file stored on a removable storage on the device running Windows 10:
+
+        {
+          "UniqueId": "audio_file_3",
+          "Comment": "#113",
+          "Title": "Audio local file",
+          "ImagePath": "ms-appx:///Assets/Music.png",
+          "Description": "Music local 3",
+          "Content": "file://D:\\MyFolder\\audio.m4a",
+          "PosterContent": "",
+          "Start": "0",
+          "Duration": "10000",
+		  "HttpHeaders": "",
+          "PlayReadyUrl": "",
+          "PlayReadyCustomData": "",
+          "BackgroundAudio": false
+        }
+
 Under the Surface
 ----------------
 
