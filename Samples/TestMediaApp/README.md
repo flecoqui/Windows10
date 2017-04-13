@@ -102,12 +102,12 @@ Once the asset is selected the `URL` field is updated with the url associated wi
 
 ### Fullscreen mode
 
-Once the asset is being played by the application you can change the application display mode:
-<p/>
+Once the asset is being played by the application you can change the application display mode:</p>
+
 	- **Window Mode**: where all the controls are visible on the main page of the application </p>
 	- **Fullscreen Mode**: where the MediaElement (player) covers the entire screen </p>
 	- **Full Window Mode**: where the MediaElement (player) covers the main page of the application (Desktop only)</p>
-<p/>
+
 
 With the first button below, you can switch to Fullscreen mode. Press a key or double tap to switch back to Window Mode.
 
@@ -150,7 +150,8 @@ However you can select another JSON Playlist by selecting another JSON file stor
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/open.png)
 
-<p/>
+Below the format of the items in the JSON Playlist: </p>
+
 	- **UniqueId**: a unique ID associated with the item</p>
 	- **Comment**: a comment associated with the item</p>
 	- **Title**: the title of the item which will be displayed</p>
