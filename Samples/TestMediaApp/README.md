@@ -313,11 +313,11 @@ Sample item for an audio file stored on a removable storage on the device runnin
         }
 
 ### Playlist Samples
-Several playlists are available below:
-[Radios Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/Radios/Radios.json) 
-[Musics Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/Musics/Musics.json) 
-[Live TV Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/LiveTVs/LiveTVs.json) 
-[Photos Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/Photos/Photos.json) 
+Several playlists are available below:</p>
+[Radios Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/Radios/Radios.json) </p>
+[Musics Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/Musics/Musics.json) </p>
+[Live TV Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/LiveTVs/LiveTVs.json) </p>
+[Photos Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/Photos/Photos.json) </p>
 
 ### Companion Scenario
 TestMediaApp does support companion scenario where you can convert your Windows 10 Device into a remote control.
@@ -330,17 +330,18 @@ TestMediaApp companion scenario requires a network supporting multicast. The dev
 Once your device is converted into a remote control, you can send the following commands:<p/>
 	- Previous Item</p>
 	- Next Item</p>
-	- Full Screen </p>  
-	- Full Window </p>  
-	- Mute </p>  
-	- Volume Up </p>  
-	- Volume Down </p>  
-	- Start over </p>  
-	- Play </p>  
-	- Pause </p>  
-	- Stop </p>  
+	- Full Screen</p>  
+	- Full Window</p>  
+	- Mute</p>  
+	- Volume Up</p>  
+	- Volume Down</p>  
+	- Start over</p>  
+	- Play</p>  
+	- Pause</p>  
+	- Stop</p>  
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/remotecommand.png)
+
 
 
 Under the Surface
@@ -524,15 +525,15 @@ You can change the multicast address and the upd port if required.
         const string cMulticastAddress = "239.11.11.11";
         const string cPort = "1919";
 
-Moreover, beyond the basic commands like PLAY, PAUSE, FULLSCREEN TestMediaApp supports commands like SELECT, OPENMEDIA and OPENPLAYLIST which allow the user to :
-	- select remotely an item in the playlist using the index associated with this item
-	- open remotely a media content  
-	- open remotely a media playlist.
+Moreover, beyond the basic commands like PLAY, PAUSE, FULLSCREEN TestMediaApp supports commands like SELECT, OPENMEDIA and OPENPLAYLIST which allow the user to :</p>
+	- select remotely an item in the playlist using the index associated with this item </p>
+	- open remotely a media content  </p>
+	- open remotely a media playlist.</p>
 
 Strings associated with the commands below:
  
         public const string commandSelect = "SELECT";
-		public const string commandOpen = "OPENMEDIA";
+        public const string commandOpen = "OPENMEDIA";
         public const string commandOpenPlaylist = "OPENPLAYLIST";
 
 In that case, you need to use the [Companion Application](https://github.com/flecoqui/Windows10/tree/master/Samples/CompanionMediaPlayer).
@@ -543,7 +544,7 @@ You can select remotely an item in the playlist:
 
   Syntax:
 
-  INDEX=<ItemIndex>
+  INDEX=\<ItemIndex\>
 
 You can play remotely media content:
 
@@ -551,7 +552,7 @@ You can play remotely media content:
 
   Syntax:
   
-  CONTENT=<Url/Path of Media>??START=<StartTime in ms>??DURATION=<Duration in ms>??POSTERCONTENT=<Url/Path of poster>
+  CONTENT=\<Url/Path of Media\>??START=\<StartTime in ms\>??DURATION=\<Duration in ms\>??POSTERCONTENT=\<Url/Path of poster\>
 
 You can open remotely a playlist:
 
@@ -559,7 +560,7 @@ You can open remotely a playlist:
 
   Syntax:
   
-  CONTENT=<Url/Path of Playlist>
+  CONTENT=\<Url/Path of Playlist\>
 
 
 Building the application
