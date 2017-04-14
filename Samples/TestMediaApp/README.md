@@ -586,11 +586,10 @@ This version is based on the latest [Universal Smooth Streaming Client SDK](http
 Next steps
 --------------
 
-The Universal Media Player C# Sample Applicaton could be improved to support the following features:
-<p/>
-1.  Support of Project Rome to launch remotely TestMediaApp from one device to another device
-2.  Support of several pages : Player Page, Companion Page, Playlist Page and Settings Page.
-3.  Support of a new JSON model to support music playlist (Artist, Album), TV channels  
+The Universal Media Player C# Sample Applicaton could be improved to support the following features:</p>
+1.  Support of Project Rome to launch remotely TestMediaApp from one device to another device</p>
+2.  Support of several pages : Player Page, Companion Page, Playlist Page and Settings Page.</p>
+3.  Support of a new JSON model to support music playlist (Artist, Album), TV channels  </p>
  
 
 
