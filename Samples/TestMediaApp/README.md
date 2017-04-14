@@ -3,11 +3,11 @@
   samplefwlink: http://go.microsoft.com/fwlink/p/?LinkId=620563&clcid=0x409
 --->
 
-# TestMediaApp Universal Media Player C# Sample Application
+# TestMediaApp: Universal Windows Platform (UWP) Media Player C# Sample Application
 
 Overview
 --------------
-This TestMediaApp  Universal Media Player Application can play video files, audio files and display pictures as well.
+This Universal Windows Platform (UWP) Media Player Application can play video files, audio files and display pictures as well.
 This application has been developped to test the playback of media assets on platforms running Windows 10.
 Those media assets can be protected with DRM like PlayReady.
 This sample application does support the following containers:<p/>
