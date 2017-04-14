@@ -328,17 +328,17 @@ For instance, if you want to convert your Windows 10 Mobile into a remote contro
 TestMediaApp companion scenario requires a network supporting multicast. The device converted into remote control will send multicast commands towards all the Windows 10 Devices running TestMediaApp on the same network
 
 Once your device is converted into a remote control, you can send the following commands:<p/>
-	- Previous Item</p>
-	- Next Item</p>
-	- Full Screen</p>  
-	- Full Window</p>  
-	- Mute</p>  
-	- Volume Up</p>  
-	- Volume Down</p>  
-	- Start over</p>  
-	- Play</p>  
-	- Pause</p>  
-	- Stop</p>  
+	- **Previous Item**</p>
+	- **Next Item**</p>
+	- **Full Screen**</p>  
+	- **Full Window**</p>  
+	- **Mute**</p>  
+	- **Volume Up**</p>  
+	- **Volume Down**</p>  
+	- **Start over**</p>  
+	- **Play**</p>  
+	- **Pause**</p>  
+	- **Stop**</p>  
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/remotecommand.png)
 
