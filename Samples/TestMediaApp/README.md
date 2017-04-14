@@ -343,6 +343,8 @@ Once your device is converted into a remote control, you can send the following 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/remotecommand.png)
 
 
+</p>
+</p>
 
 Under the Surface
 ----------------
