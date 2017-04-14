@@ -16,12 +16,12 @@ This sample application does support the following containers:<p/>
 	-   **Picture**: JPG, PNG</p>
 
 Actually the application can play all the video and audio format supported natively by Windows 10.
-If the MPEG-DASH assets or the Smooth Streaming assets are protected with PlayReady, the application could play those assets. 
+If the MPEG-DASH assets or the Smooth Streaming assets are protected with PlayReady, the application can play those assets. 
 When the application is launched, it opens a JSON playlist which contains the list of files to play.
-This JSON playlist is by default embedded within the application, the user could select another playlist to play his own content. 
+This JSON playlist is by default embedded within the application, the user can select another playlist to play his own content. 
 
 This version of Universal Media Player Windows 10 application is an evolution of the [Anniversary Update (RS1) Universal Media Player Windows 10 application](https://github.com/flecoqui/Windows10/raw/master/Samples/RS1UniversalMediaPlayer/).
-This version of the application introduce new features related to Windows 10 Anniversary Update:</p>
+This version of the application introduces new features related to Windows 10 Anniversary Update:</p>
 	- the support of single process background audio </p>
 and new features like:</p>
 	- the support of playback of content stored on a USB devices connected to your desktop or to your XBOX One.</p>
@@ -590,6 +590,8 @@ The Universal Media Player C# Sample Applicaton could be improved to support the
 1.  Support of Project Rome to launch remotely TestMediaApp from one device to another device</p>
 2.  Support of several pages : Player Page, Companion Page, Playlist Page and Settings Page.</p>
 3.  Support of a new JSON model to support music playlist (Artist, Album), TV channels  </p>
+4.  Generate the build with Visual Studio 2017 </p>
+
  
 
 
