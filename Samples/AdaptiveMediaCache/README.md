@@ -171,69 +171,90 @@ Sample item for a Smooth Streaming video protected with PlayReady over HTTP and 
 By defaut the application uses the embedded within the application.
 
 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download1.png)
+
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download2.png)
+
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download3.png)
+
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download4.png)
+
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download5.png)
+
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download6.png)
+
+
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download7.png)
+
 ### Progressive Download scenario 
 By defaut the application uses the embedded within the application.
 
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download8.png)
 
 
 Under the Surface
 ----------------
 
-### Adaptive Media Cache implementation 
+### Adaptive Media Cache: Parsing the manifest 
 
 When the application is playing audio over http in background mode (Single Process Background Audio), the network may be not available after few minutes preventing the application from downloading the next audio file.
 In order to keep the network when the application is in background mode, you need to use the MediaBinder and the Binding event.
 Check method BookNetworkForBackground in the file MainPage.xaml.cs:
 
         Windows.Media.Playback.MediaPlayer localMediaPlayer = null;
-        Windows.Media.Core.MediaBinder localMediaBinder = null;
-        Windows.Media.Core.MediaSource localMediaSource = null;
-        public bool BookNetworkForBackground()
+        public async Task<bool> DownloadManifest()
         {
-            bool result = false;
-            try
+            bool bResult = false;
+            // load the stream associated with the HLS, SMOOTH or DASH manifest
+            this.ManifestStatus = AssetStatus.DownloadingManifest;
+            bResult = await this.ParseSmoothManifest();
+            if (bResult != true)
             {
-                if (localMediaBinder == null)
+                bResult = await this.ParseDashManifest();
+                if (bResult != true)
                 {
-                    localMediaBinder = new Windows.Media.Core.MediaBinder();
-                    if (localMediaBinder != null)
-                    {
-                        localMediaBinder.Binding += localMediaBinder_Binding;
-                    }
-                }
-                if (localMediaSource == null)
-                {
-                    localMediaSource = Windows.Media.Core.MediaSource.CreateFromMediaBinder(localMediaBinder);
-                }
-                if (localMediaPlayer == null)
-                {
-                    localMediaPlayer = new Windows.Media.Playback.MediaPlayer();
-                    if (localMediaPlayer != null)
-                    {
-                        localMediaPlayer.CommandManager.IsEnabled = false;
-                        localMediaPlayer.Source = localMediaSource;
-                        result = true;
-                        LogMessage("Booking network for Background task successful");
-                        return result;
-                    }
-
+                    bResult = await this.ParseHLSManifest();
                 }
             }
-            catch(Exception ex)
-            {
-                LogMessage("Exception while booking network for Background task: Exception: " + ex.Message);
-            }
-            LogMessage("Booking network for Background task failed");
-            return result;
+            if (bResult == true)
+                this.ManifestStatus = AssetStatus.ManifestDownloaded;
+            else
+                this.ManifestStatus = AssetStatus.ErrorManifestDownload;
+            return bResult;
         }
 
-Check method localMediaBinder_Binding in the file MainPage.xaml.cs:
+The method ParseDashManifest() needs to be implemented to support Download-To-Go with Dash assets:
 
-        private void localMediaBinder_Binding(Windows.Media.Core.MediaBinder sender, Windows.Media.Core.MediaBindingEventArgs args)
+        public async Task<bool> ParseDashManifest()
         {
-            var d = args.GetDeferral();
-            LogMessage("Booking network for Background task running...");
+            var manifestBuffer = await this.DownloadManifestAsync(true);
+            if (manifestBuffer != null)
+            {
+            }
+            return false;
         }
+
+The method ParseHLSManifest() needs to be implemented to support Download-To-Go with HLS assets:
+
+        public async Task<bool> ParseHLSManifest()
+        {
+            var manifestBuffer = await this.DownloadManifestAsync(true);
+            if (manifestBuffer != null)
+            {
+            }
+            return false;
+        }
+
+
+### Adaptive Media Cache: Cache implementation
+
 
 
 

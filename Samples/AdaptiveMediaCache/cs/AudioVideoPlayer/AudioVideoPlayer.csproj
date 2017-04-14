@@ -21,6 +21,7 @@
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
     <AppxBundle>Always</AppxBundle>
+    <PackageCertificateThumbprint>560D9D92B41B8F9EE0367F320AA03E48766B2B62</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
