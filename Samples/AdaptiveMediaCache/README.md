@@ -259,8 +259,8 @@ Next steps
 --------------
 
 The Universal Media Player C# Sample Applicaton could be improved to support the following features:</p>
-1.  Support of HLS Download-To-Go and Progressive Download use caseProject</p>
-2.  Support of DASH Download-To-Go and Progressive Download use caseProject</p>
+1.  Support of HLS Download-To-Go and Progressive Download use case</p>
+2.  Support of DASH Download-To-Go and Progressive Download use case</p>
 
  
 
