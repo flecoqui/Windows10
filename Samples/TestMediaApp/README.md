@@ -312,6 +312,37 @@ Sample item for an audio file stored on a removable storage on the device runnin
           "BackgroundAudio": false
         }
 
+### Playlist Samples
+Several playlists are available below:
+[Radios Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/Radios/Radios.json) 
+[Musics Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/Musics/Musics.json) 
+[Live TV Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/LiveTVs/LiveTVs.json) 
+[Photos Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/Photos/Photos.json) 
+
+### Companion Scenario
+TestMediaApp does support companion scenario where you can convert your Windows 10 Device into a remote control.
+For instance, if you want to convert your Windows 10 Mobile into a remote control, click on the Remote check box.
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/remote.png)
+
+TestMediaApp companion scenario requires a network supporting multicast. The device converted into remote control will send multicast commands towards all the Windows 10 Devices running TestMediaApp on the same network
+
+Once your device is converted into a remote control, you can send the following commands:<p/>
+	- Previous Item</p>
+	- Next Item</p>
+	- Full Screen </p>  
+	- Full Window </p>  
+	- Mute </p>  
+	- Volume Up </p>  
+	- Volume Down </p>  
+	- Start over </p>  
+	- Play </p>  
+	- Pause </p>  
+	- Stop </p>  
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/remotecommand.png)
+
+
 Under the Surface
 ----------------
 
@@ -484,7 +515,51 @@ Check method localMediaBinder_Binding in the file MainPage.xaml.cs:
             LogMessage("Booking network for Background task running...");
         }
 
+### Companion scenario 
 
+The companion scenario relies on the code in the file [CompanionClient.cs](https://github.com/flecoqui/Windows10/blob/master/Samples/TestMediaApp/cs/AudioVideoPlayer/Companion/CompanionClient.cs)
+Actually this file contains the Companion implementation which use the multicast address 239.11.11.11 and the upd port 1919 to transmit the commands.
+You can change the multicast address and the upd port if required.
+
+        const string cMulticastAddress = "239.11.11.11";
+        const string cPort = "1919";
+
+Moreover, beyond the basic commands like PLAY, PAUSE, FULLSCREEN TestMediaApp supports commands like SELECT, OPENMEDIA and OPENPLAYLIST which allow the user to :
+	- select remotely an item in the playlist using the index associated with this item
+	- open remotely a media content  
+	- open remotely a media playlist.
+
+Strings associated with the commands below:
+ 
+        public const string commandSelect = "SELECT";
+		public const string commandOpen = "OPENMEDIA";
+        public const string commandOpenPlaylist = "OPENPLAYLIST";
+
+In that case, you need to use the [Companion Application](https://github.com/flecoqui/Windows10/tree/master/Samples/CompanionMediaPlayer).
+
+You can select remotely an item in the playlist:
+
+  ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/selectmedia.png)
+
+  Syntax:
+
+  INDEX=<ItemIndex>
+
+You can play remotely media content:
+
+  ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/openmedia.png)
+
+  Syntax:
+  
+  CONTENT=<Url/Path of Media>??START=<StartTime in ms>??DURATION=<Duration in ms>??POSTERCONTENT=<Url/Path of poster>
+
+You can open remotely a playlist:
+
+  ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/openplaylist.png)
+
+  Syntax:
+  
+  CONTENT=<Url/Path of Playlist>
 
 
 Building the application
@@ -510,7 +585,9 @@ Next steps
 
 The Universal Media Player C# Sample Applicaton could be improved to support the following features:
 <p/>
-1.  Support of Azure Media 
+1.  Support of Project Rome to launch remotely TestMediaApp from one device to another device
+2.  Support of several pages : Player Page, Companion Page, Playlist Page and Settings Page.
+3.  Support of a new JSON model to support music playlist (Artist, Album), TV channels  
  
 
 

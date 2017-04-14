@@ -181,7 +181,7 @@ namespace AudioVideoPlayer.DataModel
                     jsonText = await FileIO.ReadTextAsync(file);
                     MediaDataPath = path;
                 }
-                else if (path.StartsWith("http://"))
+                else if (path.StartsWith("http://")|| path.StartsWith("https://"))
                 {
                     try
                     {
