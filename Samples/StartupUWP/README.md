@@ -39,7 +39,7 @@ Installing the application
 ----------------------------
 You can install the application on:
 <p/>
-- **Personal Computer Platform**: a desktop running Windows 10 RS1
+- **Personal Computer Platform**: a desktop running Windows 10 Anniversary Update (RS1)
 
 The applications packages for x86, x64 are available there :
 [ZIP file of the application x86, x64 Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/StartupUWP/Releases/LatestRelease.zip)
@@ -56,10 +56,9 @@ Building the application
 ----------------
 
 **Prerequisite: Windows Smooth Streaming Client SDK**
-This version is based on the latest [Universal Smooth Streaming Client SDK](https://visualstudiogallery.msdn.microsoft.com/1e7d4700-7fa8-49b6-8a7b-8d8666685459)
 
 1. If you download the samples ZIP, be sure to unzip the entire archive, not just the folder with the sample you want to build. 
-2. Ensure the Red Stone 1 (RS1) Windows 10 SDK is installed on your machine
+2. Ensure the Anniversary Update (RS1) Windows 10 SDK is installed on your machine
 3. Start Microsoft Visual Studio 2015 and select **File** \> **Open** \> **Project/Solution**.
 3. Starting in the folder where you unzipped the samples, go to the Samples subfolder, then the subfolder for this specific sample, then the subfolder for your preferred language (C++, C#, or JavaScript). Double-click the Visual Studio 2015 Solution (.sln) file.
 4. Press Ctrl+Shift+B, or select **Build** \> **Build Solution**.
