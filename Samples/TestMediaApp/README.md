@@ -159,7 +159,7 @@ Below the format of the items in the JSON Playlist: </p>
 	- **PosterContent**: the path to an image associated with the item. For instance, if the content is an audio file, a radio uri the poster will be displayed while playing the audio item. </p> 
 	- **Start**: the start position to play the video or audio item in milliseconds.</p>
 	- **Duration**: the play duration for the item in milliseconds.</p>
-	- **HttpHeaders**: this field can define the http header with the following syntax: "{[HttpHeader1]: [HttpHeaderValue1]},[HttpHeader2]: [HttpHeaderValue2]},...,[HttpHeaderN]: [HttpHeaderValueN]}}"</p>
+	- **HttpHeaders**: this field can define the http header with the following syntax: "{[HttpHeader1]: [HttpHeaderValue1]},{[HttpHeader2]: [HttpHeaderValue2]},...,{[HttpHeaderN]: [HttpHeaderValueN]}"</p>
 	                    Moreover, for Azure Media Service SWT Token or JWT Token you can use the following syntax:</p>
 						"{Authorization: Bearer:[JWT/SWT Token]}"</p>
 	- **PlayReadyUrl**: the PlayReady license acquisition url if the content is protected with PlayReady.</p>
