@@ -322,7 +322,7 @@ Several playlists are available below:</p>
 ### Tool to create Playlist 
 A tool called AzPlaylist is available to create Playlists for TestMediaApp.</p>
 With AzPlaylist you can create playlist of media files stored:</p>
-  - on Azure Sotrage Account</p>
+  - on Azure Storage Account</p>
   - on local hard drive</p>
 
 For instance, the command to create a playlist from media files stored on Azure:
