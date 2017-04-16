@@ -333,7 +333,7 @@ For instance, the command to create a playlist from media files stored on local 
 
           AzPlaylist -action localcreate -folder <FolderName> -extensions mp3;m4a;aac;flac -outputfilename <outputFileName> 
 
-Below the links associated with AzPlaylist:
+Below the links associated with AzPlaylist:</p>
 [AzPlaylist Source code on github](https://github.com/flecoqui/azure/tree/master/Samples/AzPlaylist) </p>
 [AzPlaylist binary](https://github.com/flecoqui/azure/raw/master/Samples/AzPlaylist/Releases/LatestRelease.zip) </p>
 
