@@ -564,7 +564,7 @@ You can select remotely an item in the playlist:
 
 Syntax:
 
-    INDEX=\<ItemIndex\>
+    INDEX=<ItemIndex>
 
 You can play remotely media content:
 
@@ -572,7 +572,7 @@ You can play remotely media content:
 
 Syntax:
 
-    CONTENT=\<Url/Path of Media\>??START=\<StartTime in ms\>??DURATION=\<Duration in ms\>??POSTERCONTENT=\<Url/Path of poster\>
+    CONTENT=<Url/Path of Media>??START=<StartTime in ms>??DURATION=<Duration in ms>??POSTERCONTENT=<Url/Path of poster>
 
 You can open remotely a playlist:
 
@@ -580,7 +580,7 @@ You can open remotely a playlist:
 
 Syntax:
 
-     CONTENT=\<Url/Path of Playlist\>
+     CONTENT=<Url/Path of Playlist>
 
 
 Building the application
