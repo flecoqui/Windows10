@@ -356,7 +356,7 @@ Below the source code of the method which reads the asset in the cache on the lo
 
 
 The audio or the video index files are file which contains a table of a structure which includes:</p>
-- The timestamps of the audio/video chunks (8 bytes)</p>
+- The timestamp of the audio/video chunks (8 bytes)</p>
 - The offset of the chunk associated in the audio/video content file (8 bytes)</p>
 - The size of the chunk (4 bytes)</p>
 
