@@ -562,25 +562,25 @@ You can select remotely an item in the playlist:
 
   ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/selectmedia.png)
 
-  Syntax:
+Syntax:
 
-  INDEX=\<ItemIndex\>
+    INDEX=\<ItemIndex\>
 
 You can play remotely media content:
 
   ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/openmedia.png)
 
-  Syntax:
-  
-  CONTENT=\<Url/Path of Media\>??START=\<StartTime in ms\>??DURATION=\<Duration in ms\>??POSTERCONTENT=\<Url/Path of poster\>
+Syntax:
+
+    CONTENT=\<Url/Path of Media\>??START=\<StartTime in ms\>??DURATION=\<Duration in ms\>??POSTERCONTENT=\<Url/Path of poster\>
 
 You can open remotely a playlist:
 
   ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TestMediaApp/Docs/openplaylist.png)
 
-  Syntax:
-  
-  CONTENT=\<Url/Path of Playlist\>
+Syntax:
+
+     CONTENT=\<Url/Path of Playlist\>
 
 
 Building the application
