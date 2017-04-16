@@ -208,7 +208,7 @@ To test this feature, you can follow the steps below:</p>
 
 ### Progressive Download scenario 
 The Progressive Download scenario is applicable when the bandwidth of your Internet connection is too low to support high quality video. With this approach the user can play high quality video track once a sufficent amount of video/audio chunks are downloaded to start to play the asset locally.</p>
-**Playing HD content when your Internet connection doesn't support high bandwidth**
+**Playing HD content when your Internet connection doesn't support high bandwidth**</p>
 This scenario consists in downloading the highest resolution track of the Smooth Streaming asset when your Internet connection doesn't support such a bandwidth. With this approach you can play high quality video with low bitrate Internet connection.
 
 To test this feature, you can follow the steps below:
@@ -222,9 +222,6 @@ To test this feature, you can follow the steps below:
 4. Now you can click on Download button to launch the download.
 5. In the logs you can see the selected video track and the selected audio track and the progress of the download. 
 6. Once a sufficent number of audio/video chunks is downloaded, the buttons Delete, PlayReady Acquisition and Play are enabled.
-
-   ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download4.png)
-
 7. If the content is protected with PlayReady, you can acquire manually the PlayReady license when clicking on PlayReady Acquisition button.
 
    ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download5.png)
@@ -293,8 +290,120 @@ The method ParseHLSManifest() needs to be implemented to support Download-To-Go 
 
 
 ### Adaptive Media Cache: Cache implementation
+The cache is implemented in the AdaptiveMediaCache WinRT component.
+The cache which could be used to store several assets in a specific folder under the Application Data folder (Windows.Storage.ApplicationData.Current).
+
+The audio and video chunks of a video asset are stored in a subfolder under the Application Data folder (Windows.Storage.ApplicationData.Current).
+
+    <Application Data folder>
+        <ROOT folder>
+              <ASSET 1 folder>
+              <ASSET 2 folder>
+              <ASSET 3 folder>
+              <ASSET 4 folder>
+			      <Manifest file>
+			      <AudioIndex file>
+			      <AudioContent file>
+			      <VideoIndex file>
+			      <VideoContent file>
+              <ASSET N-1 folder>
+              <ASSET N folder>
+
+Below the names of the different files used by the application:
+
+        private const string manifestFileName = "manifest.xml";
+        private const string audioIndexFileName = "AudioIndex";
+        private const string videoIndexFileName = "VideoIndex";
+        private const string audioContentFileName = "Audio";
+        private const string videoContentFileName = "Video";
+
+Below the source code of the method which reads the asset in the cache on the local hard drive:
+
+        public async Task<List<ManifestCache>> RestoreAllAssets(string pattern)
+        {
+            List<ManifestCache> downloads = new List<ManifestCache>();
+            List<string> dirs = await GetDirectoryNames(root);
+            if (dirs != null)
+            {
+                for (int i = 0; i < dirs.Count; i++)
+                {
+                    string path = Path.Combine(root, dirs[i]);
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        string file = Path.Combine(path, manifestFileName);
+                        if (!string.IsNullOrEmpty(file))
+                        {
+                            ManifestCache de = await GetObjectByType(file, typeof(ManifestCache)) as ManifestCache;
+                            if (de != null)
+                            {
+                                // Sanity check are the manifest file and chunk files consistent
+                                if ((de.AudioSavedChunks == (ulong)(await GetFileSize(Path.Combine(path, audioIndexFileName)) / indexSize)) &&
+                                    (de.VideoSavedChunks == (ulong)(await GetFileSize(Path.Combine(path, videoIndexFileName)) / indexSize)))
+                                {
+                                    downloads.Add(de);
+                                }
+                                else
+                                {
+                                    System.Diagnostics.Debug.WriteLine(string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " DiskCache - RestoreAllAssets - Manifest and Chunk file not consistent for path: " + path.ToString());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return downloads;
+        }
 
 
+The audio or the video index files are file which contains a table of a structure which includes:</p>
+- The timestamps of the audio/video chunks (8 bytes)</p>
+- The offset of the chunk associated in the audio/video content file (8 bytes)</p>
+- The size of the chunk (4 bytes)</p>
+
+Below the structure of the index file:
+
+        public ulong Time;
+        public ulong Offset;
+        public UInt32 Size;
+
+Below the method used to retrieve the audio/video chunk: 
+
+        private async Task<byte[]> GetChunkBuffer(bool isVideo, string path, ulong time)
+        {
+            byte[] buffer = null;
+            string dir = Path.Combine(root, path);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                string indexFile = Path.Combine(dir, (isVideo == true ? videoIndexFileName : audioIndexFileName));
+                string contentFile = Path.Combine(dir, (isVideo == true ? videoContentFileName : audioContentFileName));
+                if ((!string.IsNullOrEmpty(contentFile))&&
+                    (!string.IsNullOrEmpty(indexFile)))
+                {
+
+                    using (var releaser = (isVideo == true ? await internalVideoDiskLock.ReaderLockAsync(): await internalAudioDiskLock.ReaderLockAsync()))
+                    {
+                        ulong offset = 0;
+                        ulong size = 20;
+                        ulong fileSize = await GetFileSize(indexFile);
+                        while (offset < fileSize)
+                        {
+                            byte[] b = await Restore(indexFile, offset, size);
+                            IndexCache ic = new IndexCache(b);
+                            if (ic != null)
+                            {
+                                if (ic.Time == time)
+                                {
+                                    buffer = await Restore(contentFile, ic.Offset, ic.Size);
+                                    break;
+                                }
+                            }
+                            offset += size;
+                        }
+                    }
+                }
+            }
+            return buffer;
+        }
 
 
 Building the application
