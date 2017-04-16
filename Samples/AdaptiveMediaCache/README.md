@@ -168,46 +168,46 @@ Sample item for a Smooth Streaming video protected with PlayReady over HTTP and 
         },
 
 ### Download-To-Go scenario 
-The key feature of this sample Universal Windows Platform (UWP) application is the support of Download-To-Go scenario for Smooth Streaming assets.
-**Playing assets while your device if offline**
-This scenario consists in downloading the Smooth Streaming asset, once the asset is downloaded you can play the asset even if the network connection is not available.
-**Playing HD content when your Internet connection doesn't support high bandwidth**
+The key feature of this sample Universal Windows Platform (UWP) application is the support of Download-To-Go scenario for Smooth Streaming assets.</p>
+**Playing assets while your device if offline**</p>
+This scenario consists in downloading the Smooth Streaming asset, once the asset is downloaded you can play the asset even if the network connection is not available.</p>
+**Playing HD content when your Internet connection doesn't support high bandwidth**</p>
 This scenario consists in downloading the highest resolution track of the Smooth Streaming asset when your Internet connection doesn't support such a bandwidth. With this approach you can play high quality video with low bitrate Internet connection.
 
-To test this feature, you can follow the steps below:
+To test this feature, you can follow the steps below:</p>
 
 1. Select a Smooth Streaming Asset in the Combo Box "Select a stream" or enter the url of a Smooth Streaming asset in the Edit Box "URL:"
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download1.png)
+    ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download1.png)
 
 2. Check the Check Box "Download-To-Go" to enable the Download-To-Go scenario.
 3. You can also select the video track you want to download if you enter the minimum and maximum bitrate. The application will select the track with the highest bitrate in the range of bitrate you defined.
 4. Now you can click on Download button to launch the download.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download2.png)
+    ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download2.png)
 
 5. In the logs you can see the selected video track and the selected audio track and the progress of the download. 
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download3.png)
+    ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download3.png)
 
 6. Once the download is completed, the buttons Delete, PlayReady Acquisition and Play are enabled.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download4.png)
+    ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download4.png)
 
 7. If the content is protected with PlayReady, you can acquire manually the PlayReady license when clicking on PlayReady Acquisition button.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download5.png)
+    ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download5.png)
 
 8. Once the asset is downloaded and the PlayReady license acquired, you can play the asset even if your PC is not connected to Internet. Click on the Play button:
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download6.png)
+    ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download6.png)
 
 9. As the downloaded asset is stored on your local hard drive, you can still remove the asset from the hard drive when clicking on the button Remove:
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download7.png)
+    ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download7.png)
 
 ### Progressive Download scenario 
-The Progressive Download scenario is applicable when the bandwidth of your Internet connection is too low to support high quality video. With this approach the user can play high quality video track once a sufficent amount of video/audio chunks are downloaded to start to play the asset locally.
+The Progressive Download scenario is applicable when the bandwidth of your Internet connection is too low to support high quality video. With this approach the user can play high quality video track once a sufficent amount of video/audio chunks are downloaded to start to play the asset locally.</p>
 **Playing HD content when your Internet connection doesn't support high bandwidth**
 This scenario consists in downloading the highest resolution track of the Smooth Streaming asset when your Internet connection doesn't support such a bandwidth. With this approach you can play high quality video with low bitrate Internet connection.
 
@@ -215,7 +215,7 @@ To test this feature, you can follow the steps below:
 
 1. Select a Smooth Streaming Asset in the Combo Box "Select a stream" or enter the url of a Smooth Streaming asset in the Edit Box "URL:"
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download8.png)
+   ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download8.png)
 
 2. Uncheck the Check Box "Download-To-Go" to enable the Progressive Download scenario.
 3. You can also select the video track you want to download if you enter the minimum and maximum bitrate. The application will select the track with the highest bitrate in the range of bitrate you defined.
@@ -223,18 +223,19 @@ To test this feature, you can follow the steps below:
 5. In the logs you can see the selected video track and the selected audio track and the progress of the download. 
 6. Once a sufficent number of audio/video chunks is downloaded, the buttons Delete, PlayReady Acquisition and Play are enabled.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download4.png)
+   ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download4.png)
 
 7. If the content is protected with PlayReady, you can acquire manually the PlayReady license when clicking on PlayReady Acquisition button.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download5.png)
+   ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download5.png)
 
 8. You can play the asset, your PC needs to be connected to Internet. Click on the Play button:
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download6.png)
+   ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download6.png)
 
 9. You can also remove the asset from the hard drive when clicking on the button Remove:
 
+   ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/AdaptiveMediaCache/Docs/download7.png)
 
 
 Under the Surface
