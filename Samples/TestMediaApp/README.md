@@ -319,6 +319,29 @@ Several playlists are available below:</p>
 [Live TV Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/LiveTVs/LiveTVs.json) </p>
 [Photos Playlist](https://raw.githubusercontent.com/flecoqui/Content/master/Playlists/Photos/Photos.json) </p>
 
+### Tool to create Playlist 
+A tool called AzPlaylist is available to create Playlists for TestMediaApp.</p>
+With AzPlaylist you can create playlist of media files stored:</p>
+  - on Azure Sotrage Account</p>
+  - on local hard drive</p>
+
+For instance, the command to create a playlist from media files stored on Azure:
+ 
+AzPlaylist -action create -storageaccountname <StorageAccountName> -storageaccountkey <StorageAccountKey> 
+           -containername <ContainerName> -extensions mp3;m4a;aac;flac -outputfilename <outputFileName>
+
+For instance, the command to create a playlist from media files stored on local hard drive:
+
+AzPlaylist -action localcreate -folder <FolderName> -extensions mp3;m4a;aac;flac -outputfilename <outputFileName> 
+
+
+
+[AzPlaylist Source code on github](https://github.com/flecoqui/azure/tree/master/Samples/AzPlaylist) </p>
+
+[AzPlaylist binary](https://github.com/flecoqui/azure/raw/master/Samples/AzPlaylist/Releases/LatestRelease.zip) </p>
+
+
+
 ### Companion Scenario
 TestMediaApp does support companion scenario where you can convert your Windows 10 Device into a remote control.
 For instance, if you want to convert your Windows 10 Mobile into a remote control, click on the Remote check box.
