@@ -110,16 +110,16 @@
                     <Button IsEnabled="False" Content="&#xE768;" x:Name="playPauseButton" ToolTipService.ToolTip="Pause the stream currently played by the MediaElement"  FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="PlayPause_Click"/>
                     <Button IsEnabled="False" Content="&#xE769;" x:Name="pausePlayButton" ToolTipService.ToolTip="Resume the stream currently puased by the MediaElement"   FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="PausePlay_Click"/>
                     <Button IsEnabled="False" Content="&#xE71A;" x:Name="stopButton" ToolTipService.ToolTip="Stop the stream currently played by the MediaElement"   FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="Stop_Click"/>
-                    <CheckBox VerticalAlignment="Center" MaxWidth="40" BorderThickness="0" BorderBrush="Transparent" x:Name="Remote"  ToolTipService.ToolTip="Select automically the Companion mode server or client"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="-38,0,0,0" Content="Remote:"  FontSize="12" Canvas.ZIndex="-1" />
+                    <CheckBox VerticalAlignment="Center" MaxWidth="40" BorderThickness="0" BorderBrush="Transparent" x:Name="Remote"  ToolTipService.ToolTip="Select automically the Companion mode server or client"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="5,0,0,0" Content="Remote:"  FontSize="12" MinWidth="75" />
                     <Image x:Name="streamLogo" Width="40" Height="40" VerticalAlignment="Center" Margin="1,1,1,1" />
 
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                    <CheckBox VerticalAlignment="Center" x:Name="AutoSkip" Checked="AutoSkip_Checked" Unchecked="AutoSkip_Unchecked" ToolTipService.ToolTip="Select automically the next stream at the end of the MediaElement"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="-55,0,0,0" Content="Auto:"  />
+                    <CheckBox VerticalAlignment="Center" x:Name="AutoSkip" Checked="AutoSkip_Checked" Unchecked="AutoSkip_Unchecked" FontSize="12" ToolTipService.ToolTip="Select automically the next stream at the end of the MediaElement"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="0,0,0,0" Content="Auto:" MinWidth="55" />
                     <TextBlock VerticalAlignment="Center" Margin="5,0,5,0"  FontSize="12">Bitrate Min:</TextBlock>
-                    <TextBox x:Name="minBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Minimum bitrate in bit/s"   MinWidth="60" IsTabStop="True" InputScope="Number" TextChanged="BitrateTextChanged" FontSize="12"/>
+                    <TextBox x:Name="minBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Minimum bitrate in bit/s"   MinWidth="65" IsTabStop="True" InputScope="Number" TextChanged="BitrateTextChanged" FontSize="12"/>
                     <TextBlock VerticalAlignment="Center" Margin="5,0,5,0" FontSize="12">Max:</TextBlock>
-                    <TextBox x:Name="maxBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Maximum bitrate in bit/s, (if value = 0, no maximum)" MinWidth="60" IsTabStop="True"  InputScope="Number" TextChanged="BitrateTextChanged"  FontSize="12"  />
+                    <TextBox x:Name="maxBitrate" VerticalAlignment="Center" ToolTipService.ToolTip="Maximum bitrate in bit/s, (if value = 0, no maximum)" MinWidth="65" IsTabStop="True"  InputScope="Number" TextChanged="BitrateTextChanged"  FontSize="12"  />
                 </StackPanel>
             </StackPanel>
         </StackPanel>

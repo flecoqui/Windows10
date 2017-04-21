@@ -591,8 +591,8 @@ Building the application
 This version is based on the latest [Universal Smooth Streaming Client SDK](https://visualstudiogallery.msdn.microsoft.com/1e7d4700-7fa8-49b6-8a7b-8d8666685459)
 
 1. If you download the samples ZIP, be sure to unzip the entire archive, not just the folder with the sample you want to build. 
-2. Ensure the Anniversary Update (RS1) Windows 10 SDK is installed on your machine
-3. Start Microsoft Visual Studio 2015 and select **File** \> **Open** \> **Project/Solution**.
+2. Ensure the Creator Update (RS2) Windows 10 SDK is installed on your machine
+3. Start Microsoft Visual Studio 2017 and select **File** \> **Open** \> **Project/Solution**.
 3. Starting in the folder where you unzipped the samples, go to the Samples subfolder, then the subfolder for this specific sample, then the subfolder for your preferred language (C++, C#, or JavaScript). Double-click the Visual Studio 2015 Solution (.sln) file.
 4. Press Ctrl+Shift+B, or select **Build** \> **Build Solution**.
 
@@ -609,7 +609,6 @@ The Universal Media Player C# Sample Applicaton could be improved to support the
 1.  Support of Project Rome to launch remotely TestMediaApp from one device to another device</p>
 2.  Support of several pages : Player Page, Companion Page, Playlist Page and Settings Page.</p>
 3.  Support of a new JSON model to support music playlist (Artist, Album), TV channels  </p>
-4.  Generate the build with Visual Studio 2017 </p>
 
  
 

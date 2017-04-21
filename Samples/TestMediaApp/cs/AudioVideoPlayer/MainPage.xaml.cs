@@ -314,7 +314,8 @@ namespace AudioVideoPlayer
             mediaPlayer.MediaFailed += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, Windows.Media.Playback.MediaPlayerFailedEventArgs>(MediaElement_MediaFailed);
             mediaPlayer.MediaEnded += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, object>(MediaElement_MediaEnded);
             mediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
-           // mediaPlayer.PlaybackSession.SeekableRangesChanged += PlaybackSession_SeekableRangesChanged;
+            if (Windows.Foundation.Metadata.ApiInformation.IsEventPresent("Windows.Media.Playback.MediaPlaybackSession", "SeekableRangesChanged"))
+                mediaPlayer.PlaybackSession.SeekableRangesChanged += PlaybackSession_SeekableRangesChanged;
             mediaPlayerElement.DoubleTapped += doubleTapped;
             IsFullWindowToken = mediaPlayerElement.RegisterPropertyChangedCallback(MediaPlayerElement.IsFullWindowProperty, new DependencyPropertyChangedCallback(IsFullWindowChanged));
 
@@ -382,7 +383,8 @@ namespace AudioVideoPlayer
             mediaPlayer.MediaFailed -= MediaElement_MediaFailed;
             mediaPlayer.MediaEnded -= MediaElement_MediaEnded;
             mediaPlayer.PlaybackSession.PlaybackStateChanged -= PlaybackSession_PlaybackStateChanged;
-//            mediaPlayer.PlaybackSession.SeekableRangesChanged -= PlaybackSession_SeekableRangesChanged;
+            if (Windows.Foundation.Metadata.ApiInformation.IsEventPresent("Windows.Media.Playback.MediaPlaybackSession", "SeekableRangesChanged"))
+                mediaPlayer.PlaybackSession.SeekableRangesChanged -= PlaybackSession_SeekableRangesChanged;
             mediaPlayerElement.DoubleTapped -= doubleTapped;
             mediaPlayerElement.UnregisterPropertyChangedCallback(MediaElement.IsFullWindowProperty, IsFullWindowToken);
 
@@ -585,16 +587,16 @@ namespace AudioVideoPlayer
         /// </summary>
         private void PlaybackSession_SeekableRangesChanged(Windows.Media.Playback.MediaPlaybackSession sender, object args)
         {
-            //var ranges = sender.GetSeekableRanges();
-            //if ((ranges != null) && (adaptiveMediaSource != null))
-            //{
-            //    foreach (var time in ranges)
-            //    {
-            //        var times = adaptiveMediaSource.GetCorrelatedTimes();
-            //        if (times != null)
-            //            LogMessage("Video Buffer available from StartTime: " + time.Start.ToString() + " till EndTime: " + time.End.ToString() + " Current Position: " + times.Position.ToString() + " ProgramDateTime: " + times.ProgramDateTime.ToString());
-            //    }
-            //}
+            var ranges = sender.GetSeekableRanges();
+            if ((ranges != null) && (adaptiveMediaSource != null))
+            {
+                foreach (var time in ranges)
+                {
+                    var times = adaptiveMediaSource.GetCorrelatedTimes();
+                    if (times != null)
+                        LogMessage("Video Buffer available from StartTime: " + time.Start.ToString() + " till EndTime: " + time.End.ToString() + " Current Position: " + times.Position.ToString() + " ProgramDateTime: " + times.ProgramDateTime.ToString());
+                }
+            }
 
         }
 
