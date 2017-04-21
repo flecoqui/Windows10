@@ -490,8 +490,9 @@ namespace AudioVideoPlayer
         /// </summary>
         Windows.Media.Playback.MediaPlayer localMediaPlayer = null;
         Windows.Media.Core.MediaBinder localMediaBinder = null;
-        // System.Threading.ManualResetEvent localMediaResetEvent = null;
         Windows.Media.Core.MediaSource localMediaSource = null;
+        // used to prevent deferral from being gc'd
+        Windows.Foundation.Deferral deferral = null;
         // Methode used to keep the netwotk on while the application is in background.
         // it creates a fake MediaPlayer playing from a MediaBinder source.
         // On Phone you need to create this MediaPlayer before the MediaPlayer used by the application.
@@ -500,16 +501,12 @@ namespace AudioVideoPlayer
             bool result = false;
             try
             {
-           //     if(localMediaResetEvent == null)
-           //     {
-           //         localMediaResetEvent = new System.Threading.ManualResetEvent(false);
-           //     }
                 if (localMediaBinder == null)
                 {
                     localMediaBinder = new Windows.Media.Core.MediaBinder();
                     if (localMediaBinder != null)
                     {
-                        localMediaBinder.Binding += localMediaBinder_Binding;
+                        localMediaBinder.Binding += LocalMediaBinder_Binding;
                     }
                 }
                 if (localMediaSource == null)
@@ -538,12 +535,10 @@ namespace AudioVideoPlayer
             return result;
         }
         // Method used to keep the network on while the application is in background
-        private void localMediaBinder_Binding(Windows.Media.Core.MediaBinder sender, Windows.Media.Core.MediaBindingEventArgs args)
+        private void LocalMediaBinder_Binding(Windows.Media.Core.MediaBinder sender, Windows.Media.Core.MediaBindingEventArgs args)
         {
-            var d = args.GetDeferral();
+            deferral = args.GetDeferral();
             LogMessage("Booking network for Background task running...");
-         //   localMediaResetEvent.WaitOne();
-         //   LogMessage("Booking network for Background task ending...");
         }
 
         // Displayinformation 
@@ -668,7 +663,7 @@ namespace AudioVideoPlayer
                     if (bAutoSkip)
                     {
                         LogMessage("Skipping to next Media on media end...");
-                        plus_Click(null, null);
+                        Plus_Click(null, null);
                     }
                 });
         }
@@ -808,7 +803,7 @@ namespace AudioVideoPlayer
                         if (bAutoSkip)
                         {
                             LogMessage("Skipping to next Media on timer tick...");
-                            plus_Click(null, null);
+                            Plus_Click(null, null);
                         }
                     }
                 }
@@ -820,7 +815,7 @@ namespace AudioVideoPlayer
                         if (bAutoSkip)
                         {
                             LogMessage("Skipping to next Media on timer tick...");
-                            plus_Click(null, null);
+                            Plus_Click(null, null);
                         }
                     }
                 }
@@ -861,14 +856,14 @@ namespace AudioVideoPlayer
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
                         LogMessage("Previous from SystemMediaTransportControls");
-                        minus_Click(null, null);
+                        Minus_Click(null, null);
                     });
                     break;
                 case Windows.Media.SystemMediaTransportControlsButton.Next:
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
                         LogMessage("Next from SystemMediaTransportControls");
-                        plus_Click(null, null);
+                        Plus_Click(null, null);
                     });
                     break;
                 case Windows.Media.SystemMediaTransportControlsButton.Rewind:
@@ -1262,11 +1257,11 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Play method which plays the video with the MediaElement from position 0
         /// </summary>
-        private void play_Click(object sender, RoutedEventArgs e)
+        private void Play_Click(object sender, RoutedEventArgs e)
         {
             if (Remote.IsChecked == true)
             {
-                play_remote_Click(sender, e);
+                Play_remote_Click(sender, e);
                 return;
             }
             try
@@ -1281,11 +1276,11 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Stop method which stops the video currently played by the MediaElement
         /// </summary>
-        private void stop_Click(object sender, RoutedEventArgs e)
+        private void Stop_Click(object sender, RoutedEventArgs e)
         {
             if (Remote.IsChecked == true)
             {
-                stop_remote_Click(sender, e);
+                Stop_remote_Click(sender, e);
                 return;
             }
             try
@@ -1307,11 +1302,11 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Play method which plays the video currently paused by the MediaElement
         /// </summary>
-        private void playPause_Click(object sender, RoutedEventArgs e)
+        private void PlayPause_Click(object sender, RoutedEventArgs e)
         {
             if (Remote.IsChecked == true)
             {
-                playpause_remote_Click(sender, e);
+                Playpause_remote_Click(sender, e);
                 return;
             }
             try
@@ -1332,11 +1327,11 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Pause method which pauses the video currently played by the MediaElement
         /// </summary>
-        private void pausePlay_Click(object sender, RoutedEventArgs e)
+        private void PausePlay_Click(object sender, RoutedEventArgs e)
         {
             if (Remote.IsChecked == true)
             {
-                pause_remote_Click(sender, e);
+                Pause_remote_Click(sender, e);
                 return;
             }
             try
@@ -1359,7 +1354,7 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Playlist method which loads another JSON playlist for the application 
         /// </summary>
-        private async void playlist_Click(object sender, RoutedEventArgs e)
+        private async void Playlist_Click(object sender, RoutedEventArgs e)
         {
             var filePicker = new Windows.Storage.Pickers.FileOpenPicker();
             filePicker.FileTypeFilter.Add(".json");
@@ -1395,11 +1390,11 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Channel up method 
         /// </summary>
-        private void plus_Click(object sender, RoutedEventArgs e)
+        private void Plus_Click(object sender, RoutedEventArgs e)
         {
             if (Remote.IsChecked == true)
             {
-                plus_remote_Click(sender, e);
+                Plus_remote_Click(sender, e);
                 return;
             }
             try
@@ -1427,11 +1422,11 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Channel down method 
         /// </summary>
-        private void minus_Click(object sender, RoutedEventArgs e)
+        private void Minus_Click(object sender, RoutedEventArgs e)
         {
             if (Remote.IsChecked == true)
             {
-                minus_remote_Click(sender, e);
+                Minus_remote_Click(sender, e);
                 return;
             }
             try
@@ -1460,11 +1455,11 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Mute method 
         /// </summary>
-        private void mute_Click(object sender, RoutedEventArgs e)
+        private void Mute_Click(object sender, RoutedEventArgs e)
         {
             if (Remote.IsChecked == true)
             {
-                mute_remote_Click(sender, e);
+                Mute_remote_Click(sender, e);
                 return;
             }
             LogMessage("Toggle Mute");
@@ -1474,11 +1469,11 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Volume Up method 
         /// </summary>
-        private void volumeUp_Click(object sender, RoutedEventArgs e)
+        private void VolumeUp_Click(object sender, RoutedEventArgs e)
         {
             if (Remote.IsChecked == true)
             {
-                volumeUp_remote_Click(sender, e);
+                VolumeUp_remote_Click(sender, e);
                 return;
             }
             LogMessage("Volume Up");
@@ -1488,11 +1483,11 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Volume Down method 
         /// </summary>
-        private void volumeDown_Click(object sender, RoutedEventArgs e)
+        private void VolumeDown_Click(object sender, RoutedEventArgs e)
         {
             if (Remote.IsChecked == true)
             {
-                volumeDown_remote_Click(sender, e);
+                VolumeDown_remote_Click(sender, e);
                 return;
             }
             LogMessage("Volume Down");
@@ -1609,11 +1604,11 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Full screen method 
         /// </summary>
-        private void fullscreen_Click(object sender, RoutedEventArgs e)
+        private void Fullscreen_Click(object sender, RoutedEventArgs e)
         {
             if (Remote.IsChecked == true)
             {
-                fullscreen_remote_Click(sender, e);
+                Fullscreen_remote_Click(sender, e);
                 return;
             }
             LogMessage("Switch to fullscreen");
@@ -1745,11 +1740,11 @@ namespace AudioVideoPlayer
         /// <summary>
         /// Full window method 
         /// </summary>
-        private void fullwindow_Click(object sender, RoutedEventArgs e)
+        private void Fullwindow_Click(object sender, RoutedEventArgs e)
         {
             if (Remote.IsChecked == true)
             {
-                fullwindow_remote_Click(sender, e);
+                Fullwindow_remote_Click(sender, e);
                 return;
             }
 
@@ -2244,7 +2239,7 @@ namespace AudioVideoPlayer
                         }
                         else
                         {
-                            SetDefaultPoster();
+                            await SetDefaultPoster();
                             LogMessage("Failed to load poster: " + PosterUrl);
                             return true;
                         }
@@ -2302,7 +2297,7 @@ namespace AudioVideoPlayer
                             }
                             else
                             {
-                                SetDefaultPoster();
+                                await SetDefaultPoster();
                                 return true;
                             }
                         }
@@ -3589,25 +3584,25 @@ namespace AudioVideoPlayer
                 case CompanionClient.commandPlay:
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
-                        play_Click(null, null);
+                        Play_Click(null, null);
                     });
                     break;
                 case CompanionClient.commandStop:
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
-                        stop_Click(null, null);
+                        Stop_Click(null, null);
                     });
                     break;
                 case CompanionClient.commandPause:
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
-                        pausePlay_Click(null, null);
+                        PausePlay_Click(null, null);
                     });
                     break;
                 case CompanionClient.commandPlayPause:
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
-                        playPause_Click(null, null);
+                        PlayPause_Click(null, null);
                     });
                     break;
                 case CompanionClient.commandSelect:
@@ -3626,13 +3621,13 @@ namespace AudioVideoPlayer
                 case CompanionClient.commandPlus:
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
-                        plus_Click(null, null);
+                        Plus_Click(null, null);
                     });
                     break;
                 case CompanionClient.commandMinus:
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
-                        minus_Click(null, null);
+                        Minus_Click(null, null);
                     });
                     break;
                 case CompanionClient.commandFullWindow:
@@ -3641,7 +3636,7 @@ namespace AudioVideoPlayer
                         if (IsFullWindow())
                             SetWindowMode(WindowMediaState.WindowMode);
                         else
-                            fullwindow_Click(null, null);
+                            Fullwindow_Click(null, null);
                     });
                     break;
                 case CompanionClient.commandFullScreen:
@@ -3650,7 +3645,7 @@ namespace AudioVideoPlayer
                         if (IsFullScreen())
                             SetWindowMode(WindowMediaState.WindowMode);
                         else
-                            fullscreen_Click(null, null);
+                            Fullscreen_Click(null, null);
                     });
                     break;
                 case CompanionClient.commandWindow:
@@ -3663,19 +3658,19 @@ namespace AudioVideoPlayer
                 case CompanionClient.commandMute:
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
-                        mute_Click(null, null);
+                        Mute_Click(null, null);
                     });
                     break;
                 case CompanionClient.commandVolumeUp:
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
-                        volumeUp_Click(null, null);
+                        VolumeUp_Click(null, null);
                     });
                     break;
                 case CompanionClient.commandVolumeDown:
                     await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
-                        volumeDown_Click(null, null);
+                        VolumeDown_Click(null, null);
                     });
                     break;
 
@@ -3746,28 +3741,28 @@ namespace AudioVideoPlayer
         //    UpdateControls();
 
         //}
-        private async void stop_remote_Click(object sender, RoutedEventArgs e)
+        private async void Stop_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Stop event");
             bool bResult = await companion.SendCommand(CompanionClient.commandStop, null);
             UpdateControls();
 
         }
-        private async void play_remote_Click(object sender, RoutedEventArgs e)
+        private async void Play_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Play event");
             bool bResult = await companion.SendCommand(CompanionClient.commandPlay, null);
             UpdateControls();
 
         }
-        private async void playpause_remote_Click(object sender, RoutedEventArgs e)
+        private async void Playpause_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Playpause event");
             bool bResult = await companion.SendCommand(CompanionClient.commandPlayPause, null);
             UpdateControls();
 
         }
-        private async void pause_remote_Click(object sender, RoutedEventArgs e)
+        private async void Pause_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Pause event");
             bool bResult = await companion.SendCommand(CompanionClient.commandPause, null);
@@ -3775,82 +3770,82 @@ namespace AudioVideoPlayer
 
 
         }
-        private async void plus_remote_Click(object sender, RoutedEventArgs e)
+        private async void Plus_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Plus event");
             bool bResult = await companion.SendCommand(CompanionClient.commandPlus, null);
             UpdateControls();
 
         }
-        private async void minus_remote_Click(object sender, RoutedEventArgs e)
+        private async void Minus_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Minus event");
             bool bResult = await companion.SendCommand(CompanionClient.commandMinus, null);
             UpdateControls();
         }
-        private async void fullscreen_remote_Click(object sender, RoutedEventArgs e)
+        private async void Fullscreen_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Fullscreen event");
             bool bResult = await companion.SendCommand(CompanionClient.commandFullScreen, null);
             UpdateControls();
 
         }
-        private async void fullwindow_remote_Click(object sender, RoutedEventArgs e)
+        private async void Fullwindow_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Fullwindow event");
             bool bResult = await companion.SendCommand(CompanionClient.commandFullWindow, null);
             UpdateControls();
         }
-        private async void window_remote_Click(object sender, RoutedEventArgs e)
+        private async void Window_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("window event");
             bool bResult = await companion.SendCommand(CompanionClient.commandWindow, null);
             UpdateControls();
         }
-        private async void mute_remote_Click(object sender, RoutedEventArgs e)
+        private async void Mute_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Mute event");
             bool bResult = await companion.SendCommand(CompanionClient.commandMute, null);
             UpdateControls();
         }
-        private async void volumeUp_remote_Click(object sender, RoutedEventArgs e)
+        private async void VolumeUp_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Volume Up event ");
             bool bResult = await companion.SendCommand(CompanionClient.commandVolumeUp, null);
             UpdateControls();
 
         }
-        private async void volumeDown_remote_Click(object sender, RoutedEventArgs e)
+        private async void VolumeDown_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Volume Down event ");
             bool bResult = await companion.SendCommand(CompanionClient.commandVolumeDown, null);
             UpdateControls();
         }
-        private async void down_remote_Click(object sender, RoutedEventArgs e)
+        private async void Down_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Down event ");
             bool bResult = await companion.SendCommand(CompanionClient.commandDown, null);
             UpdateControls();
         }
-        private async void up_remote_Click(object sender, RoutedEventArgs e)
+        private async void Up_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Up event ");
             bool bResult = await companion.SendCommand(CompanionClient.commandUp, null);
             UpdateControls();
         }
-        private async void left_remote_Click(object sender, RoutedEventArgs e)
+        private async void Left_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Left event ");
             bool bResult = await companion.SendCommand(CompanionClient.commandLeft, null);
             UpdateControls();
         }
-        private async void right_remote_Click(object sender, RoutedEventArgs e)
+        private async void Right_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Right event ");
             bool bResult = await companion.SendCommand(CompanionClient.commandRight, null);
             UpdateControls();
         }
-        private async void enter_remote_Click(object sender, RoutedEventArgs e)
+        private async void Enter_remote_Click(object sender, RoutedEventArgs e)
         {
             LogMessage("Enter event ");
             bool bResult = await companion.SendCommand(CompanionClient.commandEnter, null);

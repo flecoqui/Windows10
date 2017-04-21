@@ -77,7 +77,7 @@
         </Grid.ColumnDefinitions>
         <StackPanel x:Name="TitlePanel" Grid.Row="0" Grid.RowSpan="1" Grid.Column="0" Grid.ColumnSpan="2"  >
             <StackPanel Orientation="Horizontal" VerticalAlignment="Top" >
-                <Button IsEnabled="True" ToolTipService.ToolTip="Open anotherJSON playlist on the disk" Content="&#xEA37;" x:Name="playlistButton" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playlist_Click"/>
+                <Button IsEnabled="True" ToolTipService.ToolTip="Open anotherJSON playlist on the disk" Content="&#xEA37;" x:Name="playlistButton" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="Playlist_Click"/>
                 <Image x:Name="TestLogo" Source="Assets/AudioVideo.png" VerticalAlignment="Center" Margin="3,3,3,3" Stretch="Fill" Width="40" Height="40" />
                 <TextBlock x:Name="TestTitle" VerticalAlignment="Center" TextWrapping="Wrap">Windows 10 Universal Media Player Test</TextBlock>
             </StackPanel>
@@ -97,19 +97,19 @@
                     <TextBox x:Name="mediaUri" ToolTipService.ToolTip="Uri of the current selected stream (edit)" IsTabStop="True"  />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                    <Button IsEnabled="False" Content="&#xE892;" x:Name="minusButton" ToolTipService.ToolTip="Select the previous stream in the playlist" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="minus_Click"/>
-                    <Button IsEnabled="False" Content="&#xE893;" x:Name="plusButton" ToolTipService.ToolTip="Select the next stream in the playlist" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="plus_Click"/>
-                    <Button IsEnabled="False" Content="&#xE740;" x:Name="fullscreenButton" ToolTipService.ToolTip="Switch to full screen resolution with transport control" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="fullscreen_Click" />
-                    <Button IsEnabled="False" Content="&#xE158;" x:Name="fullwindowButton" ToolTipService.ToolTip="Switch to full window resolution without transport control" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="fullwindow_Click" />
-                    <Button IsEnabled="False" Content="&#xE74F;" x:Name="muteButton" ToolTipService.ToolTip="Mute the audio" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="mute_Click" />
-                    <Button IsEnabled="False" Content="&#xE767;" x:Name="volumeUpButton" ToolTipService.ToolTip="Volume up" FontFamily="Segoe MDL2 Assets" FontSize="20" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="volumeUp_Click" />
-                    <Button IsEnabled="False" Content="&#xE767;" x:Name="volumeDownButton" ToolTipService.ToolTip="Volume down"  FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="volumeDown_Click" />
+                    <Button IsEnabled="False" Content="&#xE892;" x:Name="minusButton" ToolTipService.ToolTip="Select the previous stream in the playlist" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="Minus_Click"/>
+                    <Button IsEnabled="False" Content="&#xE893;" x:Name="plusButton" ToolTipService.ToolTip="Select the next stream in the playlist" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="Plus_Click"/>
+                    <Button IsEnabled="False" Content="&#xE740;" x:Name="fullscreenButton" ToolTipService.ToolTip="Switch to full screen resolution with transport control" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="Fullscreen_Click" />
+                    <Button IsEnabled="False" Content="&#xE158;" x:Name="fullwindowButton" ToolTipService.ToolTip="Switch to full window resolution without transport control" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="Fullwindow_Click" />
+                    <Button IsEnabled="False" Content="&#xE74F;" x:Name="muteButton" ToolTipService.ToolTip="Mute the audio" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="Mute_Click" />
+                    <Button IsEnabled="False" Content="&#xE767;" x:Name="volumeUpButton" ToolTipService.ToolTip="Volume up" FontFamily="Segoe MDL2 Assets" FontSize="20" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="VolumeUp_Click" />
+                    <Button IsEnabled="False" Content="&#xE767;" x:Name="volumeDownButton" ToolTipService.ToolTip="Volume down"  FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="VolumeDown_Click" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                    <Button IsEnabled="False" Content="&#xE768;" x:Name="playButton"  ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="play_Click" Canvas.ZIndex="0" />
-                    <Button IsEnabled="False" Content="&#xE768;" x:Name="playPauseButton" ToolTipService.ToolTip="Pause the stream currently played by the MediaElement"  FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="playPause_Click"/>
-                    <Button IsEnabled="False" Content="&#xE769;" x:Name="pausePlayButton" ToolTipService.ToolTip="Resume the stream currently puased by the MediaElement"   FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="pausePlay_Click"/>
-                    <Button IsEnabled="False" Content="&#xE71A;" x:Name="stopButton" ToolTipService.ToolTip="Stop the stream currently played by the MediaElement"   FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="stop_Click"/>
+                    <Button IsEnabled="False" Content="&#xE768;" x:Name="playButton"  ToolTipService.ToolTip="Open the current stream Uri to be played in streaming mode"  FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="Play_Click" Canvas.ZIndex="0" />
+                    <Button IsEnabled="False" Content="&#xE768;" x:Name="playPauseButton" ToolTipService.ToolTip="Pause the stream currently played by the MediaElement"  FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="PlayPause_Click"/>
+                    <Button IsEnabled="False" Content="&#xE769;" x:Name="pausePlayButton" ToolTipService.ToolTip="Resume the stream currently puased by the MediaElement"   FontFamily="Segoe MDL2 Assets" FontSize="10" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="PausePlay_Click"/>
+                    <Button IsEnabled="False" Content="&#xE71A;" x:Name="stopButton" ToolTipService.ToolTip="Stop the stream currently played by the MediaElement"   FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="40" Width="40" Margin="1,1,1,1" Click="Stop_Click"/>
                     <CheckBox VerticalAlignment="Center" MaxWidth="40" BorderThickness="0" BorderBrush="Transparent" x:Name="Remote"  ToolTipService.ToolTip="Select automically the Companion mode server or client"   FlowDirection="RightToLeft" HorizontalAlignment="Left" Margin="-38,0,0,0" Content="Remote:"  FontSize="12" Canvas.ZIndex="-1" />
                     <Image x:Name="streamLogo" Width="40" Height="40" VerticalAlignment="Center" Margin="1,1,1,1" />
 

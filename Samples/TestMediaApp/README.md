@@ -489,6 +489,7 @@ Check method BookNetworkForBackground in the file MainPage.xaml.cs:
         Windows.Media.Playback.MediaPlayer localMediaPlayer = null;
         Windows.Media.Core.MediaBinder localMediaBinder = null;
         Windows.Media.Core.MediaSource localMediaSource = null;
+        Windows.Foundation.Deferral deferral = null;
         public bool BookNetworkForBackground()
         {
             bool result = false;
@@ -499,7 +500,7 @@ Check method BookNetworkForBackground in the file MainPage.xaml.cs:
                     localMediaBinder = new Windows.Media.Core.MediaBinder();
                     if (localMediaBinder != null)
                     {
-                        localMediaBinder.Binding += localMediaBinder_Binding;
+                        localMediaBinder.Binding += LocalMediaBinder_Binding;
                     }
                 }
                 if (localMediaSource == null)
@@ -528,11 +529,11 @@ Check method BookNetworkForBackground in the file MainPage.xaml.cs:
             return result;
         }
 
-Check method localMediaBinder_Binding in the file MainPage.xaml.cs:
+Check method LocalMediaBinder_Binding in the file MainPage.xaml.cs:
 
-        private void localMediaBinder_Binding(Windows.Media.Core.MediaBinder sender, Windows.Media.Core.MediaBindingEventArgs args)
+        private void LocalMediaBinder_Binding(Windows.Media.Core.MediaBinder sender, Windows.Media.Core.MediaBindingEventArgs args)
         {
-            var d = args.GetDeferral();
+            deferral = args.GetDeferral();
             LogMessage("Booking network for Background task running...");
         }
 

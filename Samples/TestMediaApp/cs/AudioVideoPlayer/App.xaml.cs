@@ -349,7 +349,7 @@ namespace AudioVideoPlayer
             // can be recreated again later when leaving the background.
             if (isInBackgroundMode && Window.Current.Content != null)
             {
-                LogMessage("Unloading view");
+            //    LogMessage("Unloading view");
 
                 // Clear the view content. Note that views should rely on
                 // events like Page.Unloaded to further release resources. Be careful
@@ -369,7 +369,7 @@ namespace AudioVideoPlayer
             // each Page.Unloaded handler to run.
             GC.Collect();
 
-            LogMessage("Finished reducing memory usage");
+          //  LogMessage("Finished reducing memory usage");
         }
         public void UnloadViewContentIfNeeded()
         {
