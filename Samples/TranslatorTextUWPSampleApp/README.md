@@ -9,18 +9,9 @@ Overview
 --------------
 This Translator-Text UWP Sample Application  can:
 
-- **Record**: record spoken audio into a WAV file, 
-- **Play**: play the WAV files stored on the local disk,
-- **Convert WAV file**: Convert the WAV file to text with Cognitive Services,
-- **Convert live audio**: Convert live audio to text with Cognitive Services, the audio buffer is sent to Cogntive Services at the end of the recording session.
-- **Convert continuously live audio**: Convert continuously live audio to text with Cognitive Services, in that case, the audio buffers are sent to Cognitive Services if the audio level is sufficient during a configurable period.
-
-The spoken audio is recorded into a WAV file in the following format:
-
-- **Number of Channels**: one channel, 
-- **Samples per second**: 16000,
-- **Bits per sample**: 16 bits,
-- **Average Bytes per second**: 256 kbit/s.
+- **Get Languages**: get the list of supported languages by the Cognitive Services backend, 
+- **Detect the current language**: detect the language of a text,
+- **Translate**: Translate a text from one language to another one.
 
 In order to use the application you need a Cognitive Services Translator-Text subscription Key.
 You can sign up [here](https://www.microsoft.com/cognitive-services/en-us/sign-up)  
@@ -30,8 +21,8 @@ Installing the application
 ----------------------------
 You can install the application on:
 
-- **Personal Computer Platform**: a desktop running Windows 10 RS1
-- **Windows 10 Mobile Platform**: a phone running Windows 10 RS1
+- **Personal Computer Platform**: a desktop running Windows 10 Anniversary Update
+- **Windows 10 Mobile Platform**: a phone running Windows 10 Anniversary Update
 
 The applications packages for x86, x64 and ARM are available there :
 [ZIP file of the application x86, x64, ARM Packages](https://github.com/flecoqui/Windows10/raw/master/Samples/TranslatorTextUWPSampleApp/Releases/LatestRelease.zip)
@@ -63,138 +54,39 @@ Once the application is installed on your device, you can launch it and the main
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/main.png)
 
-The application is used to record spoken audio into a WAV file, play the WAV files stored on the local disk, convert the WAV file to text, convert live audio to text and convert continuously live audio to text .
+The application is used to translate text after getting the list of supported languages. The application can also detect the language of a text.
 
 ### Entering your subscription Key
 Once the application is launched, you can enter your subscription key which will be used for the communication with Translator-Text Cognitive Services.
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/subscriptionkey.png)
 
-### Recording Spoken Audio into a WAV file
-With the application you can record the spoken audio. 
-Click on the button "Record" to start the recording.
+### Getting the list of supported languages
+With the application you can get the list of supported languages.
+Click on the button "Get Languages" to get the list of supported languages.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/record.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/getlanguages.png)
 
-Now you can speak, you can see the audio level in cyan
+Once the list is downloaded, you can translate the input text. 
+Once the text is filled in the edit box, you can either select the input language using the combo box language or detect the input language by clicking on button "Detect Language"
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/stopliverecord.png)
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/detect.png)
 
-after few seconds click on the same button "Stop Record" to stop the recording.
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/inputlanguage.png)
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/stoprecordinginfile.png)
+Once the input language is set, you can translate the input text into a text in another language. You need to select the output language using the combo box language.
 
-And then select the WAV file where you want to store the recording.
-The path of the WAV file is automatically copied in the Edit box "Path" used to select a WAV file.
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/outputlanguage.png)
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/path.png) 
+Click on the button "Translate".
 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/translate.png) 
 
-### Playing a WAV file
-In order to play a WAV file click on the button "Open WAV File" to select a WAV file.
+After few seconds the result is displayed on the page.
 
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/openfile.png) 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/result.png) 
 
-Then click on the "Play" button.
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/play.png) 
-
-#### Start over, play, pause and stop 
-
-Once the application is playing an audio file it's possible to:
-<p/>
-- pause/play the current asset
-- start over the current asset
-- stop the current asset 
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/playpause.png)
-
-
-#### Mute and Audio level
-Once the application is playing an audio file it's possible to switch off the audio (`Mute` button) or change the audio output level (`Audio+` and `Audio-` button)
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/audio.png)
-
-
-### Converting Spoken Audio WAV file to Text
-With the application, you can convert to text the WAV file you have just recorded. 
-First, check the path of the your audio file is correct in the Path Edit box,
-then select the language in the "Language" Combo Box: 
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/language.png)
-
-Finally click on the button "Upload" to upload the file towards the Cognitive Services.
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/upload.png) 
-
-Once the file is uploaded, after less than one second, the result is displayed in the "Result" Edit box: 
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/result.png)
-
-### Converting Live Spoken Audio to Text
-You can also directly convert the live Spoken Audio to text. 
-First, select the language in the "Language" Combo Box: 
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/language.png).
-
-Then click on the button "Convert" to start the recording of Live Spoken Audio.
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/liverecord.png) 
-
-Now you can speak, you can see the audio level in cyan
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/stopliverecord.png)
-
-after few seconds click on the same button "Stop Convert" to stop the recording and transmit the audio buffer to Cognitive Services.
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/stopliverecordbutton.png) 
-
-After less than one second, the result is displayed in the "Result" Edit box: 
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/result.png)
-
-
-### Converting continuously Live Spoken Audio to Text
-You can also directly convert the live Spoken Audio continuously to text. 
-First, select the language in the "Language" Combo Box: 
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/language.png).
-
-For continuous recording, you can define the two following parameters:
-
-1. The minimum audio level average necessary to trigger the recording, it's a value between 0 and 65535. By default the value is 300. You can tune this value after several microphone tests.
-2. The duration in milliseconds for the calculation of the audio level average . With this parameter you define the period during which the audio level is measured. By default the value is 1000 ms.  
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/levelduration.png).
-
-As soon as the audio level average is over the Level, all the audio samples will be recorded till the audio level average becomes below the same level.
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/graph.png).
-
-Then click on the button "Continuous Record" to start the recording of Live Spoken Audio.
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/continuousrecord.png) 
-
-Now you can speak, you can see the audio level in cyan
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/audiolevel.png)
-
-once the audio level is sufficient the Live Spoken Audio is recorded till the audio level become too low. Then the audio buffer is sent to Cognitive Services.
-The result is displayed, a green rectangle is displayed, if the conversion is successul:
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/result_ok.png) 
-
-a red rectangle is displayed, if the conversion failed:
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/result_error.png) 
-
-Moreover, if the application is suspended, the continuous recording is stopped. When the application will resume, the continous recording will start automatically.
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/resuming.png) 
-
-IF you want to stop the continuous recording click on the same button:
-
-![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/stopcontinuousrecord.png) 
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/TranslatorTextUWPSampleApp/Docs/mainpage.png)
 
 
 Building the application
@@ -216,8 +108,7 @@ Next steps
 The Translator-Text UWP Sample Applicaton could be improved to support the following features:
 <p/>
 
-1. Integration with LUIS Cognitive Services for continuous recording
-2. Support of MP3, AAC, WMA audio files 
+1. Support Speech translator
 
 
 
