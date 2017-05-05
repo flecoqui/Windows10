@@ -346,37 +346,44 @@ namespace TranslatorTextUWPSampleApp
             bInProgress = true;
             try
             {
-                
-                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
-
-                if (client != null)
+                if (InputText.Text.Length > 10000)
                 {
-                    if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
+                    LogMessage("More than 10000 characters to translate, translation cancelled...");
+                }
+                else
+                {
+
+                    Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
+
+                    if (client != null)
                     {
-                        LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
-                        string token = await client.GetToken(subscriptionKey.Text);
-                        if (!string.IsNullOrEmpty(token))
+                        if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                         {
-                            LogMessage("Getting Token successful Token: " + token.ToString());
-                            // Save subscription key
-                            SaveSettingsAndState();
+                            LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
+                            string token = await client.GetToken(subscriptionKey.Text);
+                            if (!string.IsNullOrEmpty(token))
+                            {
+                                LogMessage("Getting Token successful Token: " + token.ToString());
+                                // Save subscription key
+                                SaveSettingsAndState();
+                            }
                         }
-                    }
-                    if (client.HasToken())
-                    {
-                        LogMessage("Start Translating...");
-                        resultText.Text = await client.Translate(InputText.Text, InputLanguages.SelectedValue.ToString(), OutputLanguages.SelectedValue.ToString());
-                        if(!string.IsNullOrEmpty(resultText.Text))
+                        if (client.HasToken())
                         {
-                            LogMessage("Translating succesful...");
+                            LogMessage("Start Translating...");
+                            resultText.Text = await client.Translate(InputText.Text, InputLanguages.SelectedValue.ToString(), OutputLanguages.SelectedValue.ToString());
+                            if (!string.IsNullOrEmpty(resultText.Text))
+                            {
+                                LogMessage("Translating succesful...");
+                            }
+                            else
+                                LogMessage("Translating failed");
                         }
                         else
-                            LogMessage("Translating failed");                        
+                            LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
                     }
-                    else
-                        LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
+                    UpdateControls();
                 }
-                UpdateControls();
             }
             finally
             {

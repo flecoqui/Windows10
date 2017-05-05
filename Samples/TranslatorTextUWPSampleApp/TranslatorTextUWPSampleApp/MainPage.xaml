@@ -75,7 +75,7 @@
                     <Button IsEnabled="True" Content="&#xE128;" x:Name="DetectLanguageButton" ToolTipService.ToolTip="Detect input language" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="42" Width="42" Margin="1,1,1,1" Click="DetectLanguage_Click" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                    <TextBox x:Name="InputText" ToolTipService.ToolTip="Path or Uri of the WAV file to play/test" Height="100" IsTabStop="True"  Width="308" />
+                    <TextBox x:Name="InputText" ToolTipService.ToolTip="Input text to translate, select " Height="100" IsTabStop="True"  Width="308" TextWrapping="Wrap" AcceptsReturn="True" FontSize="12"  />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
