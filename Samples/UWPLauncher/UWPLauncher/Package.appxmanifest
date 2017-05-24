@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10" IgnorableNamespaces="uap mp rescap desktop">
+  <Identity Name="bd3fb62e-bd8b-4871-965e-bd4266a208b2" Publisher="CN=flecoqui" Version="1.0.0.0" />
+  <mp:PhoneIdentity PhoneProductId="bd3fb62e-bd8b-4871-965e-bd4266a208b2" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+  <Properties>
+    <DisplayName>UWPLauncher</DisplayName>
+    <PublisherDisplayName>flecoqui</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.14393.0" MaxVersionTested="10.0.14393.0" />
+  </Dependencies>
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+  <Applications>
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="UWPLauncher.App">
+      <uap:VisualElements DisplayName="UWPLauncher" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="UWPLauncher" BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
+        </uap:DefaultTile>
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.autoPlayContent">
+          <uap:AutoPlayContent>
+            <uap:LaunchAction Verb="Play" ActionDisplayName="Play DVD" ContentEvent="PlayDVDMovieOnArrival" />
+          </uap:AutoPlayContent>
+        </uap:Extension>
+        <!--<desktop:Extension Category="windows.fullTrustProcess" Executable="Win32\Win32App.exe" /> -->
+      </Extensions>
+    </Application>
+
+    <Application Id="win32app" Executable="Win32\Win32App.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="WIN32APP" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="WIN32APP" BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
+        </uap:DefaultTile>
+        <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="black" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <uap:Capability Name="videosLibrary" />
+    <uap:Capability Name="musicLibrary" />
+    <uap:Capability Name="removableStorage" />
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>
