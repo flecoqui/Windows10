@@ -28,10 +28,11 @@ using namespace Windows::UI::Xaml::Navigation;
 using namespace Windows::UI::ViewManagement;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
-
+MainPage^ MainPage::Current = nullptr;
 MainPage::MainPage()
 {
 	InitializeComponent();
+	MainPage::Current = this;
 	Size size(100, 100);
 	ApplicationView^ view = ApplicationView::GetForCurrentView();
 	auto r = view->TryResizeView(Size(100, 100));

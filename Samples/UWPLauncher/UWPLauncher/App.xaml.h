@@ -19,7 +19,8 @@ namespace UWPLauncher
 
 	internal:
 		App();
-
+	protected:
+		virtual void OnFileActivated(Windows::ApplicationModel::Activation::FileActivatedEventArgs^ args)override;
 	private:
 		void OnSuspending(Platform::Object^ sender, Windows::ApplicationModel::SuspendingEventArgs^ e);
 		void OnNavigationFailed(Platform::Object ^sender, Windows::UI::Xaml::Navigation::NavigationFailedEventArgs ^e);

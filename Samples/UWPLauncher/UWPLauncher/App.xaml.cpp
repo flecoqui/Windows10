@@ -115,3 +115,9 @@ void App::OnNavigationFailed(Platform::Object ^sender, Windows::UI::Xaml::Naviga
 {
     throw ref new FailureException("Failed to load Page " + e->SourcePageType.Name);
 }
+
+void App::OnFileActivated(Windows::ApplicationModel::Activation::FileActivatedEventArgs^ args)
+{
+	auto dispatcher = Window::Current->CoreWindow->Dispatcher;
+	MainPage::Current->LaunchWin32App(dispatcher);
+}

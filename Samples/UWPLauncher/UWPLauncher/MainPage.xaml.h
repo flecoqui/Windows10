@@ -17,6 +17,8 @@ namespace UWPLauncher
 	public:
 		MainPage();
 		static void LaunchWin32App(Windows::UI::Core::CoreDispatcher^ dispatcher);
+	internal:
+		static MainPage^ Current;
 
 	};
 }
