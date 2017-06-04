@@ -3033,8 +3033,10 @@ namespace AudioVideoPlayer
 
         private async void AdaptiveMediaSource_DownloadRequested(Windows.Media.Streaming.Adaptive.AdaptiveMediaSource sender, Windows.Media.Streaming.Adaptive.AdaptiveMediaSourceDownloadRequestedEventArgs args)
         {
-//            LogMessage("DownloadRequested for uri: " + args.ResourceUri.ToString());
-            
+            //            LogMessage("DownloadRequested for uri: " + args.ResourceUri.ToString());
+            if ((httpHeaders == null) || (httpHeaders.Count == 0))
+                return;
+
             var deferral = args.GetDeferral();
             if (deferral != null)
             {
@@ -3111,7 +3113,7 @@ namespace AudioVideoPlayer
         /// </summary>
         private void AdaptiveMediaSource_DownloadBitrateChanged(Windows.Media.Streaming.Adaptive.AdaptiveMediaSource sender, Windows.Media.Streaming.Adaptive.AdaptiveMediaSourceDownloadBitrateChangedEventArgs args)
         {
-            LogMessage("DownloadBitrateChangedfrom " + args.OldValue + " to " + args.NewValue);
+          //  LogMessage("DownloadBitrateChangedfrom " + args.OldValue + " to " + args.NewValue);
 
         }
 
