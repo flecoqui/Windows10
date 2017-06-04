@@ -29,6 +29,10 @@ using Windows.UI.Core;
 using Windows.UI.ViewManagement;
 using System.Reflection;
 using Companion;
+using Windows.Security.Cryptography.Core;
+using Windows.Security.Cryptography;
+using Windows.Storage.Streams;
+using System.Text.RegularExpressions;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -139,6 +143,30 @@ namespace AudioVideoPlayer
                 localPath = "file://" + path;                
             }
         }
+        Windows.UI.Color titleBarColor = Windows.UI.Colors.Transparent; 
+        void ShowTitleBar(bool bShow)
+        {
+            ApplicationViewTitleBar formattableTitleBar = ApplicationView.GetForCurrentView().TitleBar;
+            Windows.ApplicationModel.Core.CoreApplicationViewTitleBar coreTitleBar = Windows.ApplicationModel.Core.CoreApplication.GetCurrentView().TitleBar;
+            // Save titleBarColor
+            if (titleBarColor == Windows.UI.Colors.Transparent)
+                titleBarColor = formattableTitleBar.ButtonBackgroundColor?? Windows.UI.Colors.Transparent;
+            if (bShow == true)
+            {
+                formattableTitleBar.ButtonBackgroundColor = titleBarColor;
+                formattableTitleBar.ButtonHoverBackgroundColor = titleBarColor;
+                formattableTitleBar.ButtonInactiveBackgroundColor = titleBarColor;
+                coreTitleBar.ExtendViewIntoTitleBar = false;
+            }
+            else
+            {
+                formattableTitleBar.ButtonBackgroundColor = Windows.UI.Colors.Transparent;
+                formattableTitleBar.ButtonHoverBackgroundColor = Windows.UI.Colors.Transparent;
+                formattableTitleBar.ButtonInactiveBackgroundColor = Windows.UI.Colors.Transparent;
+                coreTitleBar.ExtendViewIntoTitleBar = true;
+            }
+
+        }
         /// <summary>
         /// Invoked when this page is about to be displayed in a Frame.
         /// </summary>
@@ -146,8 +174,6 @@ namespace AudioVideoPlayer
         /// This parameter is typically used to configure the page.</param>
         protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
-            // TODO: Prepare page for display here.
-
             // TODO: If your application contains multiple pages, ensure that you are
             // handling the hardware Back button by registering for the
             // Windows.Phone.UI.Input.HardwareButtons.BackPressed event.
@@ -314,8 +340,8 @@ namespace AudioVideoPlayer
             mediaPlayer.MediaFailed += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, Windows.Media.Playback.MediaPlayerFailedEventArgs>(MediaElement_MediaFailed);
             mediaPlayer.MediaEnded += new TypedEventHandler<Windows.Media.Playback.MediaPlayer, object>(MediaElement_MediaEnded);
             mediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
-            if (Windows.Foundation.Metadata.ApiInformation.IsEventPresent("Windows.Media.Playback.MediaPlaybackSession", "SeekableRangesChanged"))
-                mediaPlayer.PlaybackSession.SeekableRangesChanged += PlaybackSession_SeekableRangesChanged;
+            //if (Windows.Foundation.Metadata.ApiInformation.IsEventPresent("Windows.Media.Playback.MediaPlaybackSession", "SeekableRangesChanged"))
+            //    mediaPlayer.PlaybackSession.SeekableRangesChanged += PlaybackSession_SeekableRangesChanged;
             mediaPlayerElement.DoubleTapped += doubleTapped;
             IsFullWindowToken = mediaPlayerElement.RegisterPropertyChangedCallback(MediaPlayerElement.IsFullWindowProperty, new DependencyPropertyChangedCallback(IsFullWindowChanged));
 
@@ -383,8 +409,8 @@ namespace AudioVideoPlayer
             mediaPlayer.MediaFailed -= MediaElement_MediaFailed;
             mediaPlayer.MediaEnded -= MediaElement_MediaEnded;
             mediaPlayer.PlaybackSession.PlaybackStateChanged -= PlaybackSession_PlaybackStateChanged;
-            if (Windows.Foundation.Metadata.ApiInformation.IsEventPresent("Windows.Media.Playback.MediaPlaybackSession", "SeekableRangesChanged"))
-                mediaPlayer.PlaybackSession.SeekableRangesChanged -= PlaybackSession_SeekableRangesChanged;
+            //if (Windows.Foundation.Metadata.ApiInformation.IsEventPresent("Windows.Media.Playback.MediaPlaybackSession", "SeekableRangesChanged"))
+            //    mediaPlayer.PlaybackSession.SeekableRangesChanged -= PlaybackSession_SeekableRangesChanged;
             mediaPlayerElement.DoubleTapped -= doubleTapped;
             mediaPlayerElement.UnregisterPropertyChangedCallback(MediaElement.IsFullWindowProperty, IsFullWindowToken);
 
@@ -585,20 +611,20 @@ namespace AudioVideoPlayer
         /// <summary>
         /// This method is called to display the live buffer window with Creator Update SDK.
         /// </summary>
-        private void PlaybackSession_SeekableRangesChanged(Windows.Media.Playback.MediaPlaybackSession sender, object args)
-        {
-            var ranges = sender.GetSeekableRanges();
-            if ((ranges != null) && (adaptiveMediaSource != null))
-            {
-                foreach (var time in ranges)
-                {
-                    var times = adaptiveMediaSource.GetCorrelatedTimes();
-                    if (times != null)
-                        LogMessage("Video Buffer available from StartTime: " + time.Start.ToString() + " till EndTime: " + time.End.ToString() + " Current Position: " + times.Position.ToString() + " ProgramDateTime: " + times.ProgramDateTime.ToString());
-                }
-            }
+        //private void PlaybackSession_SeekableRangesChanged(Windows.Media.Playback.MediaPlaybackSession sender, object args)
+        //{
+            //var ranges = sender.GetSeekableRanges();
+            //if ((ranges != null) && (adaptiveMediaSource != null))
+            //{
+            //    foreach (var time in ranges)
+            //    {
+            //        var times = adaptiveMediaSource.GetCorrelatedTimes();
+            //        if (times != null)
+            //            LogMessage("Video Buffer available from StartTime: " + time.Start.ToString() + " till EndTime: " + time.End.ToString() + " Current Position: " + times.Position.ToString() + " ProgramDateTime: " + times.ProgramDateTime.ToString());
+            //    }
+            //}
 
-        }
+        //}
 
         /// <summary>
         /// This method is called when the Media State changed .
@@ -1685,6 +1711,7 @@ namespace AudioVideoPlayer
         {
             if (state == WindowMediaState.FullWindow)
             {
+                ShowTitleBar(false);
                 // if playing a picture or a video or audio with poster                
                 if (pictureElement.Visibility == Visibility.Visible)
                 {
@@ -1705,6 +1732,7 @@ namespace AudioVideoPlayer
             else if (state == WindowMediaState.FullScreen)
             {
 
+                ShowTitleBar(true);
                 // if playing a picture or a video or audio with poster                
                 if (pictureElement.Visibility == Visibility.Visible)
                 {
@@ -1726,6 +1754,7 @@ namespace AudioVideoPlayer
             else
             {
 
+                ShowTitleBar(true);
                 var view = ApplicationView.GetForCurrentView();
                 if ((view.IsFullScreenMode) || (view.AdjacentToLeftDisplayEdge && view.AdjacentToRightDisplayEdge))
                     view.ExitFullScreenMode();
@@ -2022,6 +2051,21 @@ namespace AudioVideoPlayer
                     (url.ToLower().StartsWith("picture://")) ||
                     (url.ToLower().StartsWith("video://")) ||
                     (url.ToLower().StartsWith("music://")))
+                {
+                    result = true;
+                }
+            }
+            return result;
+        }
+        /// <summary>
+        /// This method checks if the url is a redirect encrypted url of http url
+        /// </summary>
+        private bool IsRedirectEncryptedUri(string url)
+        {
+            bool result = false;
+            if (!string.IsNullOrEmpty(url))
+            {
+                if ((url.ToLower().StartsWith("redirects://")))
                 {
                     result = true;
                 }
@@ -2497,6 +2541,127 @@ namespace AudioVideoPlayer
             }
             return file;
         }
+
+        /// <summary>
+        /// ParseQueryString
+        /// Parse Query string .
+        /// </summary>
+        /// <param name="content">Uri to parse</param>
+        /// <returns>Disctionnary</returns>
+        public static IReadOnlyDictionary<string, string> ParseQueryString(Uri uri)
+        {
+            Regex _regex = new Regex(@"[?|&]([\w\.]+)=([^?|^&]+)");
+            var match = _regex.Match(uri.PathAndQuery);
+            var paramaters = new Dictionary<string, string>();
+            while (match.Success)
+            {
+                paramaters.Add(match.Groups[1].Value, match.Groups[2].Value);
+                match = match.NextMatch();
+            }
+            return paramaters;
+        }
+        /// <summary>
+        /// GetRemoteEncrytedContent
+        /// Downloads the remote encrypted content from content uri asynchronously.
+        /// </summary>
+        /// <param name="content">Uri Specifies whether to force a new download and avoid cached results.</param>
+        /// <param name="forceNewDownload">Specifies whether to force a new download and avoid cached results.</param>
+        /// <returns>A byte array</returns>
+        public async System.Threading.Tasks.Task<string> GetRemoteEncryptedContent(string content)
+        {
+            string result = string.Empty;
+            Uri contentUri = null;
+            string method = string.Empty;
+            string appName = string.Empty;
+            string code = string.Empty;
+            string media = string.Empty;
+
+            try
+            {
+                Uri uri = new Uri(content);
+                IReadOnlyDictionary<string,string> parameters = ParseQueryString(uri);
+                foreach( var value in parameters)
+                {
+                    if(value.Key=="method")
+                        method = Uri.UnescapeDataString(value.Value);
+                    if (value.Key == "appName")
+                        appName = Uri.UnescapeDataString(value.Value);
+                    if (value.Key == "code")
+                        code = Uri.UnescapeDataString(value.Value);
+                }
+                int pos = content.IndexOf('?');
+                if (pos > 0)
+                {
+                    content = content.Substring(0, pos);
+                    pos = content.LastIndexOf('/');
+                    if (pos > 0)
+                    {
+                        media = content.Substring(pos + 1);
+                        string url = content.Substring(0, pos + 1);
+                        contentUri = new Uri(url);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Exception while creating uri for: " + content + " exception: " + ex.Message);
+
+            }
+            LogMessage("Get Remote content from: " + contentUri.ToString());
+
+            var client = new Windows.Web.Http.HttpClient();
+            try
+            {
+
+                long l = (long)(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
+                string currentTime = l.ToString();
+                var key = media + '-' + code + '-' + appName + '-' + code + '-' + currentTime;
+
+                var alg = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Md5);
+                IBuffer buff = CryptographicBuffer.ConvertStringToBinary(key, BinaryStringEncoding.Utf8);
+                var hashed = alg.HashData(buff);
+                var authKey = CryptographicBuffer.EncodeToHexString(hashed) + '/' + currentTime;
+
+                string paramstring = "appName=" + appName;
+                paramstring += "&mediaId=" + media;
+                paramstring += "&method=" + method;
+                paramstring += "&authKey=" + authKey;
+              
+                SetHttpHeaders(httpHeaders, client.DefaultRequestHeaders);
+                client.DefaultRequestHeaders.TryAppendWithoutValidation("Accept", "*/*");
+                client.DefaultRequestHeaders.TryAppendWithoutValidation("User-Agent", "Mozilla /5.0 (Windows NT 10.0; Win64; x64; MSAppHost/3.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393");
+                client.DefaultRequestHeaders.TryAppendWithoutValidation("Accept-Language", "en -US,en;q=0.8,fr-FR;q=0.5,fr;q=0.3");
+                
+                Windows.Web.Http.HttpStringContent httpContent = new Windows.Web.Http.HttpStringContent(paramstring);
+                httpContent.Headers.Remove("Content-type");
+                httpContent.Headers.TryAppendWithoutValidation("Content-type", "application/x-www-form-urlencoded");
+                Windows.Web.Http.HttpResponseMessage response = await client.PostAsync(contentUri, httpContent);
+
+                response.EnsureSuccessStatusCode();
+                result = await response.Content.ReadAsStringAsync();
+                if (result.Length > 0)
+                {
+                    int pos = result.IndexOf("200");
+                    if (pos > 0)
+                    {
+                        pos = result.IndexOf("message", pos);
+                        if (pos > 0)
+                        {
+                            pos = result.IndexOf("http", pos);
+                            int end = result.IndexOf("\"", pos);
+                            result = result.Substring(pos, end - pos);
+                            result = result.Replace("\\","");
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("Exception: " + e.Message);
+            }
+
+            return result;
+        }
         /// <summary>
         /// GetRemoteContent
         /// Downloads the remote content from content uri asynchronously.
@@ -2551,6 +2716,17 @@ namespace AudioVideoPlayer
         {
             try
             {
+                if (IsRedirectEncryptedUri(Content))
+                {
+                    string localuri = Content.Replace("redirects://", "");
+                    string newContent = await GetRemoteEncryptedContent(localuri);
+                    if (!string.IsNullOrEmpty(newContent) && Uri.IsWellFormedUriString(newContent, UriKind.Absolute))
+                    {
+                        Content = newContent;
+                    }
+                    else
+                        return false;
+                }
                 if (IsRedirectUri(Content))
                 {
                     string localuri = Content.Replace("redirect://", "");
@@ -2813,7 +2989,7 @@ namespace AudioVideoPlayer
                 }
                 else if (args.UpdateType == Microsoft.Media.AdaptiveStreaming.AdaptiveSourceStatusUpdateType.StartEndTime)
                 {
-                    LogMessage("Smooth Streaming Time changed - Start " + (new TimeSpan(args.StartTime)).ToString() + " End: " + (new TimeSpan(Math.Max(args.EndTime, args.StartTime + args.AdaptiveSource.Manifest.Duration))).ToString() + " Live: " + (new TimeSpan(args.EndTime)).ToString() + " Position: " + mediaPlayer.PlaybackSession.Position.ToString());
+                  //  LogMessage("Smooth Streaming Time changed - Start " + (new TimeSpan(args.StartTime)).ToString() + " End: " + (new TimeSpan(Math.Max(args.EndTime, args.StartTime + args.AdaptiveSource.Manifest.Duration))).ToString() + " Live: " + (new TimeSpan(args.EndTime)).ToString() + " Position: " + mediaPlayer.PlaybackSession.Position.ToString());
 
                 }
 
