@@ -41,6 +41,8 @@ You can install the application on:<p/>
 
 The application is directly available on Windows Store: [TestMediaApp](https://www.microsoft.com/en-us/store/p/testmediaapp/9n3zwbvdnng4)
 
+<a href="https://www.microsoft.com/store/apps/9n3zwbvdnng4?ocid=badge"><img src="https://assets.windowsphone.com/f2f77ec7-9ba9-4850-9ebe-77e366d08adc/English_Get_it_Win_10_InvariantCulture_Default.png" alt="Get it on Windows 10" /></a>
+
 **Installing the application from Windows Store:**
 
 To install the application on your device running Windows 10 (Desktop, Laptop, Tablet, XBOX One, Phone, Hololens,...):
