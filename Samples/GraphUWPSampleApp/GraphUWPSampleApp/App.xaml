@@ -1,0 +1,17 @@
+﻿<Application
+    x:Class="GraphUWPSampleApp.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:GraphUWPSampleApp"
+    RequestedTheme="Light">
+    <Application.Resources>
+        <!-- Add your client id here. -->
+                                    
+        <x:String x:Key="ida:ClientID">d16cecf4-9fa2-4d9a-8ba4-f2bdc7009aa0</x:String>
+        <x:String x:Key="ida:ReturnUrl">msald16cecf4-9fa2-4d9a-8ba4-f2bdc7009aa0://auth</x:String>
+        <!--
+        <x:String x:Key="ida:ClientID">ffb65af9-4190-45e2-bfd2-70fc047d5935</x:String>
+        <x:String x:Key="ida:ReturnUrl">msaldffb65af9-4190-45e2-bfd2-70fc047d5935://auth</x:String>
+        -->
+    </Application.Resources>
+</Application>
