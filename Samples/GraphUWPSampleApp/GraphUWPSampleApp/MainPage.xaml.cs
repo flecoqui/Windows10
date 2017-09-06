@@ -18,6 +18,7 @@ using Windows.Web.Http;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
 using Windows.UI.Xaml.Media.Imaging;
+using System.Text.RegularExpressions;
 
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -154,13 +155,17 @@ namespace GraphUWPSampleApp
                         ei.StartDate = (string)startObj["dateTime"];
                         var endObj = calendarEvent["end"];
                         ei.EndDate = (string)endObj["dateTime"];
+                        var bodyObj = calendarEvent["body"];
+                        string contentType = (string)bodyObj["contentType"];
+                        string content = (string)bodyObj["content"];
+
                         ei.bOneDrive = false;
 
                         string eventId = (string)calendarEvent["id"];
                         bool attach = (bool)calendarEvent["hasAttachments"];
                         if (attach == true)
                         {
-                            var listAttach = await GetEventAttachmentsAsync(eventId, ei);
+                            var listAttach = await GetEventAttachmentsAsync(eventId, ei,contentType,content);
                             if (listAttach != null)
                             {
                                 foreach(var e in listAttach)
@@ -190,51 +195,142 @@ namespace GraphUWPSampleApp
 
             return events;
         }
-        public static async Task<Windows.Storage.Streams.IRandomAccessStream> GetAttachmentFromOneDrive(string name)
+        public static async Task<Windows.Storage.Streams.IRandomAccessStream> GetStreamFromUrl(string url)
+        {
+            Windows.Storage.Streams.IRandomAccessStream returnStream = null;
+
+            try
+            {
+                using (var cli = new Windows.Web.Http.HttpClient())
+                {
+                    var resp = await cli.GetAsync(new Uri(url));
+                    var b = new Windows.UI.Xaml.Media.Imaging.BitmapImage();
+                    if (resp != null && resp.StatusCode == Windows.Web.Http.HttpStatusCode.Ok)
+                    {
+                        using (var stream = await resp.Content.ReadAsInputStreamAsync())
+                        {
+                            var memStream = new MemoryStream();
+                            if (memStream != null)
+                            {
+                                await stream.AsStreamForRead().CopyToAsync(memStream);
+                                memStream.Position = 0;
+                                returnStream = memStream.AsRandomAccessStream();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("Error while downloading the attachment: " + e.Message);
+            }
+
+            return returnStream;
+        }
+        private static readonly Regex _regex = new Regex(@"[?|&]([\w\.]+)=([^?|^&]+)");
+
+        public static IReadOnlyDictionary<string, string> ParseQueryString(Uri uri)
+        {
+            var match = _regex.Match(uri.PathAndQuery);
+            var paramaters = new Dictionary<string, string>();
+            while (match.Success)
+            {
+                paramaters.Add(match.Groups[1].Value, match.Groups[2].Value);
+                match = match.NextMatch();
+            }
+            return paramaters;
+        }
+
+        public static async Task<string> GetReroutedUrl(string url)
+        {
+            string returnString = url;
+
+            try
+            {
+                using (var cli = new Windows.Web.Http.HttpClient())
+                {
+                    var resp = await cli.GetAsync(new Uri(url));
+                    if (resp != null && resp.StatusCode == Windows.Web.Http.HttpStatusCode.Ok)
+                    {
+                        if ((resp.RequestMessage != null) && (resp.RequestMessage.RequestUri != null))
+                        {
+
+                            IReadOnlyDictionary<string, string> param = ParseQueryString(resp.RequestMessage.RequestUri);
+                            if (param != null)
+                            {
+                                if (
+                                    (param.ContainsKey("resid")) &&
+                                    (param.ContainsKey("authkey")))
+                                {
+                                    string resid = param["resid"];
+                                    string authkey = param["authkey"];
+
+                                    authkey = authkey.Replace("!", "%21");
+                                    char[] sep = { '!' };
+                                    string[] array = resid.Split(sep);
+                                    if(array.Length==2)
+                                    {
+                                        string residprefix = array[0];
+                                        string residsuffix = "%21" + array[1];
+                                        resid = resid.Replace("!", "%21");
+                                        returnString = "https://onedrive.live.com/download.aspx?cid=" + residprefix + "&authKey=" + authkey + "&resid=" + resid;
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("Error while downloading the attachment: " + e.Message);
+            }
+
+            return returnString;
+        }
+
+        public static async Task<Windows.Storage.Streams.IRandomAccessStream> GetAttachmentFromOneDrive(string name, string contentType, string contentHtml)
         {
             Windows.Storage.Streams.IRandomAccessStream attachments = null;
             JObject jResult = null;
 
+            // get attachment from html content
             try
             {
-                HttpClient client = new HttpClient();
-                var token = await AuthenticationHelper.GetTokenForUserAsync();
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-
-
-                Uri usersEndpoint = new Uri(serviceEndpoint + "me/drive/root:/attachments:/children");
-
-                HttpResponseMessage response = await client.GetAsync(usersEndpoint);
-
-                if (response.IsSuccessStatusCode)
+                if (string.Equals(contentType, "html", StringComparison.OrdinalIgnoreCase))
                 {
-                    string responseContent = await response.Content.ReadAsStringAsync();
-                    jResult = JObject.Parse(responseContent);
-
-                    foreach (JObject attachment in jResult["value"])
+                    int endpos = contentHtml.IndexOf(name + "</a>");
+                    if (endpos > 0)
                     {
-
-                        string locname = (string)attachment["name"];
-                        int size = (int)attachment["size"];
-                        if (string.Equals(name, locname, StringComparison.OrdinalIgnoreCase))
+                        int startpos = contentHtml.LastIndexOf("<a", endpos);
+                        if ((startpos > 0) && (endpos > startpos))
                         {
-                            string url = (string)attachment["@microsoft.graph.downloadUrl"];
-                            using (var cli = new Windows.Web.Http.HttpClient())
+                            string s = contentHtml.Substring(startpos, endpos - startpos);
+                            if (!string.IsNullOrEmpty(s))
                             {
-
-                                var resp = await cli.GetAsync(new Uri(url));
-                                var b = new Windows.UI.Xaml.Media.Imaging.BitmapImage();
-                                if (resp != null && resp.StatusCode == Windows.Web.Http.HttpStatusCode.Ok)
+                                char[] sep = { ' ' };
+                                string[] array = s.Split(sep);
+                                if (array != null)
                                 {
-                                    using (var stream = await resp.Content.ReadAsInputStreamAsync())
+                                    foreach (var h in array)
                                     {
-                                        var memStream = new MemoryStream();
-                                        if (memStream != null)
+                                        if (!string.IsNullOrEmpty(h))
                                         {
-                                            await stream.AsStreamForRead().CopyToAsync(memStream);
-                                            memStream.Position = 0;
-                                            attachments  = memStream.AsRandomAccessStream();
-                                            break;
+                                            if (h.StartsWith("href="))
+                                            {
+                                                string url = h.Substring(5);
+                                                if (!string.IsNullOrEmpty(url))
+                                                {
+                                                    url = url.Replace('\"', ' ');
+                                                    url = url.Trim();
+                                                    if(url.StartsWith("https://1drv.ms",StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        url = await GetReroutedUrl(url);
+                                                    }
+                                                    attachments = await GetStreamFromUrl(url);
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -242,25 +338,64 @@ namespace GraphUWPSampleApp
                         }
                     }
                 }
-
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("We could not get the current user's events. The request returned this status code: " + response.StatusCode);
-                    return null;
-
-                }
             }
-
             catch (Exception e)
             {
-                System.Diagnostics.Debug.WriteLine("We could not get the current user's events: " + e.Message);
-                return null;
+                System.Diagnostics.Debug.WriteLine("Error while getting the attachment: " + e.Message);
             }
 
+            // attachment not found in HTML content
+            // check if the attachments are present in OneDrive "attachments" folder
+            if (attachments == null)
+            {
+                try
+                {
+                    HttpClient client = new HttpClient();
+                    var token = await AuthenticationHelper.GetTokenForUserAsync();
+                    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+
+                    Uri usersEndpoint = new Uri(serviceEndpoint + "me/drive/root:/attachments:/children");
+
+                    HttpResponseMessage response = await client.GetAsync(usersEndpoint);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync();
+                        jResult = JObject.Parse(responseContent);
+
+                        foreach (JObject attachment in jResult["value"])
+                        {
+
+                            string locname = (string)attachment["name"];
+                            int size = (int)attachment["size"];
+                            if (string.Equals(name, locname, StringComparison.OrdinalIgnoreCase))
+                            {
+                                string url = (string)attachment["@microsoft.graph.downloadUrl"];
+                                attachments = await GetStreamFromUrl(url);
+                                break;
+                            }
+                        }
+                    }
+
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("We could not get the current user's events. The request returned this status code: " + response.StatusCode);
+                        return null;
+
+                    }
+                }
+
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine("We could not get the current user's events: " + e.Message);
+                    return null;
+                }
+            }
             return attachments;
         }
 
-        public static  async Task<List<EventImage>> GetEventAttachmentsAsync(string id, EventImage inputEventImage)
+        public static  async Task<List<EventImage>> GetEventAttachmentsAsync(string id, EventImage inputEventImage,string contentType, string contentHtml)
         {
             var attachments = new List<EventImage>();
             JObject jResult = null;
@@ -287,13 +422,13 @@ namespace GraphUWPSampleApp
                         string type = (string)attachment["contentType"];
                         int size = (int)attachment["size"];
                         bool isInline = (bool)attachment["isInline"];
+                        string content = (string)attachment["contentBytes"];
                         if (string.Equals(type, "image/jpeg", StringComparison.OrdinalIgnoreCase))
                         {
 
 
-                            if (isInline == false)
+                            if (content != null)
                             {
-                                string content = (string)attachment["contentBytes"];
                                 byte[] contentArray = Convert.FromBase64String(content);
                                 MemoryStream ms = new MemoryStream();
                                 if (ms != null)
@@ -320,7 +455,7 @@ namespace GraphUWPSampleApp
                             }
                             else
                             {
-                                var stream = await GetAttachmentFromOneDrive(name);
+                                var stream = await GetAttachmentFromOneDrive(name,contentType,contentHtml);
                                 if (stream != null)
                                 {
                                     EventImage ei = new EventImage();
