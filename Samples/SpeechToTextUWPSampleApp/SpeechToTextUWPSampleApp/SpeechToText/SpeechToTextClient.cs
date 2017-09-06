@@ -28,7 +28,7 @@ namespace SpeechToText
         private string Token;
         private SpeechToTextMainStream STTStream;
         private const string AuthUrl = "https://api.cognitive.microsoft.com/sts/v1.0/issueToken";
-        private const string SpeechUrl = "https://speech.platform.bing.com/recognize";
+        private const string SpeechUrl = "https://speech.platform.bing.com/speech/recognition/{0}/cognitiveservices/v1";
 
         private bool isRecordingInitialized;
         private bool isRecording;
@@ -36,7 +36,7 @@ namespace SpeechToText
         private UInt16 thresholdDuration;
         private UInt16 thresholdLevel;
         private Windows.Media.Capture.MediaCapture mediaCapture;
-
+        private string apiString = "interactive";
         /// <summary>
         /// class SpeechToTextClient constructor
         /// </summary>
@@ -52,7 +52,27 @@ namespace SpeechToText
             thresholdLevel = 0;
             maxStreamSizeInBytes = 0;
         }
-
+        /// <summary>
+        /// SetAPI method
+        /// </summary>
+        /// <param name="APIstring">String associated with the endpoint url (interactive, conversation, dictation) 
+        /// 
+        /// </param>
+        /// <return>True if successfull 
+        /// </return>
+        public bool SetAPI(string APIstring)
+        {
+            bool result = false;
+            if (string.Equals(APIstring, "interactive") ||
+                string.Equals(APIstring, "conversation") ||
+                string.Equals(APIstring, "dictation"))
+            {
+                apiString = APIstring;
+                result = true;
+            }
+            return result;
+        }
+        
         /// <summary>
         /// GetToken method
         /// </summary>
@@ -177,7 +197,7 @@ namespace SpeechToText
         /// </param>
         /// <return>The result of the SpeechToText REST API.
         /// </return>
-        public async System.Threading.Tasks.Task<SpeechToTextResponse> SendBuffer(string locale)
+        public async System.Threading.Tasks.Task<SpeechToTextResponse> SendBuffer(string locale, string resulttype)
         {
             SpeechToTextResponse r = null;
             int loop = 1;
@@ -186,19 +206,22 @@ namespace SpeechToText
             {
                 try
                 {
-                    string os = "Windows" + SpeechToText.SystemInformation.SystemVersion;
-                    string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
-                    string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
+                    string speechUrl = string.Format(SpeechUrl, apiString) + "?language=" + locale + "&format=" + resulttype;
                     Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
                     System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
                     hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Accept", "application/json;text/xml");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Transfer-Encoding", "chunked");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Expect", "100-continue");
+
                     Windows.Web.Http.HttpResponseMessage hrm = null;
                     Windows.Web.Http.HttpStreamContent content = null;
                     if (STTStream != null)
                     {
                         content = new Windows.Web.Http.HttpStreamContent(STTStream.AsStream().AsInputStream());
-                        content.Headers.ContentLength = STTStream.GetLength();
-                        System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString());
+                        //content.Headers.ContentLength = STTStream.GetLength();
+                        //System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString());
                         content.Headers.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
                         IProgress<Windows.Web.Http.HttpProgress> progress = new Progress<Windows.Web.Http.HttpProgress>(ProgressHandler);
                         hrm = await hc.PostAsync(new Uri(speechUrl), content).AsTask(cts.Token, progress);
@@ -259,7 +282,7 @@ namespace SpeechToText
         /// </param>
         /// <return>The result of the SpeechToText REST API.
         /// </return>
-        public async System.Threading.Tasks.Task<SpeechToTextResponse> SendAudioStream(string locale, SpeechToTextAudioStream stream )
+        public async System.Threading.Tasks.Task<SpeechToTextResponse> SendAudioStream(string locale, string resulttype, SpeechToTextAudioStream stream)
         {
             SpeechToTextResponse r = null;
             int loop = 1;
@@ -268,17 +291,21 @@ namespace SpeechToText
             {
                 try
                 {
-                    string os = "Windows" + SpeechToText.SystemInformation.SystemVersion;
-                    string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
-                    string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
+                    string speechUrl = string.Format(SpeechUrl, apiString) + "?language=" + locale + "&format=" + resulttype;
+
                     Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
                     System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
                     hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Accept", "application/json;text/xml");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Transfer-Encoding", "chunked");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Expect", "100-continue");
+
                     Windows.Web.Http.HttpResponseMessage hrm = null;
                     Windows.Web.Http.HttpStreamContent content = null;
                     content = new Windows.Web.Http.HttpStreamContent(stream.GetInputStreamAt(0));
-                    content.Headers.ContentLength = (ulong)stream.Size;
-                    if ((content != null) && (content.Headers.ContentLength > 0))
+                    //content.Headers.ContentLength = (ulong)stream.Size;
+                    if ((content != null) && (stream.Size > 0))
                     {
                         System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString());
                         content.Headers.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
@@ -338,7 +365,7 @@ namespace SpeechToText
         /// </param>
         /// <return>The result of the SpeechToText REST API.
         /// </return>
-        public async System.Threading.Tasks.Task<SpeechToTextResponse> SendStorageFile(Windows.Storage.StorageFile wavFile, string locale)
+        public async System.Threading.Tasks.Task<SpeechToTextResponse> SendStorageFile(Windows.Storage.StorageFile wavFile, string locale,string resulttype)
         {
             SpeechToTextResponse r = null;
             int loop = 1;
@@ -347,13 +374,14 @@ namespace SpeechToText
             {
                 try
                 {
-                    string os = "Windows" + SpeechToText.SystemInformation.SystemVersion;
-                    string deviceid = "b2c95ede-97eb-4c88-81e4-80f32d6aee54";
-                    string speechUrl = SpeechUrl + "?scenarios=ulm&appid=D4D52672-91D7-4C74-8AD8-42B1D98141A5&version=3.0&device.os=" + os + "&locale=" + locale + "&format=json&requestid=" + Guid.NewGuid().ToString() + "&instanceid=" + deviceid + "&result.profanitymarkup=1&maxnbest=3";
+                    string speechUrl = string.Format(SpeechUrl, apiString) + "?language=" + locale + "&format=" + resulttype;
                     Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
 
                     hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
                     hc.DefaultRequestHeaders.TryAppendWithoutValidation("ContentType", "audio/wav; codec=\"audio/pcm\"; samplerate=16000");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Accept", "application/json;text/xml");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Transfer-Encoding", "chunked");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Expect", "100-continue");
                     Windows.Web.Http.HttpResponseMessage hrm = null;
 
                     Windows.Storage.StorageFile file = wavFile;
@@ -375,11 +403,12 @@ namespace SpeechToText
                                 STTStream.WriteAsync(byteArray.AsBuffer()).AsTask().Wait();
 
                                 Windows.Web.Http.HttpStreamContent content = new Windows.Web.Http.HttpStreamContent(STTStream.AsStream().AsInputStream());
-                                content.Headers.ContentLength = STTStream.GetLength();
-                                System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString() + " bytes");
+                //                content.Headers.ContentLength = STTStream.GetLength();
+                  //              System.Diagnostics.Debug.WriteLine("REST API Post Content Length: " + content.Headers.ContentLength.ToString() + " bytes");
                                 System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
                                 IProgress<Windows.Web.Http.HttpProgress> progress = new Progress<Windows.Web.Http.HttpProgress>(ProgressHandler);
                                 hrm = await hc.PostAsync(new Uri(speechUrl), content).AsTask(cts.Token, progress);
+                                
                             }
                         }
                     }

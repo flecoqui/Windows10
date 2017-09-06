@@ -83,6 +83,18 @@ namespace SpeechToTextUWPSampleApp
             mediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
 
+            // Fill Combobox API
+            ComboAPI.Items.Clear();
+            ComboAPI.Items.Add("interactive");
+            ComboAPI.Items.Add("conversation");
+            ComboAPI.Items.Add("dictation");
+            ComboAPI.SelectedIndex = 0;
+
+            ComboAPIResult.Items.Clear();
+            ComboAPIResult.Items.Add("simple");
+            ComboAPIResult.Items.Add("detailed");
+            ComboAPIResult.SelectedIndex = 0;
+
             language.Items.Clear();
             foreach(var l in LanguageArray)
                 language.Items.Add(l);
@@ -834,6 +846,7 @@ namespace SpeechToTextUWPSampleApp
 
                 if (client != null)
                 {
+                    client.SetAPI((string)ComboAPI.SelectedItem);
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
                         LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
@@ -873,8 +886,9 @@ namespace SpeechToTextUWPSampleApp
                             client.AudioCaptureError -= Client_AudioCaptureError;
                             ClearCanvas();
                             string locale = language.SelectedItem.ToString();
+                            string resulttype = ComboAPIResult.SelectedItem.ToString();
                             LogMessage("Sending Memory Buffer...");
-                            SpeechToTextResponse result = await client.SendBuffer(locale);
+                            SpeechToTextResponse result = await client.SendBuffer(locale, resulttype);
                             if (result != null)
                             {
                                 string httpError = result.GetHttpError();
@@ -925,6 +939,8 @@ namespace SpeechToTextUWPSampleApp
 
                 if (client != null)
                 {
+                    client.SetAPI((string)ComboAPI.SelectedItem);
+
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
                         LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
@@ -990,10 +1006,11 @@ namespace SpeechToTextUWPSampleApp
                 while ((stream = client.GetAudioStream()) !=null)
                 {
                     string locale = language.SelectedItem.ToString();
+                    string resulttype = ComboAPIResult.SelectedItem.ToString();
                     double start = stream.startTime.TotalSeconds;
                     double end = stream.endTime.TotalSeconds;
                     LogMessage("Sending Sub-Buffer: " + stream.Size.ToString() + " bytes for buffer from: " + start.ToString() + " seconds to: " + end.ToString() + " seconds");
-                    SpeechToTextResponse result = await client.SendAudioStream(locale, stream);
+                    SpeechToTextResponse result = await client.SendAudioStream(locale, resulttype, stream);
                     if (result != null)
                     {
                         string httpError = result.GetHttpError();
@@ -1039,6 +1056,8 @@ namespace SpeechToTextUWPSampleApp
                 Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
                 if (client != null)
                 {
+                    client.SetAPI((string)ComboAPI.SelectedItem);
+
                     if (client.IsRecording() == false)
                     {
                         if (await client.CleanupRecording())
@@ -1146,6 +1165,7 @@ namespace SpeechToTextUWPSampleApp
                 Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
                 if (client != null)
                 {
+                    client.SetAPI((string)ComboAPI.SelectedItem);
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
                         LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
@@ -1161,12 +1181,14 @@ namespace SpeechToTextUWPSampleApp
                     if (client.HasToken())
                     {
                         string locale = language.SelectedItem.ToString();
+                        string resulttype = ComboAPIResult.SelectedItem.ToString();
+
                         var file = await GetFileFromLocalPathUrl(mediaUri.Text);
                         if (file != null)
                         {
                                 string convertedText = string.Empty;
                                 LogMessage("Sending StorageFile: " + file.Path.ToString());
-                                SpeechToTextResponse result = await client.SendStorageFile(file, locale);
+                                SpeechToTextResponse result = await client.SendStorageFile(file, locale,resulttype);
                                 if (result != null)
                                 {
                                     string httpError = result.GetHttpError();

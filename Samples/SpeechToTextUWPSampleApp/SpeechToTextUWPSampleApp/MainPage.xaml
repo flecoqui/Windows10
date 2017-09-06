@@ -63,9 +63,18 @@
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
                     <TextBlock x:Name="labelSubscriptionID" Text="Speech-To-Text Subscription Key:" HorizontalAlignment="Left" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
+                <StackPanel Orientation="Vertical"  VerticalAlignment="Center">
                     <TextBox x:Name="subscriptionKey" ToolTipService.ToolTip="SubscriptionKey associated with the Cognitive Service Speech-To-Text Account" Width="308" IsTabStop="True"   />
                 </StackPanel>
+                <TextBlock>Cognitive Services Speech Recognition API:</TextBlock>
+                <StackPanel Orientation="Vertical"  VerticalAlignment="Center">
+                    <ComboBox x:Name="ComboAPI" ToolTipService.ToolTip="Cognitive Services Speech Recognition API (endpoint) " Width="308" ></ComboBox>
+                </StackPanel>
+                <TextBlock>Cognitive Services Speech Result Type:</TextBlock>
+                <StackPanel Orientation="Vertical"  VerticalAlignment="Center">
+                    <ComboBox x:Name="ComboAPIResult" ToolTipService.ToolTip="Cognitive Services Speech Recognition Result API (simple or detailed) " Width="308" ></ComboBox>
+                </StackPanel>
+
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
                     <TextBlock x:Name="labelUri" Text="Path:" VerticalAlignment="Center" HorizontalAlignment="Left" Width="40"  />
                     <Button IsEnabled="False" Content="&#xE720;" x:Name="fileRecordingButton" ToolTipService.ToolTip="Record microphone into a local WAV file" FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="42" Width="42" Margin="1,1,1,1" Click="FileRecording_Click"  />

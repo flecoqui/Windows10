@@ -72,42 +72,38 @@ namespace SpeechToText
     /// </info>
     class SpeechToTextResult
     {
-        private const string scenarioKey = "scenario";
-        private const string nameKey = "name";
-        private const string lexicalKey = "lexical";
-        private const string confidenceKey = "confidence";
-        private const string propertiesKey = "properties";
+        private const string confidenceKey = "Confidence";
+        private const string lexicalKey = "Lexical";
+        private const string ITNKey = "ITN";
+        private const string displayKey = "Display";
+        private const string maskedITNKey = "MaskedITN";
 
-        private string scenario;
-        private string name;
-        private string lexical;
         private double confidence;
-        private SpeechToTextConfidence properties;
+        private string lexical;
+        private string ITN;
+        private string maskedITN;
+        private string display;
 
         public SpeechToTextResult()
         {
-            scenario = "";
-            name = "";
-            lexical = "";
             confidence = 0;
-            properties = new SpeechToTextConfidence();
+            lexical = string.Empty;
+            ITN = string.Empty;
+            maskedITN = string.Empty;
+            display = string.Empty;
         }
 
         public SpeechToTextResult(JsonObject jsonObject)
         {
-            scenario = jsonObject.GetNamedString(scenarioKey, "");
-            name = jsonObject.GetNamedString(nameKey, "");
+            confidence = jsonObject.GetNamedNumber(confidenceKey, 0);
             lexical = jsonObject.GetNamedString(lexicalKey, "");
-            string s = jsonObject.GetNamedString(confidenceKey, "");
-            double.TryParse(s, out confidence);
-            JsonObject propertiesObject = jsonObject.GetNamedObject(propertiesKey, null);
-            if (propertiesObject != null)
-                properties = new SpeechToTextConfidence(propertiesObject);
+            ITN = jsonObject.GetNamedString(ITNKey, "");
+            maskedITN = jsonObject.GetNamedString(maskedITNKey, "");
+            display = jsonObject.GetNamedString(displayKey, "");
         }
-        public string GetScenario() { return scenario; }
-        public string GetName() { return name; }
         public string GetLexical() { return lexical; }
-        public SpeechToTextConfidence GetConfidence() { return properties; }
+        public double GetConfidence() { return confidence; }
+        public string GetDisplay() { return display; }
     }
     /// <summary>
     /// class SpeechToTextHeader 
@@ -202,12 +198,29 @@ namespace SpeechToText
         //\"properties\":{\"HIGHCONF\":\"1\"}
         //}]
         //}
-        private const string versionKey = "version";
-        private const string headerKey = "header";
-        private const string resultsKey = "results";
+        private const string RecognitionStatusKey = "RecognitionStatus";
+        private const string OffsetKey = "Offset";
+        private const string DurationKey = "Duration";
+        private const string NBestKey = "NBest";
 
-        private string version;
-        private SpeechToTextHeader header;
+        private string recognitionStatus;
+        private  double offset;
+        private double duration;
+
+
+        //{
+        //"RecognitionStatus": "Success",
+        //"Offset": 22500000,
+        //"Duration": 21000000,
+        //"NBest": [{
+        //    "Confidence": 0.941552162,
+        //    "Lexical": "find a funny movie to watch",
+        //    "ITN": "find a funny movie to watch",
+        //    "MaskedITN": "find a funny movie to watch",
+        //    "Display": "Find a funny movie to watch."
+        //}]
+        //}
+
         private ObservableCollection<SpeechToTextResult> results;
         private string HttpError;
         private string displayString;
@@ -221,8 +234,6 @@ namespace SpeechToText
         public SpeechToTextResponse()
         {
             HttpError = string.Empty;
-            version = "3.0";
-            header = null;
             results = new ObservableCollection<SpeechToTextResult>();
         }
 
@@ -233,13 +244,14 @@ namespace SpeechToText
                 JsonObject jsonObject = JsonObject.Parse(jsonString);
                 Newtonsoft.Json.Linq.JObject obj = Newtonsoft.Json.Linq.JObject.Parse(jsonString);
                 displayString = obj.ToString();
-                version = jsonObject.GetNamedString(versionKey, "");
-                header = new SpeechToTextHeader(jsonObject.GetNamedObject(headerKey, null));
+                recognitionStatus = jsonObject.GetNamedString(RecognitionStatusKey, "");
+                offset = jsonObject.GetNamedNumber(OffsetKey, 0);
+                duration = jsonObject.GetNamedNumber(DurationKey, 0);
 
                 results = new ObservableCollection<SpeechToTextResult>();
                 if (results != null)
                 {
-                    foreach (IJsonValue jsonValue in jsonObject.GetNamedArray(resultsKey, new JsonArray()))
+                    foreach (IJsonValue jsonValue in jsonObject.GetNamedArray(NBestKey, new JsonArray()))
                     {
                         if (jsonValue.ValueType == JsonValueType.Object)
                         {
@@ -255,17 +267,16 @@ namespace SpeechToText
         }
         public string Result()
         {
-            if (header == null)
+            if (results == null)
+                return string.Empty;
+            if(results.Count == 0)
                 return string.Empty;
 
-            return header.Result();
+            return results[0].GetDisplay();
         }
         public string Status()
         {
-            if (header == null)
-                return string.Empty;
-
-            return header.Status();
+            return recognitionStatus;
         }
         public string GetHttpError()
         {
