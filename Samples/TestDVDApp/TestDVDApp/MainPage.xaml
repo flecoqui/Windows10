@@ -1,0 +1,29 @@
+﻿<Page
+    x:Class="TestDVDApp.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TestDVDApp"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+                <Button Click="ButtonStartDiscover_Click" x:Name="ButtonStartDiscover"  Visibility="Visible" >Start Discovering CD/DVD Reader</Button>
+                <Button Click="ButtonStopDiscover_Click" x:Name="ButtonStopDiscover" Visibility="Collapsed" >Stop Discovering CD/DVD Reader</Button>
+            </StackPanel>
+            <ComboBox x:Name="ListDevices" Width="200" ></ComboBox>
+            <Button Click="ButtonEjectMedia_Click" x:Name="ButtonEjectMedia" >Eject Media</Button>
+        </StackPanel>
+    </Grid>
+</Page>

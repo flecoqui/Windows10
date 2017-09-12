@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
+  <Identity Name="5a45b962-de8e-4df1-9298-387200186057" Publisher="CN=flecoqui" Version="1.0.0.0" />
+  <mp:PhoneIdentity PhoneProductId="5a45b962-de8e-4df1-9298-387200186057" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+  <Properties>
+    <DisplayName>TestDVDApp</DisplayName>
+    <PublisherDisplayName>flecoqui</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
+  </Dependencies>
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+  <Applications>
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="TestDVDApp.App">
+      <uap:VisualElements DisplayName="TestDVDApp" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="TestDVDApp" BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
+        </uap:DefaultTile>
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <uap:Capability Name="removableStorage" />
+    <uap:Capability Name="videosLibrary" />
+    <uap:Capability Name="picturesLibrary" />
+    <uap:Capability Name="musicLibrary" />
+    <DeviceCapability Name="Optical"/>
+    <DeviceCapability Name="53f56308-b6bf-11d0-94f2-00a0c91efb8b" />
+     <!--
+     <DeviceCapability Name="6AC27878-A6FA-4155-BA85-F98F491D4F33" />
+    <DeviceCapability Name="BA0C718F-4DED-49B7-BDD3-FABE28661211" />
+    <DeviceCapability Name="A35996AB-11CF-4935-8B61-A6761081ECDF" />
+    -->
+  </Capabilities>
+</Package>
