@@ -25,6 +25,7 @@ namespace TestDVDApp
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        Windows.Media.Playback.MediaPlayer mediaPlayer;
         DeviceWatcher dw;
         List<DeviceInformation> ListDeviceInformation;
         public MainPage()
@@ -36,12 +37,174 @@ namespace TestDVDApp
             ListDevices.SelectionChanged += ListDevices_SelectionChanged;
             ButtonEjectMedia.IsEnabled = false;
             ButtonReadTable.IsEnabled = false;
+            ButtonReadTableEx.IsEnabled = false;
+            ButtonReadRaw.IsEnabled = false;
             ButtonStartDiscover.Visibility = Visibility.Visible;
             ButtonStopDiscover.Visibility = Visibility.Collapsed;
             ListDevices.IsEnabled = false;
             CheckListDevices();
+            SectorArray = null;
+            FillComboTrack();
             bAutoStart = false;
+            // Bind player to element
+            mediaPlayer = new Windows.Media.Playback.MediaPlayer();
+            mediaPlayerElement.SetMediaPlayer(mediaPlayer);
+            mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
+            mediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
+            mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
         }
+        #region Media
+        /// <summary>
+        /// GetFileFromLocalPathUrl
+        /// Return the StorageFile associated with the url  
+        /// </summary>
+        /// <param name="PosterUrl">Url string of the content</param>
+        /// <returns>StorageFile</returns>
+        private async System.Threading.Tasks.Task<Windows.Storage.StorageFile> GetFileFromLocalPathUrl(string PosterUrl)
+        {
+            string path = null;
+            Windows.Storage.StorageFolder folder = null;
+            if (PosterUrl.ToLower().StartsWith("picture://"))
+            {
+                folder = Windows.Storage.KnownFolders.PicturesLibrary;
+                path = PosterUrl.Replace("picture://", "");
+            }
+            else if (PosterUrl.ToLower().StartsWith("music://"))
+            {
+                folder = Windows.Storage.KnownFolders.MusicLibrary;
+                path = PosterUrl.Replace("music://", "");
+            }
+            else if (PosterUrl.ToLower().StartsWith("video://"))
+            {
+                folder = Windows.Storage.KnownFolders.VideosLibrary;
+                path = PosterUrl.Replace("video://", "");
+            }
+            else if (PosterUrl.ToLower().StartsWith("file://"))
+            {
+                path = PosterUrl.Replace("file://", "");
+            }
+            Windows.Storage.StorageFile file = null;
+            try
+            {
+                if (folder != null)
+                {
+                    string ext = System.IO.Path.GetExtension(path);
+                    string filename = System.IO.Path.GetFileName(path);
+                    string directory = System.IO.Path.GetDirectoryName(path);
+                    while (!string.IsNullOrEmpty(directory))
+                    {
+
+                        string subdirectory = directory;
+                        int pos = -1;
+                        if ((pos = directory.IndexOf('\\')) > 0)
+                            subdirectory = directory.Substring(0, pos);
+                        folder = await folder.GetFolderAsync(subdirectory);
+                        if (folder != null)
+                        {
+                            if (pos > 0)
+                                directory = directory.Substring(pos + 1);
+                            else
+                                directory = string.Empty;
+                        }
+                    }
+                    if (folder != null)
+                        file = await folder.GetFileAsync(filename);
+                }
+                else
+                    file = await Windows.Storage.StorageFile.GetFileFromPathAsync(path);
+            }
+            catch (Exception e)
+            {
+                LogMessage("Exception while opening file: " + PosterUrl + " exception: " + e.Message);
+            }
+            return file;
+        }
+
+        /// <summary>
+        /// Mute method 
+        /// </summary>
+        private void mute_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Toggle Mute");
+            mediaPlayer.IsMuted = !mediaPlayer.IsMuted;
+        }
+        /// <summary>
+        /// Volume Up method 
+        /// </summary>
+        private void volumeUp_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Volume Up");
+            mediaPlayer.Volume = (mediaPlayer.Volume + 0.10 <= 1 ? mediaPlayer.Volume + 0.10 : 1);
+        }
+        /// <summary>
+        /// Volume Down method 
+        /// </summary>
+        private void volumeDown_Click(object sender, RoutedEventArgs e)
+        {
+            LogMessage("Volume Down");
+            mediaPlayer.Volume = (mediaPlayer.Volume - 0.10 >= 0 ? mediaPlayer.Volume - 0.10 : 0);
+        }
+        private async System.Threading.Tasks.Task<bool> StartPlay(string content)
+        {
+
+            try
+            {
+
+                bool result = false;
+                if (string.IsNullOrEmpty(content))
+                {
+                    LogMessage("Empty Uri");
+                    return result;
+                }
+
+                // Stop the current stream
+                mediaPlayer.Source = null;
+                mediaPlayerElement.PosterSource = null;
+                mediaPlayer.AutoPlay = true;
+                // if a picture will be displayed
+                // display or not popup
+                if (result == true)
+                {
+                    mediaPlayerElement.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    mediaPlayerElement.Visibility = Visibility.Visible;
+                }
+                // Audio or video
+                Windows.Storage.StorageFile file = await GetFileFromLocalPathUrl("file://" + content);
+                if (file != null)
+                {
+                    mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromStorageFile(file);
+                    mediaPlayer.Play();
+                    return true;
+                }
+                else
+                    LogMessage("Failed to load media file: " + Content);
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Exception Playing: " + ex.Message.ToString());
+            }
+            return false;
+        }
+
+        private void MediaPlayer_MediaOpened(Windows.Media.Playback.MediaPlayer sender, object args)
+        {
+            LogMessage("MediaPlayer media opened event");
+
+        }
+
+        private void MediaPlayer_MediaFailed(Windows.Media.Playback.MediaPlayer sender, Windows.Media.Playback.MediaPlayerFailedEventArgs args)
+        {
+            LogMessage("MediaPlayer media failed event");
+        }
+
+        private void MediaPlayer_MediaEnded(Windows.Media.Playback.MediaPlayer sender, object args)
+        {
+            LogMessage("MediaPlayer media ended event");
+        }
+        #endregion Media
         void CheckListDevices()
         {
             if (ListDevices.Items != null) 
@@ -60,11 +223,15 @@ namespace TestDVDApp
             {
                 ButtonEjectMedia.IsEnabled = true;
                 ButtonReadTable.IsEnabled = true;
+                ButtonReadTableEx.IsEnabled = true;
+                ButtonReadRaw.IsEnabled = true;
             }
             else
             {
                 ButtonEjectMedia.IsEnabled = false;
                 ButtonReadTable.IsEnabled = false;
+                ButtonReadTableEx.IsEnabled = false;
+                ButtonReadRaw.IsEnabled = false;
             }
         }
 
@@ -149,48 +316,55 @@ namespace TestDVDApp
             ButtonStopDiscover.Visibility = Visibility.Collapsed;
         }
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private async void ButtonReadRaw_Click(object sender, RoutedEventArgs e)
         {
-            var devices = await DeviceInformation.FindAllAsync();
-            foreach (var device in devices)
+            string id = ListDevices.SelectedItem as string;
+            if (!string.IsNullOrEmpty(id) && (id != "None"))
             {
-                try
+                DeviceInformation device = null;
+                if (ListDeviceInformation != null)
                 {
-                    //LogMessage("Device Name: " + device.Name);
-                    if (string.Equals(device.Name, "MT1887"))
-
+                    foreach (var d in ListDeviceInformation)
                     {
-                        LogMessage("Device Name: " + device.Name);
-
-                        foreach ( var p in device.Properties)
-                        {
-                            LogMessage("Property: " + p.Key  + " value: " + (p.Value!=null?p.Value.ToString():"null"));
-                        }
-                        var customDevice = await Windows.Devices.Custom.CustomDevice.FromIdAsync(device.Id, DeviceAccessMode.ReadWrite,
-                            DeviceSharingMode.Exclusive);
-
-                        var inputBuffer = new byte[1];
-                        var outputBuffer = new byte[1];
-                  //      IOControlCode ^ Fx2Driver::EjectMedia = ref new IOControlCode(IOCTL_STORAGE_BASE, 0x0202, IOControlAccessMode::Read, IOControlBufferingMethod::Buffered);
-
-                        var r = await customDevice.SendIOControlAsync(
-                                new IOControlCode(0x0000002d, 0x0202,IOControlAccessMode.Read, IOControlBufferingMethod.Buffered),
-                            null, null);
-
-//                        var r = await customDevice.SendIOControlAsync(
-//                            new IOControlCode(UInt16.MinValue, UInt16.MaxValue, IOControlAccessMode.Read,
-//                                IOControlBufferingMethod.Neither),
-//                            inputBuffer.AsBuffer(), outputBuffer.AsBuffer());
+                        if (d.Id == id)
+                            device = d;
                     }
+                }
+                if (device != null)
+                {
+                    try
+                    {
+                        {
+                            LogMessage("Device Name: " + device.Name);
 
-                }
-                catch (UnauthorizedAccessException ex)
-                {
-                    LogMessage("Exception: " + ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    LogMessage("Exception: " + ex.Message);
+                            foreach (var p in device.Properties)
+                            {
+                                LogMessage("Property: " + p.Key + " value: " + (p.Value != null ? p.Value.ToString() : "null"));
+                            }
+                            if ((ComboTrackNumber.Items != null) &&
+                                (ComboTrackNumber.Items.Count > 0))
+                            {
+                                int i = ComboTrackNumber.SelectedIndex;
+                                if (i < SectorArray.Length)
+                                {
+                                    string path = await GetTrackBuffer(device.Id, SectorArray, i);
+                                    if (!string.IsNullOrEmpty(path))
+                                    {
+                                        LogMessage("Track " + i.ToString() + " saved under " + path);
+                                        await StartPlay(path);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        LogMessage("Exception while ejecting the media: " + ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage("Exception while ejecting the media: " + ex.Message);
+                    }
                 }
             }
 
@@ -289,6 +463,8 @@ namespace TestDVDApp
                                        ejectMedia,
                                     null, null);
                                 LogMessage("Media Ejection successful: " + r.ToString());
+                                SectorArray = null;
+                                FillComboTrack();
                             }
 
                         }
@@ -508,61 +684,152 @@ namespace TestDVDApp
 
             return Result;
         }
-        async System.Threading.Tasks.Task<byte[]> GetTrackBuffer(string Id, int[] SectorArray, int track)
+        //[Bloc décrivant le format audio]
+        //   FormatBlocID(4 octets) : Identifiant «fmt »  (0x66,0x6D, 0x74,0x20)
+        //   BlocSize(4 octets) : Nombre d'octets du bloc - 16  (0x10)
+
+        //   AudioFormat(2 octets) : Format du stockage dans le fichier(1: PCM, ...)
+        //   NbrCanaux(2 octets) : Nombre de canaux(de 1 à 6, cf.ci-dessous)
+        //   Frequence(4 octets) : Fréquence d'échantillonnage (en hertz) [Valeurs standardisées : 11 025, 22 050, 44 100 et éventuellement 48 000 et 96 000]
+        //   BytePerSec(4 octets) : Nombre d'octets à lire par seconde (c.-à-d., Frequence * BytePerBloc).
+        //   BytePerBloc(2 octets) : Nombre d'octets par bloc d'échantillonnage(c.-à-d., tous canaux confondus : NbrCanaux* BitsPerSample/8).
+        //   BitsPerSample(2 octets) : Nombre de bits utilisés pour le codage de chaque échantillon(8, 16, 24)
+        //                            nChannels = BitConverter.ToUInt16(fmt.data, 2);
+        //                            nSamplesPerSec = BitConverter.ToUInt32(fmt.data, 4);
+        //                            nAvgBytesPerSec = BitConverter.ToUInt32(fmt.data, 8);
+        //                            nBlockAlign = BitConverter.ToUInt16(fmt.data, 12);
+        //                            wBitsPerSample = BitConverter.ToUInt16(fmt.data, 14);
+
+        public byte[] CreateWAVHeaderBuffer(uint Len)
         {
-            var customDevice = await Windows.Devices.Custom.CustomDevice.FromIdAsync(Id, DeviceAccessMode.ReadWrite,
-            DeviceSharingMode.Exclusive);
-            if ((SectorArray!=null)&&(track+1 < SectorArray.Length))
+            uint headerLen = 4 + 16 + 8 + 8 + 8;
+            byte[] updatedBuffer = new byte[headerLen];
+            if (updatedBuffer != null)
             {
+                System.Text.UTF8Encoding.UTF8.GetBytes("RIFF").CopyTo(0, updatedBuffer.AsBuffer(), 0, 4);
+                BitConverter.GetBytes(4 + 16 + 8 + Len + 8).CopyTo(0, updatedBuffer.AsBuffer(), 4, 4);
+                System.Text.UTF8Encoding.UTF8.GetBytes("WAVE").CopyTo(0, updatedBuffer.AsBuffer(), 8, 4);
+                System.Text.UTF8Encoding.UTF8.GetBytes("fmt ").CopyTo(0, updatedBuffer.AsBuffer(), 12, 4);
+           //     BitConverter.GetBytes(fmt.length).CopyTo(0, updatedBuffer.AsBuffer(), 16, 4);
+                BitConverter.GetBytes((uint)16).CopyTo(0, updatedBuffer.AsBuffer(), 16, 4);
+                //                fmt.data.CopyTo(0, updatedBuffer.AsBuffer(), 20, (int)fmt.length);
+                BitConverter.GetBytes(1).CopyTo(0, updatedBuffer.AsBuffer(), 20, 2);
+                BitConverter.GetBytes((ushort)2).CopyTo(0, updatedBuffer.AsBuffer(), 22, 2);
+                BitConverter.GetBytes((uint)44100).CopyTo(0, updatedBuffer.AsBuffer(), 24, 4);
+                BitConverter.GetBytes((uint)176400).CopyTo(0, updatedBuffer.AsBuffer(), 28, 4);
+                BitConverter.GetBytes((UInt16)4).CopyTo(0, updatedBuffer.AsBuffer(), 32, 2);
+                BitConverter.GetBytes((UInt16)16).CopyTo(0, updatedBuffer.AsBuffer(), 34, 2);
 
-                int startSector = SectorArray[track];
-                int endSector = SectorArray[track+1];
-                int numberSector = 20;
-                var inputBuffer = new byte[8 + 4 + 4];
-                var outputBuffer = new byte[2352 * numberSector];
-                int k = startSector;
-                while (k < endSector)
+                System.Text.UTF8Encoding.UTF8.GetBytes("data").CopyTo(0, updatedBuffer.AsBuffer(), 20 + 16, 4);
+                BitConverter.GetBytes(Len).CopyTo(0, updatedBuffer.AsBuffer(), 24 + 16, 4);
+            }
+            return updatedBuffer;
+        }
+
+        async System.Threading.Tasks.Task<string> GetTrackBuffer(string Id, int[] SectorArray, int track)
+        {
+            string filename = "test" + track.ToString() + ".wav";
+            Windows.Storage.StorageFolder folder = Windows.Storage.ApplicationData.Current.LocalFolder;
+            if (folder != null)
+            {
+                Windows.Storage.StorageFile file = await folder.CreateFileAsync(filename, Windows.Storage.CreationCollisionOption.ReplaceExisting);
+                if (file != null)
                 {
-                    long firstSector = startSector * 2048 + k;
-                    byte[] array = BitConverter.GetBytes(firstSector);
-                    for (int i = 0; i < array.Length; i++)
-                        inputBuffer[i] = array[i];
-                    byte[] intarray = BitConverter.GetBytes(numberSector);
-                    for (int i = 0; i < intarray.Length; i++)
-                        inputBuffer[8 + i] = intarray[i];
-                    intarray = BitConverter.GetBytes((int)2);
-                    for (int i = 0; i < intarray.Length; i++)
-                        inputBuffer[12 + i] = intarray[i];
-                    uint r = 0; ;
-                    //r = await globalDevice.SendIOControlAsync(
-                    //       readRaw, inputBuffer.AsBuffer(), outputBuffer.AsBuffer());
-                    if (customDevice.InputStream != null)
+                    LogMessage("Writing into : " + file.Path);
+                    Stream s = await file.OpenStreamForWriteAsync();
+                    if (s != null)
                     {
-                        var stream = customDevice.InputStream;
-                        if(stream!=null)
+                        var customDevice = await Windows.Devices.Custom.CustomDevice.FromIdAsync(Id, DeviceAccessMode.ReadWrite,
+                        DeviceSharingMode.Exclusive);
+                        if ((SectorArray!=null)&&(track+1 < SectorArray.Length))
                         {
-                            //stream.Seek((ulong)firstSector);
-                            var b = await stream.ReadAsync(outputBuffer.AsBuffer(), (uint) (numberSector * 2048), Windows.Storage.Streams.InputStreamOptions.None);
-                            if (b != null)
+
+                            int startSector = SectorArray[track];
+                            int endSector = SectorArray[track+1];
+                            int numberSector = 20;
+                            var inputBuffer = new byte[8 + 4 + 4];
+                            var outputBuffer = new byte[2352 * numberSector];
+                            int k = startSector;
+                            while (k < endSector)
                             {
-                                r = b.Length;
-                                outputBuffer = b.ToArray();
+                                long firstSector = k * 2048;
+                                byte[] array = BitConverter.GetBytes(firstSector);
+                                for (int i = 0; i < array.Length; i++)
+                                    inputBuffer[i] = array[i];
+                                byte[] intarray = BitConverter.GetBytes(numberSector);
+                                for (int i = 0; i < intarray.Length; i++)
+                                    inputBuffer[8 + i] = intarray[i];
+                                intarray = BitConverter.GetBytes((int)2);
+                                for (int i = 0; i < intarray.Length; i++)
+                                    inputBuffer[12 + i] = intarray[i];
+                                uint r = 0; ;
+                                r = await customDevice.SendIOControlAsync(
+                                       readRaw, inputBuffer.AsBuffer(), outputBuffer.AsBuffer());
+                                //if (customDevice.InputStream != null)
+                                //{
+                                //    var stream = customDevice.InputStream;
+                                //    if(stream!=null)
+                                //    {
+                                //        //stream.Seek((ulong)firstSector);
+                                //        var b = await stream.ReadAsync(outputBuffer.AsBuffer(), (uint) (numberSector * 2048), Windows.Storage.Streams.InputStreamOptions.None);
+                                //        if (b != null)
+                                //        {
+                                //            r = b.Length;
+                                //            outputBuffer = b.ToArray();
+                                //        }
+
+
+                                //    }
+                                //}
+                                if (r > 0)
+                                {
+                                    //bool bFound = false;
+                                    //for (int j = 0; j < r; j++)
+                                    //    if (outputBuffer[j] != 0)
+                                    //    {
+                                    //        bFound = true;
+                                    //        break;
+                                    //    }
+                                    //if (bFound == true)
+                                    if (k == startSector)
+                                    {
+                                        byte[] header = CreateWAVHeaderBuffer((uint)(100 * (numberSector * 2048)));
+                                        s.Write(header, 0, header.Length);
+                                    }
+                                    s.Write(outputBuffer, 0, numberSector*2048);
+                                    s.Flush();
+                                    LogMessage("Read " + numberSector.ToString() + " sectors from " + k.ToString());
+                                    
+                                    //else
+                                    //    LogMessage("Read " + numberSector.ToString() + " null sectors from " + k.ToString());
+                                    k += numberSector;
+                                    if (k > (startSector + 100 * numberSector))
+                                        break;
+                                }
                             }
-
-
+                            return file.Path;
                         }
                     }
-                    if (r > 0)
-                    {
-                        for (int j = 0; j < r; j++)
-                            if (outputBuffer[j] != 0)
-                                break;
-                        k += numberSector;
-                    }
-
                 }
             }
             return null;
+        }
+        void FillComboTrack()
+        {
+            ComboTrackNumber.Items.Clear();
+            if ((SectorArray != null)&&
+                (SectorArray.Length>1))
+            {
+                ComboTrackNumber.IsEnabled = true;
+                for (int i = 0; i < (SectorArray.Length - 1); i++)
+                    ComboTrackNumber.Items.Add(i.ToString());
+            }
+            if (ComboTrackNumber.Items.Count > 0)
+            {
+                ComboTrackNumber.SelectedIndex = 0;
+            }
+            else
+                ComboTrackNumber.IsEnabled = false;
         }
         int[] SectorArray = null;
         private async void ButtonReadTable_Click(object sender, RoutedEventArgs e)
@@ -596,6 +863,7 @@ namespace TestDVDApp
                         if (SectorArray != null)
                         {
                             LogMessage("Get CD Table successfull: " + SectorArray.Count().ToString() + " tracks" );
+                            FillComboTrack();
                         }
                     }
                     catch (UnauthorizedAccessException ex)

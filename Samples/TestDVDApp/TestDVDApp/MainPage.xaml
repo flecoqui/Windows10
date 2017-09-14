@@ -25,10 +25,14 @@
             <ComboBox x:Name="ListDevices" Width="200" ></ComboBox>
             <Button Click="ButtonEjectMedia_Click" x:Name="ButtonEjectMedia" >Eject CD</Button>
             <Button Click="ButtonReadTable_Click" x:Name="ButtonReadTable" >Read Table</Button>      
-            <!--
-            <Button Click="ButtonReadTable_Click" x:Name="ButtonReadTable" >Read CD Table</Button>
+            
             <Button Click="ButtonReadTableEx_Click" x:Name="ButtonReadTableEx" >Read CD Text</Button>
-            -->
+            <StackPanel Orientation="Horizontal">
+            <Button Click="ButtonReadRaw_Click" x:Name="ButtonReadRaw" >Read CD Raw</Button>
+            <TextBlock>Track:</TextBlock>
+            <ComboBox x:Name="ComboTrackNumber"></ComboBox>
+            </StackPanel>
+            <MediaPlayerElement x:Name="mediaPlayerElement" AutoPlay="True" AreTransportControlsEnabled="False"   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="Uniform"   />
 
         </StackPanel>
         <TextBox  x:Name="logs" Grid.Row="2" Grid.ColumnSpan="2" Foreground="{ThemeResource ButtonForegroundThemeBrush}" IsTabStop="True" Margin="2,2,2,2"   MaxHeight="800" MinHeight="100"  ScrollViewer.HorizontalScrollBarVisibility="Auto"  ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping="NoWrap" AcceptsReturn="True" FontSize="12" IsReadOnly="True"  Visibility="Visible" Text="" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" TextChanged="Logs_TextChanged" >
