@@ -20,6 +20,16 @@
         </uap:DefaultTile>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
+      <Extensions>
+            <uap:Extension Category="windows.autoPlayContent">
+          <uap:AutoPlayContent>
+            <uap:LaunchAction Verb="PlayDVD" ActionDisplayName="Play DVD" ContentEvent="PlayDVDMovieOnArrival" />
+            <uap:LaunchAction Verb="PlayCD" ActionDisplayName="Play CD" ContentEvent="PlayCDAudioOnArrival" />
+            <uap:LaunchAction Verb="PlayBD" ActionDisplayName="Play BluRay" ContentEvent="PlayBluRayOnArrival" />
+          </uap:AutoPlayContent>
+        </uap:Extension>
+        <!--<desktop:Extension Category="windows.fullTrustProcess" Executable="Win32\Win32App.exe" /> -->
+      </Extensions>
     </Application>
   </Applications>
   <Capabilities>

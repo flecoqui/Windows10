@@ -30,6 +30,8 @@ namespace TestDVDApp
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            // Initialize Log Message List
+            MessageList = new System.Collections.Concurrent.ConcurrentQueue<string>();
         }
 
         /// <summary>
@@ -96,5 +98,72 @@ namespace TestDVDApp
             //TODO: Save application state and stop any background activity
             deferral.Complete();
         }
+
+
+        #region Logs
+        public System.Collections.Concurrent.ConcurrentQueue<String> MessageList;
+        /// <summary>
+        /// Display Message on the application page
+        /// </summary>
+        /// <param name="Message">String to display</param>
+        void LogMessage(string Message)
+        {
+            if (MessageList == null)
+                MessageList = new System.Collections.Concurrent.ConcurrentQueue<string>();
+            string Text = string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " " + Message + "\n";
+            MessageList.Enqueue(Text);
+            System.Diagnostics.Debug.WriteLine(Text);
+        }
+        #endregion
+
+        protected override void OnFileActivated(FileActivatedEventArgs args)
+        {
+
+            LogMessage("OnFileActivated");
+            base.OnFileActivated(args);
+            Frame rootFrame = Window.Current.Content as Frame;
+            if (rootFrame == null)
+            {
+                rootFrame = new Frame();
+                if (args.PreviousExecutionState == ApplicationExecutionState.Terminated)
+                {
+                }
+                Window.Current.Content = rootFrame;
+            }
+
+            if (rootFrame.Content == null)
+            {
+                if (!rootFrame.Navigate(typeof(MainPage)))
+                {
+                    throw new Exception("Failed to create initial page");
+                }
+            }
+
+            MainPage p = rootFrame.Content as MainPage;
+            if (p != null)
+            {
+                if (args != null)
+                {
+                    if (string.Equals(args.Verb, "PlayCD", StringComparison.OrdinalIgnoreCase))
+                    {
+                        LogMessage("Event Play CD");
+                        p.AutoPlayCD();
+                    }
+                    else if (string.Equals(args.Verb, "PlayDVD", StringComparison.OrdinalIgnoreCase))
+                    {
+                        LogMessage("Event Play DVD");
+                        p.AutoPlayDVD();
+                    }
+                    else if (string.Equals(args.Verb, "PlayBD", StringComparison.OrdinalIgnoreCase))
+                    {
+                        LogMessage("Event Play BluRay");
+                        p.AutoPlayBD();
+                    }
+                }
+            }
+            // Ensure the current window is active 
+            Window.Current.Activate();
+        }
+
     }
 }

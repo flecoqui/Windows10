@@ -23,7 +23,15 @@
                 <Button Click="ButtonStopDiscover_Click" x:Name="ButtonStopDiscover" Visibility="Collapsed" >Stop Discovering CD/DVD Reader</Button>
             </StackPanel>
             <ComboBox x:Name="ListDevices" Width="200" ></ComboBox>
-            <Button Click="ButtonEjectMedia_Click" x:Name="ButtonEjectMedia" >Eject Media</Button>
+            <Button Click="ButtonEjectMedia_Click" x:Name="ButtonEjectMedia" >Eject CD</Button>
+            <Button Click="ButtonReadTable_Click" x:Name="ButtonReadTable" >Read Table</Button>      
+            <!--
+            <Button Click="ButtonReadTable_Click" x:Name="ButtonReadTable" >Read CD Table</Button>
+            <Button Click="ButtonReadTableEx_Click" x:Name="ButtonReadTableEx" >Read CD Text</Button>
+            -->
+
         </StackPanel>
+        <TextBox  x:Name="logs" Grid.Row="2" Grid.ColumnSpan="2" Foreground="{ThemeResource ButtonForegroundThemeBrush}" IsTabStop="True" Margin="2,2,2,2"   MaxHeight="800" MinHeight="100"  ScrollViewer.HorizontalScrollBarVisibility="Auto"  ScrollViewer.VerticalScrollBarVisibility="Auto" TextWrapping="NoWrap" AcceptsReturn="True" FontSize="12" IsReadOnly="True"  Visibility="Visible" Text="" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" TextChanged="Logs_TextChanged" >
+        </TextBox>
     </Grid>
 </Page>
