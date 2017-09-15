@@ -596,6 +596,34 @@ namespace TestDVDApp
             }
             return false;
         }
+        public async System.Threading.Tasks.Task<byte[]> ReadFile(string filename)
+        {
+            try
+            {
+                Windows.Storage.StorageFolder folder = Windows.Storage.ApplicationData.Current.LocalFolder;
+                if (folder != null)
+                {
+                    Windows.Storage.StorageFile file = await folder.GetFileAsync(filename);
+                    if (file != null)
+                    {
+                        
+                        LogMessage("Writing into : " + file.Path);
+                        Stream s = await file.OpenStreamForReadAsync();
+                        if (s != null)
+                        {
+                            byte[] array = new byte[s.Length];
+                            s.Read(array, 0, (int)s.Length);
+                            return array;
+                        }
+                    }
+                }
+            }
+            catch (Exception Ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Exception while copying file: " + Ex.Message);
+            }
+            return null;
+        }
         async System.Threading.Tasks.Task<byte[]> GetCDText(string id)
         {
             byte[] Array = null;
@@ -660,20 +688,27 @@ namespace TestDVDApp
                 while (i_track <= 127 && indexTrack < indexTrackMax)
                 {
                     //fprintf( stderr, "t=%d psz_track=%p end=%p", i_track, (void *)psz_track, (void *)&psz_text[12] );
-                    if (TextArray[4 + 18 * i + 1]!=0)
+                    if (TextArray[4 + 18 * i + 4]!=0)
                     {
                         //astrcat(&pppsz_info[i_track][i_pack_type - 0x80], psz_track);
-                        byte[] resArray = new byte[12];
+                        byte[] resArray = new byte[13];
                         int k = 0;
-                        for (k = 0; k < 12; k++)
+                        int l = 0;
+                        for (k = 0; k < 12; k++, l++)
                         {
-                            resArray[k] = TextArray[4 + 18 * i + 4 + k];
-                            if (resArray[k] == 0x00)
-                                break;
+                            resArray[l] = TextArray[4 + 18 * i + 4 + k];
+                            if ((resArray[l] == 0x00)||(k==11))
+                            {
+                                string str = System.Text.Encoding.UTF8.GetString(resArray, 0, (resArray[l] == 0x00)? l: l+1);
+                                if (string.IsNullOrEmpty(ArrayTrackInfo[i_track]))
+                                    ArrayTrackInfo[i_track] = str;
+                                else
+                                    ArrayTrackInfo[i_track] += str;
+                                LogMessage("Track: " + i_track.ToString() + " Type: " + (i_pack_type-0x80).ToString() + " Text: " + str );
+                                i_track++;
+                                l = -1;
+                            }
                         }
-                        string str = System.Text.Encoding.UTF8.GetString(resArray);
-                        ArrayTrackInfo[i_track] += str;
-                        LogMessage("Text: " + str);
                         indexTrack += k;
                         i_track_last = (i_track_last > i_track ? i_track_last : i_track);
                     }
@@ -916,6 +951,7 @@ namespace TestDVDApp
                         if (SectorArray != null)
                         {
                             byte[] TextArray = await GetCDText(device.Id);
+                            //byte[] TextArray = await ReadFile("test.bin");
                             if (TextArray != null)
                             {
                                 GetCDInfo(SectorArray, TextArray);
