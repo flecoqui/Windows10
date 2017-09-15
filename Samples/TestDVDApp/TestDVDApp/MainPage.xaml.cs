@@ -638,6 +638,7 @@ namespace TestDVDApp
         {
             int Result = 0;
             int i_track_last = 0;
+            string[] ArrayTrackInfo = new string[99];
             int Count = (TextArray.Length - 4) / 18;
             for (int i = 0; i < Count; i++)
             {
@@ -666,22 +667,28 @@ namespace TestDVDApp
                         int k = 0;
                         for (k = 0; k < 12; k++)
                         {
-                            resArray[k] = TextArray[4 + 18 * i + 1 + k];
+                            resArray[k] = TextArray[4 + 18 * i + 4 + k];
                             if (resArray[k] == 0x00)
                                 break;
                         }
                         string str = System.Text.Encoding.UTF8.GetString(resArray);
+                        ArrayTrackInfo[i_track] += str;
                         LogMessage("Text: " + str);
                         indexTrack += k;
-                        i_track_last = Math.Max(i_track_last, i_track);
+                        i_track_last = (i_track_last > i_track ? i_track_last : i_track);
                     }
 
                     i_track++;
                     indexTrack += 1 + 12;
                 }
 
-            }
 
+            }
+            for (int l = 0; l < 99; l++)
+            {
+                if (!string.IsNullOrEmpty(ArrayTrackInfo[l]))
+                    LogMessage("Track : " + l.ToString() + " Info: " + ArrayTrackInfo[l]);
+            }
             return Result;
         }
         //[Bloc décrivant le format audio]
@@ -725,7 +732,8 @@ namespace TestDVDApp
             }
             return updatedBuffer;
         }
-
+        const uint CD_RAW_SECTOR_SIZE = 2352;
+        const uint CD_SECTOR_SIZE = 2048;
         async System.Threading.Tasks.Task<string> GetTrackBuffer(string Id, int[] SectorArray, int track)
         {
             string filename = "test" + track.ToString() + ".wav";
@@ -748,11 +756,11 @@ namespace TestDVDApp
                             int endSector = SectorArray[track+1];
                             int numberSector = 20;
                             var inputBuffer = new byte[8 + 4 + 4];
-                            var outputBuffer = new byte[2352 * numberSector];
+                            var outputBuffer = new byte[CD_RAW_SECTOR_SIZE * numberSector];
                             int k = startSector;
                             while (k < endSector)
                             {
-                                long firstSector = k * 2048;
+                                long firstSector = k * CD_SECTOR_SIZE;
                                 byte[] array = BitConverter.GetBytes(firstSector);
                                 for (int i = 0; i < array.Length; i++)
                                     inputBuffer[i] = array[i];
@@ -793,10 +801,13 @@ namespace TestDVDApp
                                     //if (bFound == true)
                                     if (k == startSector)
                                     {
-                                        byte[] header = CreateWAVHeaderBuffer((uint)(100 * (numberSector * 2048)));
+                                        byte[] header = CreateWAVHeaderBuffer((uint)(100 * (numberSector * CD_RAW_SECTOR_SIZE)));
                                         s.Write(header, 0, header.Length);
                                     }
-                                    s.Write(outputBuffer, 0, numberSector*2048);
+                                    if(r==(numberSector * CD_RAW_SECTOR_SIZE))
+                                        s.Write(outputBuffer, 0, (int) (numberSector * CD_RAW_SECTOR_SIZE));
+                                    else
+                                        s.Write(outputBuffer, 0, (int)r);
                                     s.Flush();
                                     LogMessage("Read " + numberSector.ToString() + " sectors from " + k.ToString());
                                     
