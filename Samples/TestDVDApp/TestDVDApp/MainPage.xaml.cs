@@ -20,6 +20,45 @@ using System.Diagnostics;
 
 namespace TestDVDApp
 {
+    public class TrackMetadata
+    {
+        public int Number { get; set; }
+        // Type = 0
+        public string Title { get; set; }
+        // Type = 14
+        public string ISrc { get; set; }
+        public TimeSpan Duration { get; set; }
+        public int FirstSector { get; set; }
+        public int LastSector { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("Track: {0} Title: {1} ID: {2} Duration: {3}", Number,string.IsNullOrEmpty(Title)?"Unknown":Title, string.IsNullOrEmpty(ISrc)?"Unknown":ISrc, Duration);
+        }
+
+    }
+    public class CDMetadata
+    {
+        // Type = 0
+        public string AlbumTitle { get; set; }
+        // Type = 1
+        public string Artist { get; set; }
+        // Type = 5
+        public string Message { get; set; }
+        // Type = 7
+        public string Genre { get; set; }
+        // Type = 6
+        public string DiscID { get; set; }
+        // Type = 14
+        public string ISrc { get; set; }
+
+        public List<TrackMetadata> Tracks { get; set; }
+
+        public CDMetadata()
+        {
+            Tracks = new List<TrackMetadata>();
+        }
+    }
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
@@ -28,9 +67,11 @@ namespace TestDVDApp
         Windows.Media.Playback.MediaPlayer mediaPlayer;
         DeviceWatcher dw;
         List<DeviceInformation> ListDeviceInformation;
+        CDMetadata currentCD;
         public MainPage()
         {
             this.InitializeComponent();
+            currentCD = new CDMetadata();
             if (ListDevices.Items != null)
                 ListDevices.Items.Clear();
             ListDeviceInformation = new List<DeviceInformation>();
@@ -43,7 +84,6 @@ namespace TestDVDApp
             ButtonStopDiscover.Visibility = Visibility.Collapsed;
             ListDevices.IsEnabled = false;
             CheckListDevices();
-            SectorArray = null;
             FillComboTrack();
             bAutoStart = false;
             // Bind player to element
@@ -52,6 +92,9 @@ namespace TestDVDApp
             mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
             mediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
+
+
+
         }
         #region Media
         /// <summary>
@@ -272,11 +315,11 @@ namespace TestDVDApp
                  if (bAutoStart == true)
                  {
                      bAutoStart = false;
-                     ButtonReadTable_Click(null, null);
+                     ButtonReadCDMetadata_Click(null, null);
                  }
              });
         }
-        private void ButtonStartDiscover_Click(object sender, RoutedEventArgs e)
+        private  void ButtonStartDiscover_Click(object sender, RoutedEventArgs e)
         {
             if(ListDevices.Items!=null)
                 ListDevices.Items.Clear();
@@ -300,6 +343,7 @@ namespace TestDVDApp
             ButtonStartDiscover.Visibility = Visibility.Collapsed;
             ButtonStopDiscover.Visibility = Visibility.Visible;
             ListDevices.IsEnabled = true;
+
 
         }
         private void ButtonStopDiscover_Click(object sender, RoutedEventArgs e)
@@ -344,13 +388,13 @@ namespace TestDVDApp
                             if ((ComboTrackNumber.Items != null) &&
                                 (ComboTrackNumber.Items.Count > 0))
                             {
-                                int i = ComboTrackNumber.SelectedIndex;
-                                if (i < SectorArray.Length)
+                                var t = ComboTrackNumber.SelectedItem as TrackMetadata;
+                                if (t != null )
                                 {
-                                    string path = await GetTrackBuffer(device.Id, SectorArray, i);
+                                    string path = await GetTrackBuffer(device.Id, t);
                                     if (!string.IsNullOrEmpty(path))
                                     {
-                                        LogMessage("Track " + i.ToString() + " saved under " + path);
+                                        LogMessage("Track " + t.Number.ToString() + " saved under " + path);
                                         await StartPlay(path);
                                     }
                                 }
@@ -463,7 +507,8 @@ namespace TestDVDApp
                                        ejectMedia,
                                     null, null);
                                 LogMessage("Media Ejection successful: " + r.ToString());
-                                SectorArray = null;
+                                if(currentCD.Tracks != null)
+                                    currentCD.Tracks.Clear();
                                 FillComboTrack();
                             }
 
@@ -662,12 +707,20 @@ namespace TestDVDApp
             }
             return Array;
         }
-        int GetCDInfo(int[] SectorArray, byte[] TextArray)
+        int GetCDInfo(byte[] TextArray)
         {
             int Result = 0;
             int i_track_last = 0;
             string[] ArrayTrackInfo = new string[99];
+
+
+            for (int i = 0; i < currentCD.Tracks.Count;i++)
+            {
+                currentCD.Tracks[i].ISrc = string.Empty;
+                currentCD.Tracks[i].Title = string.Empty;
+            }
             int Count = (TextArray.Length - 4) / 18;
+
             for (int i = 0; i < Count; i++)
             {
 
@@ -688,7 +741,7 @@ namespace TestDVDApp
                 while (i_track <= 127 && indexTrack < indexTrackMax)
                 {
                     //fprintf( stderr, "t=%d psz_track=%p end=%p", i_track, (void *)psz_track, (void *)&psz_text[12] );
-                    if (TextArray[4 + 18 * i + 4]!=0)
+                    //if (TextArray[4 + 18 * i + 4]!=0)
                     {
                         //astrcat(&pppsz_info[i_track][i_pack_type - 0x80], psz_track);
                         byte[] resArray = new byte[13];
@@ -699,7 +752,11 @@ namespace TestDVDApp
                             resArray[l] = TextArray[4 + 18 * i + 4 + k];
                             if ((resArray[l] == 0x00)||(k==11))
                             {
-                                string str = System.Text.Encoding.UTF8.GetString(resArray, 0, (resArray[l] == 0x00)? l: l+1);
+                                string str;
+                                if ((i_pack_type - 0x80) == 14)
+                                    str = System.Text.Encoding.UTF8.GetString(resArray, 0, (resArray[l] == 0x00) ? l : l + 1);
+                                else
+                                    str = System.Text.Encoding.UTF8.GetString(resArray, 0, (resArray[l] == 0x00) ? l : l + 1);
                                 if (string.IsNullOrEmpty(ArrayTrackInfo[i_track]))
                                     ArrayTrackInfo[i_track] = str;
                                 else
@@ -723,6 +780,151 @@ namespace TestDVDApp
             {
                 if (!string.IsNullOrEmpty(ArrayTrackInfo[l]))
                     LogMessage("Track : " + l.ToString() + " Info: " + ArrayTrackInfo[l]);
+            }
+            return Result;
+        }
+        int FillCDInfo(byte[] TextArray)
+        {
+            int Result = 0;
+            int i_track_last = 0;
+            string[] ArrayTrackInfo = new string[99];
+            int Count = (TextArray.Length - 4) / 18;
+            //Clear CD and Track metadata info:
+            currentCD.ISrc = string.Empty;
+            currentCD.Message = string.Empty;
+            currentCD.Genre = string.Empty;
+            currentCD.AlbumTitle = string.Empty;
+            currentCD.Artist = string.Empty;
+            currentCD.DiscID = string.Empty;
+
+
+            for (int i = 0; i < currentCD.Tracks.Count; i++)
+            {
+                currentCD.Tracks[i].ISrc = string.Empty;
+                currentCD.Tracks[i].Title = string.Empty;
+            }
+            for (int i = 0; i < Count; i++)
+            {
+
+
+                int i_pack_type = TextArray[4 + 18 * i];
+                if (i_pack_type < 0x80 || i_pack_type > 0x8f)
+                    continue;
+
+                int i_track_number = (TextArray[4 + 18 * i + 1] >> 0) & 0x7f;
+                int i_extension_flag = (TextArray[4 + 18 * i + 1] >> 7) & 0x01;
+                if (i_extension_flag != 0)
+                    continue;
+
+                int i_track = i_track_number;
+
+                int indexTrack = 4 + 18 * i + 4;
+                int indexTrackMax = indexTrack + 12;
+                while (i_track <= 127 && indexTrack < indexTrackMax)
+                {
+                    //fprintf( stderr, "t=%d psz_track=%p end=%p", i_track, (void *)psz_track, (void *)&psz_text[12] );
+                    //if (TextArray[4 + 18 * i + 4]!=0)
+                    {
+                        //astrcat(&pppsz_info[i_track][i_pack_type - 0x80], psz_track);
+                        byte[] resArray = new byte[13];
+                        int k = 0;
+                        int l = 0;
+                        for (k = 0; k < 12; k++, l++)
+                        {
+                            resArray[l] = TextArray[4 + 18 * i + 4 + k];
+                            if ((resArray[l] == 0x00) || (k == 11))
+                            {
+                                string str;
+                                str = System.Text.Encoding.UTF8.GetString(resArray, 0, (resArray[l] == 0x00) ? l : l + 1);
+                                //if (string.IsNullOrEmpty(ArrayTrackInfo[i_track]))
+                                //    ArrayTrackInfo[i_track] = str;
+                                //else
+                                //    ArrayTrackInfo[i_track] += str;
+                                if (!string.IsNullOrEmpty(str))
+                                {
+                                    switch (i_pack_type - 0x80)
+                                    {
+                                        // Title
+                                        case 0x00:
+                                            if (i_track == 0)
+                                                currentCD.AlbumTitle += str;
+                                            else
+                                            {
+                                                if (i_track == currentCD.Tracks.Count + 1)
+                                                {
+                                                    TrackMetadata t = new TrackMetadata() { Number = i_track, Title = string.Empty, ISrc = string.Empty, FirstSector = 0, LastSector = 0, Duration = TimeSpan.FromSeconds(0) };
+                                                    if ((i_track - 1) < currentCD.Tracks.Count)
+                                                        currentCD.Tracks[i_track - 1] = t;
+                                                    else
+                                                        currentCD.Tracks.Add(t);
+                                                }
+                                                if (i_track <= currentCD.Tracks.Count)
+                                                    currentCD.Tracks[i_track - 1].Title += str;
+                                            }
+                                            break;
+                                        // DiscID
+                                        case 0x06:
+                                            if (i_track == 0)
+                                                currentCD.DiscID += str;
+                                            break;
+                                        // Artist
+                                        case 0x01:
+                                            if (i_track == 0)
+                                                currentCD.Artist += str;
+                                            break;
+                                        // Message
+                                        case 0x05:
+                                            if (i_track == 0)
+                                                currentCD.Message += str;
+                                            break;
+                                        // Genre
+                                        case 0x07:
+                                            if (i_track == 0)
+                                                currentCD.Genre += str;
+                                            break;
+                                        // ISRC
+                                        case 0x0E:
+                                            if (i_track == 0)
+                                                currentCD.ISrc += str;
+                                            else
+                                            {
+                                                if (i_track == currentCD.Tracks.Count + 1)
+                                                {
+                                                    TrackMetadata t = new TrackMetadata() { Number = i_track, Title = string.Empty, ISrc = string.Empty, FirstSector = 0, LastSector = 0, Duration = TimeSpan.FromSeconds(0) };
+                                                    if ((i_track - 1)<currentCD.Tracks.Count)
+                                                        currentCD.Tracks[i_track - 1] = t;
+                                                    else
+                                                        currentCD.Tracks.Add(t);
+                                                }
+                                                if (i_track <= currentCD.Tracks.Count)
+                                                    currentCD.Tracks[i_track - 1].ISrc += str;
+                                            }
+                                            break;
+                                        default:
+                                            break;
+
+                                    }
+                                }
+                               // LogMessage("Track: " + i_track.ToString() + " Type: " + (i_pack_type - 0x80).ToString() + " Text: " + str);
+                                i_track++;
+                                l = -1;
+                            }
+                        }
+                        indexTrack += k;
+                        i_track_last = (i_track_last > i_track ? i_track_last : i_track);
+                    }
+
+                    i_track++;
+                    indexTrack += 1 + 12;
+                }
+
+
+            }
+            LogMessage("Title: " + currentCD.AlbumTitle + " Artist: " + currentCD.Artist + " DiscID: " + currentCD.DiscID + " ISrc: " + currentCD.ISrc);
+
+            for (int l = 0; l < currentCD.Tracks.Count ; l++)
+            {
+                    LogMessage("Track : " + currentCD.Tracks[l].Number.ToString() + " Title: " + currentCD.Tracks[l].Title + "Duration: " + currentCD.Tracks[l].Duration.ToString() + " ISRC: " + currentCD.Tracks[l].ISrc);
             }
             return Result;
         }
@@ -769,9 +971,9 @@ namespace TestDVDApp
         }
         const uint CD_RAW_SECTOR_SIZE = 2352;
         const uint CD_SECTOR_SIZE = 2048;
-        async System.Threading.Tasks.Task<string> GetTrackBuffer(string Id, int[] SectorArray, int track)
+        async System.Threading.Tasks.Task<string> GetTrackBuffer(string Id,  TrackMetadata T)
         {
-            string filename = "test" + track.ToString() + ".wav";
+            string filename = "test" + T.Number.ToString() + ".wav";
             Windows.Storage.StorageFolder folder = Windows.Storage.ApplicationData.Current.LocalFolder;
             if (folder != null)
             {
@@ -784,11 +986,11 @@ namespace TestDVDApp
                     {
                         var customDevice = await Windows.Devices.Custom.CustomDevice.FromIdAsync(Id, DeviceAccessMode.ReadWrite,
                         DeviceSharingMode.Exclusive);
-                        if ((SectorArray!=null)&&(track+1 < SectorArray.Length))
+                        if (T.FirstSector < T.LastSector )
                         {
 
-                            int startSector = SectorArray[track];
-                            int endSector = SectorArray[track+1];
+                            int startSector = T.FirstSector;
+                            int endSector = T.LastSector;
                             int numberSector = 20;
                             var inputBuffer = new byte[8 + 4 + 4];
                             var outputBuffer = new byte[CD_RAW_SECTOR_SIZE * numberSector];
@@ -863,12 +1065,16 @@ namespace TestDVDApp
         void FillComboTrack()
         {
             ComboTrackNumber.Items.Clear();
-            if ((SectorArray != null)&&
-                (SectorArray.Length>1))
+            if ((currentCD != null)&&
+                (currentCD.Tracks.Count > 1))
             {
                 ComboTrackNumber.IsEnabled = true;
-                for (int i = 0; i < (SectorArray.Length - 1); i++)
-                    ComboTrackNumber.Items.Add(i.ToString());
+
+                for (int i = 0; i < currentCD.Tracks.Count; i++)
+                {
+                    //string s = currentCD.Tracks[i].ToString();
+                    ComboTrackNumber.Items.Add(currentCD.Tracks[i].ToString());
+                }
             }
             if (ComboTrackNumber.Items.Count > 0)
             {
@@ -877,8 +1083,7 @@ namespace TestDVDApp
             else
                 ComboTrackNumber.IsEnabled = false;
         }
-        int[] SectorArray = null;
-        private async void ButtonReadTable_Click(object sender, RoutedEventArgs e)
+        private async void ButtonReadCDMetadata_Click(object sender, RoutedEventArgs e)
         {
             string id = ListDevices.SelectedItem as string;
             if (!string.IsNullOrEmpty(id) && (id != "None"))
@@ -905,10 +1110,25 @@ namespace TestDVDApp
                         var customDevice = await Windows.Devices.Custom.CustomDevice.FromIdAsync(device.Id, DeviceAccessMode.ReadWrite,
                             DeviceSharingMode.Exclusive);
                         
-                        SectorArray = await GetCDSectorArray(customDevice);
-                        if (SectorArray != null)
+                        int[] SectorArray = await GetCDSectorArray(customDevice);
+                        if ((SectorArray != null)&& (SectorArray.Length>1))
                         {
-                            LogMessage("Get CD Table successfull: " + SectorArray.Count().ToString() + " tracks" );
+                            for (int i = 0; i < (SectorArray.Length - 1); i++)
+                            {
+                                TrackMetadata t = new TrackMetadata() { Number = i+1, Title = string.Empty, ISrc = string.Empty, FirstSector = SectorArray[i],LastSector = SectorArray[i+1],Duration = TimeSpan.FromSeconds((SectorArray[i + 1]- SectorArray[i])*CD_RAW_SECTOR_SIZE/(44100*4)) };
+                                if (i<currentCD.Tracks.Count)
+                                    currentCD.Tracks[i] = t;
+                                else
+                                    currentCD.Tracks.Add(t);                              
+                            }
+                            LogMessage("Get CD Table Map successfull: " + SectorArray.Count().ToString() + " tracks" );
+                            byte[] TextArray = await GetCDText(device.Id);
+                            //byte[] TextArray = await ReadFile("test.bin");
+                            if (TextArray != null)
+                            {
+                                FillCDInfo(TextArray);
+                                LogMessage("Get CD Metdata successfull: " + SectorArray.Count().ToString() + " tracks");
+                            }
                             FillComboTrack();
                         }
                     }
@@ -948,13 +1168,14 @@ namespace TestDVDApp
                         {
                             LogMessage("Property: " + p.Key + " value: " + (p.Value != null ? p.Value.ToString() : "null"));
                         }
-                        if (SectorArray != null)
+                        if ((currentCD != null) && (currentCD.Tracks != null) && (currentCD.Tracks.Count>1) ) 
                         {
                             byte[] TextArray = await GetCDText(device.Id);
                             //byte[] TextArray = await ReadFile("test.bin");
                             if (TextArray != null)
                             {
-                                GetCDInfo(SectorArray, TextArray);
+                                FillCDInfo( TextArray);
+                                FillComboTrack();
                             }
                         }
                     }
@@ -1073,7 +1294,7 @@ namespace TestDVDApp
         #endregion
 
         bool bAutoStart = false;
-        public async void AutoPlayCD()
+        public  void AutoPlayCD()
         {
             LogMessage("AutoPlayCD Method");
             bAutoStart = true;

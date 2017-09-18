@@ -24,14 +24,11 @@
             </StackPanel>
             <ComboBox x:Name="ListDevices" Width="200" ></ComboBox>
             <Button Click="ButtonEjectMedia_Click" x:Name="ButtonEjectMedia" >Eject CD</Button>
-            <Button Click="ButtonReadTable_Click" x:Name="ButtonReadTable" >Read Table</Button>      
-            
-            <Button Click="ButtonReadTableEx_Click" x:Name="ButtonReadTableEx" >Read CD Text</Button>
-            <StackPanel Orientation="Horizontal">
-            <Button Click="ButtonReadRaw_Click" x:Name="ButtonReadRaw" >Read CD Raw</Button>
+            <Button Click="ButtonReadCDMetadata_Click" x:Name="ButtonReadTable" >Read CD Map Table and Metadata</Button>                  
+            <Button Click="ButtonReadTableEx_Click" x:Name="ButtonReadTableEx" >Read CD Metadata</Button>
+            <Button Click="ButtonReadRaw_Click" x:Name="ButtonReadRaw" >Read CD Raw (100 sectors) and Play WAV</Button>
             <TextBlock>Track:</TextBlock>
             <ComboBox x:Name="ComboTrackNumber"></ComboBox>
-            </StackPanel>
             <MediaPlayerElement x:Name="mediaPlayerElement" AutoPlay="True" AreTransportControlsEnabled="False"   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="Uniform"   />
 
         </StackPanel>
