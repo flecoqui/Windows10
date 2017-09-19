@@ -388,8 +388,8 @@ namespace TestDVDApp
                             if ((ComboTrackNumber.Items != null) &&
                                 (ComboTrackNumber.Items.Count > 0))
                             {
-                                var t = ComboTrackNumber.SelectedItem as TrackMetadata;
-                                if (t != null )
+                                TrackMetadata t = ComboTrackNumber.SelectedItem as TrackMetadata;
+                                if (t != null)
                                 {
                                     string path = await GetTrackBuffer(device.Id, t);
                                     if (!string.IsNullOrEmpty(path))
@@ -697,13 +697,12 @@ namespace TestDVDApp
                                 inputBuffer.AsBuffer(), Array.AsBuffer());
                         if (r > 0)
                         {
-                            LogMessage("CD Text: " + Array.ToString());
-                            await WriteIntoFile("test.bin", Array);
+                            LogMessage("CD Text Array: " + Array.Count().ToString() + " bytes");
+                            //await WriteIntoFile("test.bin", Array);
                         }
                     }
 
                 }
-
             }
             return Array;
         }
@@ -1073,7 +1072,7 @@ namespace TestDVDApp
                 for (int i = 0; i < currentCD.Tracks.Count; i++)
                 {
                     //string s = currentCD.Tracks[i].ToString();
-                    ComboTrackNumber.Items.Add(currentCD.Tracks[i].ToString());
+                    ComboTrackNumber.Items.Add(currentCD.Tracks[i]);
                 }
             }
             if (ComboTrackNumber.Items.Count > 0)
@@ -1121,6 +1120,7 @@ namespace TestDVDApp
                                 else
                                     currentCD.Tracks.Add(t);                              
                             }
+                            FillComboTrack();
                             LogMessage("Get CD Table Map successfull: " + SectorArray.Count().ToString() + " tracks" );
                             byte[] TextArray = await GetCDText(device.Id);
                             //byte[] TextArray = await ReadFile("test.bin");
@@ -1128,8 +1128,8 @@ namespace TestDVDApp
                             {
                                 FillCDInfo(TextArray);
                                 LogMessage("Get CD Metdata successfull: " + SectorArray.Count().ToString() + " tracks");
+                                FillComboTrack();
                             }
-                            FillComboTrack();
                         }
                     }
                     catch (UnauthorizedAccessException ex)
