@@ -98,6 +98,11 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CDReader\CDReaderDevice.cs" />
+    <Compile Include="CDReader\CDReaderManager.cs" />
+    <Compile Include="CDReader\CDMetadata.cs" />
+    <Compile Include="CDReader\CDTrackMetadata.cs" />
+    <Compile Include="CDReader\CDTrackStream.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>

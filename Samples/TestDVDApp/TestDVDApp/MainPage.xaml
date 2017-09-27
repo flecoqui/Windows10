@@ -25,8 +25,10 @@
             <ComboBox x:Name="ListDevices" Width="200" ></ComboBox>
             <Button Click="ButtonEjectMedia_Click" x:Name="ButtonEjectMedia" >Eject CD</Button>
             <Button Click="ButtonReadCDMetadata_Click" x:Name="ButtonReadTable" >Read CD Map Table and Metadata</Button>                  
-            <Button Click="ButtonReadTableEx_Click" x:Name="ButtonReadTableEx" >Read CD Metadata</Button>
-            <Button Click="ButtonReadRaw_Click" x:Name="ButtonReadRaw" >Read CD Raw (100 sectors) and Play WAV</Button>
+            <Button Click="ButtonPlayTrack_Click" x:Name="ButtonPlayTrack" >Play CD track</Button>
+            <Button Click="ButtonExtractTrack_Click" x:Name="ButtonExtractTrack" >Extract CD track into a WAV file</Button>
+            <Button Click="ButtonPlayWavFile_Click" x:Name="ButtonPlayWavFile" >Play WAV File</Button>
+            <Button Click="ButtonStopPlayer_Click" x:Name="ButtonStopPlayer" >Stop Player</Button>
             <TextBlock>Track:</TextBlock>
             <ComboBox x:Name="ComboTrackNumber"></ComboBox>
             <MediaPlayerElement x:Name="mediaPlayerElement" AutoPlay="True" AreTransportControlsEnabled="False"   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="Uniform"   />

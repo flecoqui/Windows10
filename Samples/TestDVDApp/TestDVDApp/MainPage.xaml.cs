@@ -16,404 +16,22 @@ using Windows.UI.Xaml.Navigation;
 using Windows.Devices.Custom;
 using System.Diagnostics;
 using Windows.Storage.Streams;
+using TestDVDApp.CDReader;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 namespace TestDVDApp
 {
-    /// <summary>
-    /// class CDTrackStream
-    /// </summary>
-    /// <info>
-    /// Class used to:
-    /// - play audio CD track
-    /// - store audio CD track in a file
-    /// This class automatically update the WAV Header based on the length 
-    /// of data to read.
-    /// </info>
-    public class CDTrackStream : IRandomAccessStream
-    {
-        string DeviceID;
-        int StartSector;
-        int EndSector;
-        static CustomDevice CDReaderDevice;
-        const uint CD_RAW_SECTOR_SIZE = 2352;
-        const uint CD_SECTOR_SIZE = 2048;
-        const ushort FILE_DEVICE_CD_ROM = 0x00000002;
-        Windows.Storage.Streams.InMemoryRandomAccessStream internalStream;
-        IOControlCode readRaw = new IOControlCode(FILE_DEVICE_CD_ROM, 0x000F, IOControlAccessMode.Read, IOControlBufferingMethod.DirectOutput);
-        private ulong ReadDataIndex = 0;
-        private ulong WriteDataIndex = 0;
-
-        public async static System.Threading.Tasks.Task<CDTrackStream> Create(string deviceID, int startSector, int endSector)
-        {
-            CDTrackStream cdts = null;
-            try
-            {
-                cdts = new CDTrackStream(deviceID, startSector, endSector);
-                if (cdts != null)
-                {
-                    bool result = await cdts.SetCDDeviceAsync();
-                    if(result==true)
-                    {
-                      result = await cdts.WriteWAVHaeder();
-                    }
-                    if (result != true)
-                        cdts = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("Exception while creating CDTrackStream: " + ex.Message);
-
-            }
-            return cdts;
-        }
-        private CDTrackStream(string deviceID, int startSector, int endSector)
-        {
-            DeviceID = deviceID;
-            StartSector = startSector;
-            EndSector = endSector;
-
-            WriteDataIndex = 0;
-            ReadDataIndex = 0;
-            internalStream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
-        }
-        private async System.Threading.Tasks.Task<bool> WriteWAVHaeder()
-        {
-            if (internalStream != null)
-            {
-                byte[] buffer = this.CreateWAVHeaderBuffer((uint)(CD_RAW_SECTOR_SIZE * (EndSector - StartSector)));
-                if (buffer != null)
-                {
-                    uint l = await internalStream.WriteAsync(buffer.AsBuffer());
-                    if (l == buffer.Length)
-                    {
-                        WriteDataIndex = l;
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        private async System.Threading.Tasks.Task<bool> SetCDDeviceAsync()
-        {
-            try
-            {
-                if(CDReaderDevice==null)
-                    CDReaderDevice = await CustomDevice.FromIdAsync(DeviceID, DeviceAccessMode.Read, DeviceSharingMode.Exclusive);
-            }
-            catch(Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("Exception while getting CDREaderDevice: " + ex.Message);
-            }
-            if (CDReaderDevice != null)
-                return true;
-            return false;
-        }
-        public ulong GetLength()
-        {
-            return (ulong) ((CD_RAW_SECTOR_SIZE * (EndSector - StartSector))+ GetWAVHeaderBufferLen());
-        }
-        private uint GetWAVHeaderBufferLen()
-        {
-            return 4 + 16 + 8 + 8 + 8;
-        }
-        private byte[] CreateWAVHeaderBuffer(uint Len)
-        {
-            uint headerLen = 4 + 16 + 8 + 8 + 8;
-            byte[] updatedBuffer = new byte[headerLen];
-            if (updatedBuffer != null)
-            {
-                System.Text.UTF8Encoding.UTF8.GetBytes("RIFF").CopyTo(0, updatedBuffer.AsBuffer(), 0, 4);
-                BitConverter.GetBytes(4 + 16 + 8 + Len + 8).CopyTo(0, updatedBuffer.AsBuffer(), 4, 4);
-                System.Text.UTF8Encoding.UTF8.GetBytes("WAVE").CopyTo(0, updatedBuffer.AsBuffer(), 8, 4);
-                System.Text.UTF8Encoding.UTF8.GetBytes("fmt ").CopyTo(0, updatedBuffer.AsBuffer(), 12, 4);
-                BitConverter.GetBytes((uint)16).CopyTo(0, updatedBuffer.AsBuffer(), 16, 4);
-                BitConverter.GetBytes(1).CopyTo(0, updatedBuffer.AsBuffer(), 20, 2);
-                BitConverter.GetBytes((ushort)2).CopyTo(0, updatedBuffer.AsBuffer(), 22, 2);
-                BitConverter.GetBytes((uint)44100).CopyTo(0, updatedBuffer.AsBuffer(), 24, 4);
-                BitConverter.GetBytes((uint)176400).CopyTo(0, updatedBuffer.AsBuffer(), 28, 4);
-                BitConverter.GetBytes((UInt16)4).CopyTo(0, updatedBuffer.AsBuffer(), 32, 2);
-                BitConverter.GetBytes((UInt16)16).CopyTo(0, updatedBuffer.AsBuffer(), 34, 2);
-
-                System.Text.UTF8Encoding.UTF8.GetBytes("data").CopyTo(0, updatedBuffer.AsBuffer(), 20 + 16, 4);
-                BitConverter.GetBytes(Len).CopyTo(0, updatedBuffer.AsBuffer(), 24 + 16, 4);
-            }
-            return updatedBuffer;
-        }
-
-        public bool CanRead
-        {
-            get { return true; }
-        }
-
-        public bool CanWrite
-        {
-            get { return true; }
-        }
-
-        public IRandomAccessStream CloneStream()
-        {
-            // return this.internalStream.CloneStream();
-
-            var t = CDTrackStream.Create(DeviceID, StartSector, EndSector);
-            t.Wait();
-            CDTrackStream cdts = t.Result;
-            if (cdts != null)
-            {
-                //try
-                //{
-                //    var t = cdts.WriteWAVHaeder();
-                //    t.Wait();
-                //    t = cdts.SetCDDeviceAsync();
-                //    t.Wait();
-                //    bool result = t.Result;
-                //if ((result == true) && (this.Size == cdts.Size))
-                    if (this.Size == cdts.Size)
-                        return cdts;
-                //}
-                //catch (Exception ex)
-                //{
-                //    System.Diagnostics.Debug.WriteLine("Exception while cloning the CDTrackStream: " + ex.Message);
-                //}
-            }
-            return null;
-        }
-
-        public IInputStream GetInputStreamAt(ulong position)
-        {
-            System.Diagnostics.Debug.WriteLine("GetInputStreamAt: " + position.ToString());
-            if (internalStream.Size > position)
-                return internalStream.GetInputStreamAt(position);
-            return null;
-        }
-
-        public IOutputStream GetOutputStreamAt(ulong position)
-        {
-            System.Diagnostics.Debug.WriteLine("GetOutputStreamAt: " + position.ToString());
-            if (internalStream.Size > position)
-                return internalStream.GetOutputStreamAt(position);
-            return null;
-        }
-
-        public ulong Position
-        {
-            get
-            {
-                System.Diagnostics.Debug.WriteLine("Position: " + internalStream.Position.ToString());
-                return internalStream.Position;
-            }
-        }
-
-        public void Seek(ulong position)
-        {
-            if (position >= internalStream.Size)
-            {
-                // Fill the buffer
-                var t = FillInternalStream(position);
-                t.Wait();
-            }
-            System.Diagnostics.Debug.WriteLine("Seek: " + position.ToString() + " - Stream Size: " + internalStream.Size + " Stream position: " + internalStream.Position);
-            ReadDataIndex = position;
-            //internalStream.Seek(position);
-        }
-
-        public ulong Size
-        {
-            get
-            {
-                System.Diagnostics.Debug.WriteLine("Size: " + GetLength().ToString());
-                return GetLength();
-                //System.Diagnostics.Debug.WriteLine("Size: " + internalStream.Size.ToString());
-                //return internalStream.Size;
-            }
-            set
-            {
-                internalStream.Size = value;
-            }
-        }
-        public ulong MaxSize
-        {
-            get
-            {
-                return GetLength();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-        public void Dispose()
-        {
-            internalStream.Dispose();
-            internalStream = null;
-        }
-        private async System.Threading.Tasks.Task<bool> FillInternalStream(ulong index)
-        {
-            bool result = false;
-            ulong startIndexInCD = ((ulong)StartSector*CD_SECTOR_SIZE) + internalStream.Size - GetWAVHeaderBufferLen();
-            ulong endIndexInCD = ((ulong)StartSector * CD_SECTOR_SIZE)  + index - GetWAVHeaderBufferLen();
-            ulong startReadSector = startIndexInCD / CD_SECTOR_SIZE;
-            ulong endReadSector = (endIndexInCD / CD_SECTOR_SIZE) +1;
-
-            if ((StartSector < EndSector)&&
-                (startReadSector<endReadSector))
-            {
-                int numberSector = 20;
-                var inputBuffer = new byte[8 + 4 + 4];
-                var outputBuffer = new byte[CD_RAW_SECTOR_SIZE * numberSector];
-                ulong k = startReadSector;
-                while (k < endReadSector)
-                {
-                    ulong firstSector = k * CD_SECTOR_SIZE;
-                    byte[] array = BitConverter.GetBytes(firstSector);
-                    for (int i = 0; i < array.Length; i++)
-                        inputBuffer[i] = array[i];
-                    byte[] intarray = BitConverter.GetBytes(numberSector);
-                    for (int i = 0; i < intarray.Length; i++)
-                        inputBuffer[8 + i] = intarray[i];
-                    intarray = BitConverter.GetBytes((int)2);
-                    for (int i = 0; i < intarray.Length; i++)
-                        inputBuffer[12 + i] = intarray[i];
-                    uint r = 0; ;
-                    r = await CDReaderDevice.SendIOControlAsync(
-                           readRaw, inputBuffer.AsBuffer(), outputBuffer.AsBuffer());
-                    if (r > 0)
-                    {
-                        uint len = await this.WriteAsync(outputBuffer.AsBuffer(0,(int)r));
-                        if (len == r)
-                            result = true;
-                    }
-                    k += 20;
-                }
-            }
-            return result;
-        }
-        public Windows.Foundation.IAsyncOperationWithProgress<IBuffer, uint> ReadAsync(IBuffer buffer, uint count, InputStreamOptions options)
-        {
-            return System.Runtime.InteropServices.WindowsRuntime.AsyncInfo.Run<IBuffer, uint>((token, progress) =>
-            {
-                return System.Threading.Tasks.Task.Run(async () =>
-                {
-                    uint len = 0;
-                    bool result = false;
-                    if (internalStream != null)
-                    {
-                        System.Diagnostics.Debug.WriteLine("ReadAsync for: " + count.ToString() + " bytes - Stream Size: " + internalStream.Size + " Stream position: " + internalStream.Position);
-                        if (ReadDataIndex + count > internalStream.Size)
-                        {
-                            // Fill the buffer
-                            result = await FillInternalStream(ReadDataIndex + count);
-                        }
-                        if (internalStream != null)
-                        {
-                            var inputStream = internalStream.GetInputStreamAt(ReadDataIndex);
-                            if (inputStream != null)
-                            {
-
-                                inputStream.ReadAsync(buffer, count, options).AsTask().Wait();
-                                len = buffer.Length;
-                                ReadDataIndex += len;
-                                System.Diagnostics.Debug.WriteLine("ReadAsync return : " + buffer.Length.ToString() + " bytes  at " + (ReadDataIndex - len).ToString() + " - Stream Size: " + internalStream.Size + " Stream position: " + internalStream.Position);
-                            }
-                            byte[] b = buffer.ToArray();
-                            if (b != null)
-                            {
-                                System.Diagnostics.Debug.WriteLine("Buffer contains: " + b.ToString());
-                            }
-                        }
-                    }
-                    progress.Report(len);
-                    return buffer;
-                    
-                });
-            });
-        }
 
 
-
-        public Windows.Foundation.IAsyncOperationWithProgress<uint, uint> WriteAsync(IBuffer buffer)
-        {
-            return System.Runtime.InteropServices.WindowsRuntime.AsyncInfo.Run<uint, uint>((token, progress) =>
-            {
-                return System.Threading.Tasks.Task.Run(() =>
-                {
-                    uint len = 0;
-                    if (internalStream != null)
-                    {
-
-                        var outputStream = internalStream.GetOutputStreamAt(WriteDataIndex);
-                        if (outputStream != null)
-                        {
-                            outputStream.WriteAsync(buffer).AsTask().Wait();
-                            WriteDataIndex += buffer.Length;
-                            len = buffer.Length;
-                            System.Diagnostics.Debug.WriteLine("WriteAsync return : " + buffer.Length.ToString() + " bytes  at " + (WriteDataIndex - len).ToString() + " - Stream Size: " + internalStream.Size + " Stream position: " + internalStream.Position);
-                        }
-                    }
-                    progress.Report(len);
-                    return len;
-                });
-            });
-
-        }
-        public Windows.Foundation.IAsyncOperation<bool> FlushAsync()
-        {
-            return internalStream.FlushAsync();
-        }
-
-
-
-    }
-
-    public class TrackMetadata
-    {
-        public int Number { get; set; }
-        // Type = 0
-        public string Title { get; set; }
-        // Type = 14
-        public string ISrc { get; set; }
-        public TimeSpan Duration { get; set; }
-        public int FirstSector { get; set; }
-        public int LastSector { get; set; }
-
-        public override string ToString()
-        {
-            return string.Format("Track: {0} Title: {1} ID: {2} Duration: {3}", Number,string.IsNullOrEmpty(Title)?"Unknown":Title, string.IsNullOrEmpty(ISrc)?"Unknown":ISrc, Duration);
-        }
-
-    }
-    public class CDMetadata
-    {
-        // Type = 0
-        public string AlbumTitle { get; set; }
-        // Type = 1
-        public string Artist { get; set; }
-        // Type = 5
-        public string Message { get; set; }
-        // Type = 7
-        public string Genre { get; set; }
-        // Type = 6
-        public string DiscID { get; set; }
-        // Type = 14
-        public string ISrc { get; set; }
-
-        public List<TrackMetadata> Tracks { get; set; }
-
-        public CDMetadata()
-        {
-            Tracks = new List<TrackMetadata>();
-        }
-    }
-    /// <summary>
+  /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class MainPage : Page
     {
         Windows.Media.Playback.MediaPlayer mediaPlayer;
-        DeviceWatcher dw;
-        List<DeviceInformation> ListDeviceInformation;
+        CDReaderManager cdReaderManager;
+        List<CDReaderDevice> ListDeviceInformation;
         CDMetadata currentCD;
         public MainPage()
         {
@@ -421,12 +39,14 @@ namespace TestDVDApp
             currentCD = new CDMetadata();
             if (ListDevices.Items != null)
                 ListDevices.Items.Clear();
-            ListDeviceInformation = new List<DeviceInformation>();
+            ListDeviceInformation = new List<CDReaderDevice>();
             ListDevices.SelectionChanged += ListDevices_SelectionChanged;
             ButtonEjectMedia.IsEnabled = false;
             ButtonReadTable.IsEnabled = false;
-            ButtonReadTableEx.IsEnabled = false;
-            ButtonReadRaw.IsEnabled = false;
+            ButtonPlayTrack.IsEnabled = false;
+            ButtonExtractTrack.IsEnabled = false;
+            ButtonPlayWavFile.IsEnabled = false;
+            ButtonStopPlayer.IsEnabled = false;
             ButtonStartDiscover.Visibility = Visibility.Visible;
             ButtonStopDiscover.Visibility = Visibility.Collapsed;
             ListDevices.IsEnabled = false;
@@ -439,9 +59,23 @@ namespace TestDVDApp
             mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
             mediaPlayer.MediaFailed += MediaPlayer_MediaFailed;
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
+            mediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
 
 
 
+        }
+
+        private async void PlaybackSession_PlaybackStateChanged(Windows.Media.Playback.MediaPlaybackSession sender, object args)
+        {
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
+             () =>
+             {
+
+                 if (mediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing)
+                     ButtonStopPlayer.IsEnabled = true;
+                 else
+                     ButtonStopPlayer.IsEnabled = false;
+             });
         }
         #region Media
         /// <summary>
@@ -473,6 +107,8 @@ namespace TestDVDApp
             {
                 path = PosterUrl.Replace("file://", "");
             }
+            else
+                path = PosterUrl;
             Windows.Storage.StorageFile file = null;
             try
             {
@@ -534,56 +170,7 @@ namespace TestDVDApp
             LogMessage("Volume Down");
             mediaPlayer.Volume = (mediaPlayer.Volume - 0.10 >= 0 ? mediaPlayer.Volume - 0.10 : 0);
         }
-        private async System.Threading.Tasks.Task<bool> OldStartPlay(string content)
-        {
-
-            try
-            {
-
-                bool result = false;
-                if (string.IsNullOrEmpty(content))
-                {
-                    LogMessage("Empty Uri");
-                    return result;
-                }
-
-                // Stop the current stream
-                mediaPlayer.Source = null;
-                mediaPlayerElement.PosterSource = null;
-                mediaPlayer.AutoPlay = true;
-                // if a picture will be displayed
-                // display or not popup
-                if (result == true)
-                {
-                    mediaPlayerElement.Visibility = Visibility.Collapsed;
-                }
-                else
-                {
-                    mediaPlayerElement.Visibility = Visibility.Visible;
-                }
-                // Audio or video
-                Windows.Storage.StorageFile file = await GetFileFromLocalPathUrl("file://" + content);
-                if (file != null)
-                {
- //                   var memStream = new MemoryStream();
- //                   await inputStream.AsStreamForRead().CopyToAsync(memStream);
-
-//                    mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromStream(memStream.AsRandomAccessStream(), contentType);
-
-                    mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromStorageFile(file);
-                    mediaPlayer.Play();
-                    return true;
-                }
-                else
-                    LogMessage("Failed to load media file: " + Content);
-            }
-            catch (Exception ex)
-            {
-                LogMessage("Exception Playing: " + ex.Message.ToString());
-            }
-            return false;
-        }
-        private async System.Threading.Tasks.Task<bool> StartPlay(string deviceID, int startSector, int endSector)
+         private async System.Threading.Tasks.Task<bool> StartPlay(string deviceID, int startSector, int endSector)
         {
 
             try
@@ -600,8 +187,7 @@ namespace TestDVDApp
                 mediaPlayer.Source = null;
                 mediaPlayerElement.PosterSource = null;
                 mediaPlayer.AutoPlay = true;
-                // if a picture will be displayed
-                // display or not popup
+
                 if (result == true)
                 {
                     mediaPlayerElement.Visibility = Visibility.Collapsed;
@@ -614,21 +200,74 @@ namespace TestDVDApp
                 string contentType = "audio/wav"; 
                 mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromStream(await CDTrackStream.Create(deviceID, startSector,endSector), contentType);
                 mediaPlayer.Play();
-                //CDTrackStream s = await CDTrackStream.Create(deviceID, startSector, endSector);
-                //if(s!=null)
-                //{
-                //    byte[] array = new byte[s.MaxSize];
-                //    if (array != null)
-                //    {
-                //        await s.ReadAsync(array.AsBuffer(), (uint) array.Length, InputStreamOptions.None);
-                //        await WriteIntoFile("test.wav", array);
-                //    }
-                //}
+
                 return true;
             }
             catch (Exception ex)
             {
                 LogMessage("Exception Playing: " + ex.Message.ToString());
+            }
+            return false;
+        }
+        private async System.Threading.Tasks.Task<bool> RecordTrack(string wavFile, string deviceID, int startSector, int endSector)
+        {
+
+            try
+            {
+
+                bool result = false;
+                if (string.IsNullOrEmpty(deviceID))
+                {
+                    LogMessage("Empty deviceID");
+                    return result;
+                }
+
+                // Stop the current stream
+                mediaPlayer.Source = null;
+                mediaPlayerElement.PosterSource = null;
+                mediaPlayer.AutoPlay = true;
+
+
+                CDTrackStream s = await CDTrackStream.Create(deviceID, startSector, endSector);
+                if (s != null)
+                {
+                    Windows.Storage.StorageFile file = await GetFileFromLocalPathUrl(wavFile);
+                    if (file != null)
+                    {
+                        LogMessage("Writing into : " + file.Path);
+
+                        Stream fs = await file.OpenStreamForWriteAsync();
+                        if (fs != null)
+                        {
+                            const int bufferSize = 2352 * 20 * 16;
+                            const int WAVHeaderLen = 44;
+                            ulong FileSize = s.MaxSize;
+                            byte[] array = new byte[bufferSize];
+                            ulong currentSize = WAVHeaderLen;
+                            for (ulong i = 0; i < FileSize + bufferSize; i += currentSize)
+                            {
+                                if (i == WAVHeaderLen)
+                                    currentSize = bufferSize;
+                                var b = await s.ReadAsync(array.AsBuffer(), (uint)currentSize, InputStreamOptions.None);
+                                if (b != null)
+                                {
+                                    fs.Write(array, 0, (int)b.Length);
+                                    LogMessage("Writing : " + b.Length.ToString() + " bytes " + ((((ulong)fs.Position+1) * 100) / FileSize).ToString() + "% copied ");
+                                    if (currentSize != b.Length)
+                                        break;
+                                }
+                            }
+                            fs.Flush();
+                            return true;
+                        }
+                    }
+
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Exception Recording Track into WAV File : " + ex.Message.ToString());
             }
             return false;
         }
@@ -667,23 +306,26 @@ namespace TestDVDApp
             {
                 ButtonEjectMedia.IsEnabled = true;
                 ButtonReadTable.IsEnabled = true;
-                ButtonReadTableEx.IsEnabled = true;
-                ButtonReadRaw.IsEnabled = true;
+                ButtonPlayTrack.IsEnabled = true;
+                ButtonExtractTrack.IsEnabled = true;
+                ButtonPlayWavFile.IsEnabled = true;
+
+
             }
             else
             {
                 ButtonEjectMedia.IsEnabled = false;
                 ButtonReadTable.IsEnabled = false;
-                ButtonReadTableEx.IsEnabled = false;
-                ButtonReadRaw.IsEnabled = false;
+                ButtonPlayTrack.IsEnabled = false;
+                ButtonExtractTrack.IsEnabled = false;
+                ButtonPlayWavFile.IsEnabled = false;
+                ButtonStopPlayer.IsEnabled = false;
             }
         }
 
-        private void Dw_EnumerationCompleted(DeviceWatcher sender, object args)
-        {
-        }
 
-        private async void Dw_Removed(DeviceWatcher sender, DeviceInformationUpdate args)
+
+        private async void CDReaderDevice_Removed(CDReaderManager sender, CDReaderDevice args)
         {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
              () =>
@@ -704,7 +346,7 @@ namespace TestDVDApp
              });
         }
 
-        private async void Dw_Added(DeviceWatcher sender, DeviceInformation args)
+        private async void CDReaderDevice_Added(CDReaderManager sender, CDReaderDevice args)
         {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
              () =>
@@ -726,21 +368,18 @@ namespace TestDVDApp
                 ListDevices.Items.Clear();
             CheckListDevices();
             string selector = CustomDevice.GetDeviceSelector(new Guid("53f56308-b6bf-11d0-94f2-00a0c91efb8b"));
-            //string selector = CustomDevice.GetDeviceSelector(new Guid("53f56308-b6bf-11d0-94f2-00a0c91efb8b"));
             IEnumerable<string> additionalProperties = new string[] { "System.Devices.DeviceInstanceId" };
-            if (dw != null)
+            if (cdReaderManager != null)
             {
-                dw.Stop();
-                dw.Added -= Dw_Added;
-                dw.Removed -= Dw_Removed;
-                dw.EnumerationCompleted -= Dw_EnumerationCompleted;
-                dw = null;
+                cdReaderManager.StopDiscovery();
+                cdReaderManager.CDReaderDeviceAdded -= CDReaderDevice_Added;
+                cdReaderManager.CDReaderDeviceRemoved -= CDReaderDevice_Removed;
+                cdReaderManager = null;
             }
-            dw = DeviceInformation.CreateWatcher(selector, additionalProperties);
-            dw.Added += Dw_Added;
-            dw.Removed += Dw_Removed;
-            dw.EnumerationCompleted += Dw_EnumerationCompleted;
-            dw.Start();
+            cdReaderManager = new CDReaderManager();
+            cdReaderManager.CDReaderDeviceAdded += CDReaderDevice_Added;
+            cdReaderManager.CDReaderDeviceRemoved += CDReaderDevice_Removed;
+            cdReaderManager.StartDiscovery();
             ButtonStartDiscover.Visibility = Visibility.Collapsed;
             ButtonStopDiscover.Visibility = Visibility.Visible;
             ListDevices.IsEnabled = true;
@@ -749,24 +388,59 @@ namespace TestDVDApp
         }
         private void ButtonStopDiscover_Click(object sender, RoutedEventArgs e)
         {
-            if (dw != null)
+            if (cdReaderManager != null)
             {
-                dw.Stop();
-                dw.Added -= Dw_Added;
-                dw.Removed -= Dw_Removed;
-                dw.EnumerationCompleted -= Dw_EnumerationCompleted;
-                dw = null;
+                cdReaderManager.StopDiscovery();
+                cdReaderManager.CDReaderDeviceAdded -= CDReaderDevice_Added;
+                cdReaderManager.CDReaderDeviceRemoved -= CDReaderDevice_Removed;
+                cdReaderManager = null;
             }
             ButtonStartDiscover.Visibility = Visibility.Visible;
             ButtonStopDiscover.Visibility = Visibility.Collapsed;
         }
+        private void ButtonStopPlayer_Click(object sender, RoutedEventArgs e)
+        {
+            mediaPlayer.Source = null;
+        }
+        private async void ButtonPlayWavFile_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var filePicker = new Windows.Storage.Pickers.FileOpenPicker();
+                filePicker.FileTypeFilter.Add(".wav");
+                filePicker.ViewMode = Windows.Storage.Pickers.PickerViewMode.Thumbnail;
+                filePicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.VideosLibrary;
+                filePicker.SettingsIdentifier = "WavPicker";
+                filePicker.CommitButtonText = "Open WAV File to Play";
 
-        private async void ButtonReadRaw_Click(object sender, RoutedEventArgs e)
+                var wavFile = await filePicker.PickSingleFileAsync();
+                if (wavFile != null)
+                {
+                    string fileToken = Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(wavFile);
+                    LogMessage("Selected file: " + wavFile.Path);
+                    // Audio or video
+                    Windows.Storage.StorageFile file = await GetFileFromLocalPathUrl(wavFile.Path);
+                    if (file != null)
+                    {
+                        mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromStorageFile(file);
+                        mediaPlayer.Play();
+                    }
+                    else
+                        LogMessage("Failed to load media file: " + wavFile.Path);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Failed to select WAV file: Exception: " + ex.Message);
+            }
+
+        }
+        private async void ButtonExtractTrack_Click(object sender, RoutedEventArgs e)
         {
             string id = ListDevices.SelectedItem as string;
             if (!string.IsNullOrEmpty(id) && (id != "None"))
             {
-                DeviceInformation device = null;
+                CDReaderDevice device = null;
                 if (ListDeviceInformation != null)
                 {
                     foreach (var d in ListDeviceInformation)
@@ -781,22 +455,32 @@ namespace TestDVDApp
                     {
                         {
                             LogMessage("Device Name: " + device.Name);
-
-                            foreach (var p in device.Properties)
-                            {
-                                LogMessage("Property: " + p.Key + " value: " + (p.Value != null ? p.Value.ToString() : "null"));
-                            }
                             if ((ComboTrackNumber.Items != null) &&
                                 (ComboTrackNumber.Items.Count > 0))
                             {
-                                TrackMetadata t = ComboTrackNumber.SelectedItem as TrackMetadata;
+                                CDTrackMetadata t = ComboTrackNumber.SelectedItem as CDTrackMetadata;
                                 if (t != null)
                                 {
-                                //    string path = await GetTrackBuffer(device.Id, t);
-                                //    if (!string.IsNullOrEmpty(path))
+                                    LogMessage("Extracting Track " + t.Number.ToString());
+
+                                    var filePicker = new Windows.Storage.Pickers.FileSavePicker();
+                                    filePicker.DefaultFileExtension = ".wav";
+                                    filePicker.SuggestedFileName = "track"+ t.Number.ToString() + ".wav";
+                                    filePicker.FileTypeChoices.Add("WAV files", new List<string>() { ".wav" });
+                                    filePicker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.VideosLibrary;
+                                    filePicker.SettingsIdentifier = "WavPicker";
+                                    filePicker.CommitButtonText = "Save Track into a WAV File";
+
+                                    var wavFile = await filePicker.PickSaveFileAsync();
+                                    if (wavFile != null)
                                     {
-                                        LogMessage("Play Track " + t.Number.ToString());
-                                        await StartPlay(device.Id, t.FirstSector, t.LastSector);
+                                        string fileToken = Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(wavFile);
+                                        if (await RecordTrack(wavFile.Path, device.Id, t.FirstSector, t.LastSector))
+                                        {
+                                            LogMessage("Record track in WAV file: " + wavFile.Path.ToString());
+                                        }
+                                        else
+                                            LogMessage("Error while saving record buffer in file: " + wavFile.Path.ToString());
                                     }
                                 }
                             }
@@ -812,74 +496,13 @@ namespace TestDVDApp
                     }
                 }
             }
-
         }
-        /*
-        IOControlCode^ Fx2Driver::GetSevenSegmentDisplay = ref new IOControlCode(DeviceType,
-                                                                         FunctionBase + 7,
-                                                                         IOControlAccessMode::Read,
-                                                                         IOControlBufferingMethod::Buffered);
-
-        IOControlCode^ Fx2Driver::SetSevenSegmentDisplay = ref new IOControlCode(DeviceType,
-                                                                                 FunctionBase + 8,
-                                                                                 IOControlAccessMode::Write,
-                                                                                 IOControlBufferingMethod::Buffered);
-
-        IOControlCode^ Fx2Driver::ReadSwitches = ref new IOControlCode(DeviceType,
-                                                                       FunctionBase + 6,
-                                                                       IOControlAccessMode::Read,
-                                                                       IOControlBufferingMethod::Buffered);
-
-        IOControlCode^ Fx2Driver::GetInterruptMessage = ref new IOControlCode(DeviceType,
-                                                                              FunctionBase + 9,
-                                                                              IOControlAccessMode::Read,
-                                                                              IOControlBufferingMethod::DirectOutput);
-
-        IOControlCode^ Fx2Driver::EjectMedia = ref new IOControlCode(IOCTL_STORAGE_BASE, 0x0202, IOControlAccessMode::Read, IOControlBufferingMethod::Buffered);
-
-        IOControlCode^ Fx2Driver::LoadMedia = ref new IOControlCode(IOCTL_STORAGE_BASE, 0x0203, IOControlAccessMode::Read, IOControlBufferingMethod::Buffered);
-        */
-        const UInt16 DeviceType = 0x5500;
-        const UInt16 FunctionBase = 0x800;
-        //FILE_DEVICE_CD_ROM              0x00000002
-        const ushort FILE_DEVICE_CD_ROM = 0x00000002;
-        const ushort FILE_DEVICE_MASS_STORAGE = 0x0000002d;
-        const int MAXIMUM_NUMBER_TRACKS = 100;
-        /*
-        struct TRACK_DATA
-        {
-            byte Reserved;
-            byte Control;
-                //: 4;
-            //char Adr : 4;
-            byte TrackNumber;
-            byte Reserved1;
-            //4
-            byte[] Address;
-        };
-        struct CDROM_TOC
-        {
-            //2
-            byte[] Length;
-            byte FirstTrack;
-            byte LastTrack;
-            //MAXIMUM_NUMBER_TRACKS
-            TRACK_DATA[] TrackData;
-        };
-        */
-        IOControlCode ejectMedia = new IOControlCode(FILE_DEVICE_CD_ROM, 0x0202, IOControlAccessMode.Read, IOControlBufferingMethod.Buffered);
-        IOControlCode loadMedia = new IOControlCode(FILE_DEVICE_CD_ROM, 0x0203, IOControlAccessMode.Read, IOControlBufferingMethod.Buffered);
-        IOControlCode reserveMedia = new IOControlCode(FILE_DEVICE_CD_ROM, 0x0204, IOControlAccessMode.Read, IOControlBufferingMethod.Buffered);
-        IOControlCode releaseMedia = new IOControlCode(FILE_DEVICE_CD_ROM, 0x0205, IOControlAccessMode.Read, IOControlBufferingMethod.Buffered);
-        IOControlCode readTable = new IOControlCode(FILE_DEVICE_CD_ROM, 0x0000, IOControlAccessMode.Read, IOControlBufferingMethod.Buffered);
-        IOControlCode readTableEx = new IOControlCode(FILE_DEVICE_CD_ROM, 0x0015, IOControlAccessMode.Read, IOControlBufferingMethod.Buffered);
-        IOControlCode readRaw = new IOControlCode(FILE_DEVICE_CD_ROM, 0x000F, IOControlAccessMode.Read, IOControlBufferingMethod.DirectOutput);
-        private async void ButtonEjectMedia_Click(object sender, RoutedEventArgs e)
+        private async void ButtonPlayTrack_Click(object sender, RoutedEventArgs e)
         {
             string id = ListDevices.SelectedItem as string;
             if (!string.IsNullOrEmpty(id) && (id != "None"))
             {
-                DeviceInformation device = null;
+                CDReaderDevice device = null;
                 if (ListDeviceInformation != null)
                 {
                     foreach (var d in ListDeviceInformation)
@@ -895,19 +518,56 @@ namespace TestDVDApp
                         {
                             LogMessage("Device Name: " + device.Name);
 
-                            foreach (var p in device.Properties)
-                            {
-                                LogMessage("Property: " + p.Key + " value: " + (p.Value != null ? p.Value.ToString() : "null"));
-                            }
-                            var customDevice = await Windows.Devices.Custom.CustomDevice.FromIdAsync(device.Id, DeviceAccessMode.ReadWrite,
-                                DeviceSharingMode.Exclusive);
 
-                            if (customDevice != null)
+                            if ((ComboTrackNumber.Items != null) &&
+                                (ComboTrackNumber.Items.Count > 0))
                             {
-                                var r = await customDevice.SendIOControlAsync(
-                                       ejectMedia,
-                                    null, null);
-                                LogMessage("Media Ejection successful: " + r.ToString());
+                                CDTrackMetadata t = ComboTrackNumber.SelectedItem as CDTrackMetadata;
+                                if (t != null)
+                                {
+                                    LogMessage("Playing Track " + t.Number.ToString());
+                                    await StartPlay(device.Id, t.FirstSector, t.LastSector);
+                                }
+                            }
+                        }
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        LogMessage("Exception while playing the media: " + ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMessage("Exception while playing the media: " + ex.Message);
+                    }
+                }
+            }
+
+        }
+ 
+        private async void ButtonEjectMedia_Click(object sender, RoutedEventArgs e)
+        {
+            string id = ListDevices.SelectedItem as string;
+            if (!string.IsNullOrEmpty(id) && (id != "None"))
+            {
+                CDReaderDevice device = null;
+                if (ListDeviceInformation != null)
+                {
+                    foreach (var d in ListDeviceInformation)
+                    {
+                        if (d.Id == id)
+                            device = d;
+                    }
+                }
+                if (device != null)
+                {
+                    try
+                    {
+                        {
+                            LogMessage("Device Name: " + device.Name);
+                            bool result = await cdReaderManager.EjectMedia(device.Id);
+                            if(result==true)
+                            { 
+                                LogMessage("Media Ejection successful" );
                                 if(currentCD.Tracks != null)
                                     currentCD.Tracks.Clear();
                                 FillComboTrack();
@@ -927,541 +587,9 @@ namespace TestDVDApp
                 }
             }
         }
-        private async void ButtonLoadMedia_Click(object sender, RoutedEventArgs e)
-        {
-            string id = ListDevices.SelectedItem as string;
-            if (!string.IsNullOrEmpty(id) && (id != "None"))
-            {
-                DeviceInformation device = null;
-                if (ListDeviceInformation != null)
-                {
-                    foreach (var d in ListDeviceInformation)
-                    {
-                        if (d.Id == id)
-                            device = d;
-                    }
-                }
-                if (device != null)
-                {
-                    try
-                    {
-                        {
-                            LogMessage("Device Name: " + device.Name);
-
-                            foreach (var p in device.Properties)
-                            {
-                                LogMessage("Property: " + p.Key + " value: " + (p.Value != null ? p.Value.ToString() : "null"));
-                            }
-                            var customDevice = await Windows.Devices.Custom.CustomDevice.FromIdAsync(device.Id, DeviceAccessMode.ReadWrite,
-                                DeviceSharingMode.Exclusive);
-
-                            var inputBuffer = new byte[1];
-                            var outputBuffer = new byte[1];
-                            //      IOControlCode ^ Fx2Driver::EjectMedia = ref new IOControlCode(IOCTL_STORAGE_BASE, 0x0202, IOControlAccessMode::Read, IOControlBufferingMethod::Buffered);
-
-                            var r = await customDevice.SendIOControlAsync(
-                                    reserveMedia,
-                                null, null);
 
 
-                        }
 
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        LogMessage("Exception: " + ex.Message);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMessage("Exception: " + ex.Message);
-                    }
-                }
-            }
-        }
-        static  int MSF_TO_LBA2(byte min, byte sec, byte frame)
-        {
-            return (int)(frame + 75 * (sec - 2 + 60 * min));
-        }
-        async System.Threading.Tasks.Task<int[]> GetCDSectorArray(Windows.Devices.Custom.CustomDevice device)
-        {
-            int[] Array = null;
-            if(device!=null)
-            {
-                var outputBuffer = new byte[MAXIMUM_NUMBER_TRACKS * 8 + 4];
-
-                uint r = await device.SendIOControlAsync(
-                       readTable,
-                    null, outputBuffer.AsBuffer());
-
-                if (r > 0)
-                {
-                    int i_tracks = outputBuffer[3] - outputBuffer[2] + 1;
-
-                    Array = new int[i_tracks+1];
-                    if (Array != null)
-                    {
-                        for (int i = 0; (i <= i_tracks) && (4 + i * 8 + 4 + 3 < r); i++)
-                        {
-                            int sectors = MSF_TO_LBA2(
-                                outputBuffer[4 + i * 8 + 4 + 1],
-                                outputBuffer[4 + i * 8 + 4 + 2],
-                                outputBuffer[4 + i * 8 + 4 + 3]);
-                            Array[i] = sectors;
-                            LogMessage("track number: " + i.ToString() + " sectors: " + sectors.ToString());
-                        }
-                    }
-                }
-
-            }
-            return Array;
-        }
-        public  async System.Threading.Tasks.Task<bool> WriteIntoFile(string filename, byte[] array)
-        {
-            try
-            {
-                Windows.Storage.StorageFolder folder = Windows.Storage.ApplicationData.Current.LocalFolder;
-                if (folder != null)
-                {
-                    Windows.Storage.StorageFile file = await folder.CreateFileAsync(filename, Windows.Storage.CreationCollisionOption.ReplaceExisting);
-                    if (file != null)
-                    {
-                        LogMessage("Writing into : " + file.Path);
-                        Stream s = await file.OpenStreamForWriteAsync();
-                        if (s != null)
-                        {
-                            s.Write(array, 0, array.Length);
-                            s.Flush();
-                            return true;
-                        }
-                    }
-                }
-            }
-            catch (Exception Ex)
-            {
-                System.Diagnostics.Debug.WriteLine("Exception while copying file: " + Ex.Message);
-            }
-            return false;
-        }
-        public async System.Threading.Tasks.Task<byte[]> ReadFile(string filename)
-        {
-            try
-            {
-                Windows.Storage.StorageFolder folder = Windows.Storage.ApplicationData.Current.LocalFolder;
-                if (folder != null)
-                {
-                    Windows.Storage.StorageFile file = await folder.GetFileAsync(filename);
-                    if (file != null)
-                    {
-                        
-                        LogMessage("Writing into : " + file.Path);
-                        Stream s = await file.OpenStreamForReadAsync();
-                        if (s != null)
-                        {
-                            byte[] array = new byte[s.Length];
-                            s.Read(array, 0, (int)s.Length);
-                            return array;
-                        }
-                    }
-                }
-            }
-            catch (Exception Ex)
-            {
-                System.Diagnostics.Debug.WriteLine("Exception while copying file: " + Ex.Message);
-            }
-            return null;
-        }
-        async System.Threading.Tasks.Task<byte[]> GetCDText(string id)
-        {
-            byte[] Array = null;
-            var device = await Windows.Devices.Custom.CustomDevice.FromIdAsync(id, DeviceAccessMode.Read,DeviceSharingMode.Shared);
-
-            if (device != null)
-            {
-                var inputBuffer = new byte[4];
-                inputBuffer[0] = 0x05;
-                var outputBuffer = new byte[4];
-
-                uint r = await device.SendIOControlAsync(
-                       readTableEx,
-                    inputBuffer.AsBuffer(), outputBuffer.AsBuffer());
-
-                if (r > 0)
-                {
-                    int i_text = 2 + (outputBuffer[0] << 8) + outputBuffer[1];
-                    if (i_text > 4)
-                    {
-
-                        Array = new byte[i_text];
-
-                        r = await device.SendIOControlAsync(
-                                   readTableEx,
-                                inputBuffer.AsBuffer(), Array.AsBuffer());
-                        if (r > 0)
-                        {
-                            LogMessage("CD Text Array: " + Array.Count().ToString() + " bytes");
-                            //await WriteIntoFile("test.bin", Array);
-                        }
-                    }
-
-                }
-            }
-            return Array;
-        }
-        int GetCDInfo(byte[] TextArray)
-        {
-            int Result = 0;
-            int i_track_last = 0;
-            string[] ArrayTrackInfo = new string[99];
-
-
-            for (int i = 0; i < currentCD.Tracks.Count;i++)
-            {
-                currentCD.Tracks[i].ISrc = string.Empty;
-                currentCD.Tracks[i].Title = string.Empty;
-            }
-            int Count = (TextArray.Length - 4) / 18;
-
-            for (int i = 0; i < Count; i++)
-            {
-
-
-                int i_pack_type = TextArray[4 + 18 * i];
-                if (i_pack_type < 0x80 || i_pack_type > 0x8f)
-                    continue;
-
-                int i_track_number = (TextArray[4 + 18 * i + 1] >> 0) & 0x7f;
-                int i_extension_flag = (TextArray[4 + 18 * i + 1] >> 7) & 0x01;
-                if (i_extension_flag != 0)
-                    continue;
-
-                int i_track = i_track_number;
-
-                int indexTrack = 4 + 18 * i + 4;
-                int indexTrackMax = indexTrack + 12;
-                while (i_track <= 127 && indexTrack < indexTrackMax)
-                {
-                    //fprintf( stderr, "t=%d psz_track=%p end=%p", i_track, (void *)psz_track, (void *)&psz_text[12] );
-                    //if (TextArray[4 + 18 * i + 4]!=0)
-                    {
-                        //astrcat(&pppsz_info[i_track][i_pack_type - 0x80], psz_track);
-                        byte[] resArray = new byte[13];
-                        int k = 0;
-                        int l = 0;
-                        for (k = 0; k < 12; k++, l++)
-                        {
-                            resArray[l] = TextArray[4 + 18 * i + 4 + k];
-                            if ((resArray[l] == 0x00)||(k==11))
-                            {
-                                string str;
-                                if ((i_pack_type - 0x80) == 14)
-                                    str = System.Text.Encoding.UTF8.GetString(resArray, 0, (resArray[l] == 0x00) ? l : l + 1);
-                                else
-                                    str = System.Text.Encoding.UTF8.GetString(resArray, 0, (resArray[l] == 0x00) ? l : l + 1);
-                                if (string.IsNullOrEmpty(ArrayTrackInfo[i_track]))
-                                    ArrayTrackInfo[i_track] = str;
-                                else
-                                    ArrayTrackInfo[i_track] += str;
-                                LogMessage("Track: " + i_track.ToString() + " Type: " + (i_pack_type-0x80).ToString() + " Text: " + str );
-                                i_track++;
-                                l = -1;
-                            }
-                        }
-                        indexTrack += k;
-                        i_track_last = (i_track_last > i_track ? i_track_last : i_track);
-                    }
-
-                    i_track++;
-                    indexTrack += 1 + 12;
-                }
-
-
-            }
-            for (int l = 0; l < 99; l++)
-            {
-                if (!string.IsNullOrEmpty(ArrayTrackInfo[l]))
-                    LogMessage("Track : " + l.ToString() + " Info: " + ArrayTrackInfo[l]);
-            }
-            return Result;
-        }
-        int FillCDInfo(byte[] TextArray)
-        {
-            int Result = 0;
-            int i_track_last = 0;
-            string[] ArrayTrackInfo = new string[99];
-            int Count = (TextArray.Length - 4) / 18;
-            //Clear CD and Track metadata info:
-            currentCD.ISrc = string.Empty;
-            currentCD.Message = string.Empty;
-            currentCD.Genre = string.Empty;
-            currentCD.AlbumTitle = string.Empty;
-            currentCD.Artist = string.Empty;
-            currentCD.DiscID = string.Empty;
-
-
-            for (int i = 0; i < currentCD.Tracks.Count; i++)
-            {
-                currentCD.Tracks[i].ISrc = string.Empty;
-                currentCD.Tracks[i].Title = string.Empty;
-            }
-            for (int i = 0; i < Count; i++)
-            {
-
-
-                int i_pack_type = TextArray[4 + 18 * i];
-                if (i_pack_type < 0x80 || i_pack_type > 0x8f)
-                    continue;
-
-                int i_track_number = (TextArray[4 + 18 * i + 1] >> 0) & 0x7f;
-                int i_extension_flag = (TextArray[4 + 18 * i + 1] >> 7) & 0x01;
-                if (i_extension_flag != 0)
-                    continue;
-
-                int i_track = i_track_number;
-
-                int indexTrack = 4 + 18 * i + 4;
-                int indexTrackMax = indexTrack + 12;
-                while (i_track <= 127 && indexTrack < indexTrackMax)
-                {
-                    //fprintf( stderr, "t=%d psz_track=%p end=%p", i_track, (void *)psz_track, (void *)&psz_text[12] );
-                    //if (TextArray[4 + 18 * i + 4]!=0)
-                    {
-                        //astrcat(&pppsz_info[i_track][i_pack_type - 0x80], psz_track);
-                        byte[] resArray = new byte[13];
-                        int k = 0;
-                        int l = 0;
-                        for (k = 0; k < 12; k++, l++)
-                        {
-                            resArray[l] = TextArray[4 + 18 * i + 4 + k];
-                            if ((resArray[l] == 0x00) || (k == 11))
-                            {
-                                string str;
-                                str = System.Text.Encoding.UTF8.GetString(resArray, 0, (resArray[l] == 0x00) ? l : l + 1);
-                                //if (string.IsNullOrEmpty(ArrayTrackInfo[i_track]))
-                                //    ArrayTrackInfo[i_track] = str;
-                                //else
-                                //    ArrayTrackInfo[i_track] += str;
-                                if (!string.IsNullOrEmpty(str))
-                                {
-                                    switch (i_pack_type - 0x80)
-                                    {
-                                        // Title
-                                        case 0x00:
-                                            if (i_track == 0)
-                                                currentCD.AlbumTitle += str;
-                                            else
-                                            {
-                                                if (i_track == currentCD.Tracks.Count + 1)
-                                                {
-                                                    TrackMetadata t = new TrackMetadata() { Number = i_track, Title = string.Empty, ISrc = string.Empty, FirstSector = 0, LastSector = 0, Duration = TimeSpan.FromSeconds(0) };
-                                                    if ((i_track - 1) < currentCD.Tracks.Count)
-                                                        currentCD.Tracks[i_track - 1] = t;
-                                                    else
-                                                        currentCD.Tracks.Add(t);
-                                                }
-                                                if (i_track <= currentCD.Tracks.Count)
-                                                    currentCD.Tracks[i_track - 1].Title += str;
-                                            }
-                                            break;
-                                        // DiscID
-                                        case 0x06:
-                                            if (i_track == 0)
-                                                currentCD.DiscID += str;
-                                            break;
-                                        // Artist
-                                        case 0x01:
-                                            if (i_track == 0)
-                                                currentCD.Artist += str;
-                                            break;
-                                        // Message
-                                        case 0x05:
-                                            if (i_track == 0)
-                                                currentCD.Message += str;
-                                            break;
-                                        // Genre
-                                        case 0x07:
-                                            if (i_track == 0)
-                                                currentCD.Genre += str;
-                                            break;
-                                        // ISRC
-                                        case 0x0E:
-                                            if (i_track == 0)
-                                                currentCD.ISrc += str;
-                                            else
-                                            {
-                                                if (i_track == currentCD.Tracks.Count + 1)
-                                                {
-                                                    TrackMetadata t = new TrackMetadata() { Number = i_track, Title = string.Empty, ISrc = string.Empty, FirstSector = 0, LastSector = 0, Duration = TimeSpan.FromSeconds(0) };
-                                                    if ((i_track - 1)<currentCD.Tracks.Count)
-                                                        currentCD.Tracks[i_track - 1] = t;
-                                                    else
-                                                        currentCD.Tracks.Add(t);
-                                                }
-                                                if (i_track <= currentCD.Tracks.Count)
-                                                    currentCD.Tracks[i_track - 1].ISrc += str;
-                                            }
-                                            break;
-                                        default:
-                                            break;
-
-                                    }
-                                }
-                               // LogMessage("Track: " + i_track.ToString() + " Type: " + (i_pack_type - 0x80).ToString() + " Text: " + str);
-                                i_track++;
-                                l = -1;
-                            }
-                        }
-                        indexTrack += k;
-                        i_track_last = (i_track_last > i_track ? i_track_last : i_track);
-                    }
-
-                    i_track++;
-                    indexTrack += 1 + 12;
-                }
-
-
-            }
-            LogMessage("Title: " + currentCD.AlbumTitle + " Artist: " + currentCD.Artist + " DiscID: " + currentCD.DiscID + " ISrc: " + currentCD.ISrc);
-
-            for (int l = 0; l < currentCD.Tracks.Count ; l++)
-            {
-                    LogMessage("Track : " + currentCD.Tracks[l].Number.ToString() + " Title: " + currentCD.Tracks[l].Title + "Duration: " + currentCD.Tracks[l].Duration.ToString() + " ISRC: " + currentCD.Tracks[l].ISrc);
-            }
-            return Result;
-        }
-        //[Bloc décrivant le format audio]
-        //   FormatBlocID(4 octets) : Identifiant «fmt »  (0x66,0x6D, 0x74,0x20)
-        //   BlocSize(4 octets) : Nombre d'octets du bloc - 16  (0x10)
-
-        //   AudioFormat(2 octets) : Format du stockage dans le fichier(1: PCM, ...)
-        //   NbrCanaux(2 octets) : Nombre de canaux(de 1 à 6, cf.ci-dessous)
-        //   Frequence(4 octets) : Fréquence d'échantillonnage (en hertz) [Valeurs standardisées : 11 025, 22 050, 44 100 et éventuellement 48 000 et 96 000]
-        //   BytePerSec(4 octets) : Nombre d'octets à lire par seconde (c.-à-d., Frequence * BytePerBloc).
-        //   BytePerBloc(2 octets) : Nombre d'octets par bloc d'échantillonnage(c.-à-d., tous canaux confondus : NbrCanaux* BitsPerSample/8).
-        //   BitsPerSample(2 octets) : Nombre de bits utilisés pour le codage de chaque échantillon(8, 16, 24)
-        //                            nChannels = BitConverter.ToUInt16(fmt.data, 2);
-        //                            nSamplesPerSec = BitConverter.ToUInt32(fmt.data, 4);
-        //                            nAvgBytesPerSec = BitConverter.ToUInt32(fmt.data, 8);
-        //                            nBlockAlign = BitConverter.ToUInt16(fmt.data, 12);
-        //                            wBitsPerSample = BitConverter.ToUInt16(fmt.data, 14);
-
-        public byte[] CreateWAVHeaderBuffer(uint Len)
-        {
-            uint headerLen = 4 + 16 + 8 + 8 + 8;
-            byte[] updatedBuffer = new byte[headerLen];
-            if (updatedBuffer != null)
-            {
-                System.Text.UTF8Encoding.UTF8.GetBytes("RIFF").CopyTo(0, updatedBuffer.AsBuffer(), 0, 4);
-                BitConverter.GetBytes(4 + 16 + 8 + Len + 8).CopyTo(0, updatedBuffer.AsBuffer(), 4, 4);
-                System.Text.UTF8Encoding.UTF8.GetBytes("WAVE").CopyTo(0, updatedBuffer.AsBuffer(), 8, 4);
-                System.Text.UTF8Encoding.UTF8.GetBytes("fmt ").CopyTo(0, updatedBuffer.AsBuffer(), 12, 4);
-           //     BitConverter.GetBytes(fmt.length).CopyTo(0, updatedBuffer.AsBuffer(), 16, 4);
-                BitConverter.GetBytes((uint)16).CopyTo(0, updatedBuffer.AsBuffer(), 16, 4);
-                //                fmt.data.CopyTo(0, updatedBuffer.AsBuffer(), 20, (int)fmt.length);
-                BitConverter.GetBytes(1).CopyTo(0, updatedBuffer.AsBuffer(), 20, 2);
-                BitConverter.GetBytes((ushort)2).CopyTo(0, updatedBuffer.AsBuffer(), 22, 2);
-                BitConverter.GetBytes((uint)44100).CopyTo(0, updatedBuffer.AsBuffer(), 24, 4);
-                BitConverter.GetBytes((uint)176400).CopyTo(0, updatedBuffer.AsBuffer(), 28, 4);
-                BitConverter.GetBytes((UInt16)4).CopyTo(0, updatedBuffer.AsBuffer(), 32, 2);
-                BitConverter.GetBytes((UInt16)16).CopyTo(0, updatedBuffer.AsBuffer(), 34, 2);
-
-                System.Text.UTF8Encoding.UTF8.GetBytes("data").CopyTo(0, updatedBuffer.AsBuffer(), 20 + 16, 4);
-                BitConverter.GetBytes(Len).CopyTo(0, updatedBuffer.AsBuffer(), 24 + 16, 4);
-            }
-            return updatedBuffer;
-        }
-        const uint CD_RAW_SECTOR_SIZE = 2352;
-        const uint CD_SECTOR_SIZE = 2048;
-        async System.Threading.Tasks.Task<string> GetTrackBuffer(string Id,  TrackMetadata T)
-        {
-            string filename = "test" + T.Number.ToString() + ".wav";
-            Windows.Storage.StorageFolder folder = Windows.Storage.ApplicationData.Current.LocalFolder;
-            if (folder != null)
-            {
-                Windows.Storage.StorageFile file = await folder.CreateFileAsync(filename, Windows.Storage.CreationCollisionOption.ReplaceExisting);
-                if (file != null)
-                {
-                    LogMessage("Writing into : " + file.Path);
-                    Stream s = await file.OpenStreamForWriteAsync();
-                    if (s != null)
-                    {
-                        var customDevice = await Windows.Devices.Custom.CustomDevice.FromIdAsync(Id, DeviceAccessMode.ReadWrite,
-                        DeviceSharingMode.Exclusive);
-                        if (T.FirstSector < T.LastSector )
-                        {
-
-                            int startSector = T.FirstSector;
-                            int endSector = T.LastSector;
-                            int numberSector = 20;
-                            var inputBuffer = new byte[8 + 4 + 4];
-                            var outputBuffer = new byte[CD_RAW_SECTOR_SIZE * numberSector];
-                            int k = startSector;
-                            while (k < endSector)
-                            {
-                                long firstSector = k * CD_SECTOR_SIZE;
-                                byte[] array = BitConverter.GetBytes(firstSector);
-                                for (int i = 0; i < array.Length; i++)
-                                    inputBuffer[i] = array[i];
-                                byte[] intarray = BitConverter.GetBytes(numberSector);
-                                for (int i = 0; i < intarray.Length; i++)
-                                    inputBuffer[8 + i] = intarray[i];
-                                intarray = BitConverter.GetBytes((int)2);
-                                for (int i = 0; i < intarray.Length; i++)
-                                    inputBuffer[12 + i] = intarray[i];
-                                uint r = 0; ;
-                                r = await customDevice.SendIOControlAsync(
-                                       readRaw, inputBuffer.AsBuffer(), outputBuffer.AsBuffer());
-                                //if (customDevice.InputStream != null)
-                                //{
-                                //    var stream = customDevice.InputStream;
-                                //    if(stream!=null)
-                                //    {
-                                //        //stream.Seek((ulong)firstSector);
-                                //        var b = await stream.ReadAsync(outputBuffer.AsBuffer(), (uint) (numberSector * 2048), Windows.Storage.Streams.InputStreamOptions.None);
-                                //        if (b != null)
-                                //        {
-                                //            r = b.Length;
-                                //            outputBuffer = b.ToArray();
-                                //        }
-
-
-                                //    }
-                                //}
-                                if (r > 0)
-                                {
-                                    //bool bFound = false;
-                                    //for (int j = 0; j < r; j++)
-                                    //    if (outputBuffer[j] != 0)
-                                    //    {
-                                    //        bFound = true;
-                                    //        break;
-                                    //    }
-                                    //if (bFound == true)
-                                    if (k == startSector)
-                                    {
-                                        byte[] header = CreateWAVHeaderBuffer((uint)(100 * (numberSector * CD_RAW_SECTOR_SIZE)));
-                                        s.Write(header, 0, header.Length);
-                                    }
-                                    if(r==(numberSector * CD_RAW_SECTOR_SIZE))
-                                        s.Write(outputBuffer, 0, (int) (numberSector * CD_RAW_SECTOR_SIZE));
-                                    else
-                                        s.Write(outputBuffer, 0, (int)r);
-                                    s.Flush();
-                                    LogMessage("Read " + numberSector.ToString() + " sectors from " + k.ToString());
-                                    
-                                    //else
-                                    //    LogMessage("Read " + numberSector.ToString() + " null sectors from " + k.ToString());
-                                    k += numberSector;
-                                    if (k > (startSector + 100 * numberSector))
-                                        break;
-                                }
-                            }
-                            return file.Path;
-                        }
-                    }
-                }
-            }
-            return null;
-        }
         void FillComboTrack()
         {
             ComboTrackNumber.Items.Clear();
@@ -1488,7 +616,7 @@ namespace TestDVDApp
             string id = ListDevices.SelectedItem as string;
             if (!string.IsNullOrEmpty(id) && (id != "None"))
             {
-                DeviceInformation device = null;
+                CDReaderDevice device = null;
                 if (ListDeviceInformation != null)
                 {
                     foreach (var d in ListDeviceInformation)
@@ -1502,35 +630,12 @@ namespace TestDVDApp
                     try
                     {
                         LogMessage("Device Name: " + device.Name);
-
-                        foreach (var p in device.Properties)
+                        currentCD = await cdReaderManager.ReadMediaMetadata(device.Id);
+                        if ((currentCD != null)&&(currentCD.Tracks.Count>1))
                         {
-                            LogMessage("Property: " + p.Key + " value: " + (p.Value != null ? p.Value.ToString() : "null"));
-                        }
-                        var customDevice = await Windows.Devices.Custom.CustomDevice.FromIdAsync(device.Id, DeviceAccessMode.ReadWrite,
-                            DeviceSharingMode.Exclusive);
-                        
-                        int[] SectorArray = await GetCDSectorArray(customDevice);
-                        if ((SectorArray != null)&& (SectorArray.Length>1))
-                        {
-                            for (int i = 0; i < (SectorArray.Length - 1); i++)
-                            {
-                                TrackMetadata t = new TrackMetadata() { Number = i+1, Title = string.Empty, ISrc = string.Empty, FirstSector = SectorArray[i],LastSector = SectorArray[i+1],Duration = TimeSpan.FromSeconds((SectorArray[i + 1]- SectorArray[i])*CD_RAW_SECTOR_SIZE/(44100*4)) };
-                                if (i<currentCD.Tracks.Count)
-                                    currentCD.Tracks[i] = t;
-                                else
-                                    currentCD.Tracks.Add(t);                              
-                            }
                             FillComboTrack();
-                            LogMessage("Get CD Table Map successfull: " + SectorArray.Count().ToString() + " tracks" );
-                            byte[] TextArray = await GetCDText(device.Id);
-                            //byte[] TextArray = await ReadFile("test.bin");
-                            if (TextArray != null)
-                            {
-                                FillCDInfo(TextArray);
-                                LogMessage("Get CD Metdata successfull: " + SectorArray.Count().ToString() + " tracks");
-                                FillComboTrack();
-                            }
+                            LogMessage("Get CD Table Map successfull: " + currentCD.Tracks.Count.ToString() + " tracks" );
+                            FillComboTrack();
                         }
                     }
                     catch (UnauthorizedAccessException ex)
@@ -1544,54 +649,6 @@ namespace TestDVDApp
                 }
             }
         }
-
-        private async void ButtonReadTableEx_Click(object sender, RoutedEventArgs e)
-        {
-            string id = ListDevices.SelectedItem as string;
-            if (!string.IsNullOrEmpty(id) && (id != "None"))
-            {
-                DeviceInformation device = null;
-                if (ListDeviceInformation != null)
-                {
-                    foreach (var d in ListDeviceInformation)
-                    {
-                        if (d.Id == id)
-                            device = d;
-                    }
-                }
-                if (device != null)
-                {
-                    try
-                    {
-                        LogMessage("Device Name: " + device.Name);
-
-                        foreach (var p in device.Properties)
-                        {
-                            LogMessage("Property: " + p.Key + " value: " + (p.Value != null ? p.Value.ToString() : "null"));
-                        }
-                        if ((currentCD != null) && (currentCD.Tracks != null) && (currentCD.Tracks.Count>1) ) 
-                        {
-                            byte[] TextArray = await GetCDText(device.Id);
-                            //byte[] TextArray = await ReadFile("test.bin");
-                            if (TextArray != null)
-                            {
-                                FillCDInfo( TextArray);
-                                FillComboTrack();
-                            }
-                        }
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        LogMessage("Exception: " + ex.Message);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMessage("Exception: " + ex.Message);
-                    }
-                }
-            }
-        }
-
 
 
 
