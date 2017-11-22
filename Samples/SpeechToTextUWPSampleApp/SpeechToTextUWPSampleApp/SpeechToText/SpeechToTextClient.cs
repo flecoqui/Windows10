@@ -27,8 +27,10 @@ namespace SpeechToText
         private string SubscriptionKey;
         private string Token;
         private SpeechToTextMainStream STTStream;
-        private const string AuthUrl = "https://api.cognitive.microsoft.com/sts/v1.0/issueToken";
-        private const string SpeechUrl = "https://speech.platform.bing.com/speech/recognition/{0}/cognitiveservices/v1";
+        private const string SpeechAuthUrl = "https://api.cognitive.microsoft.com/sts/v1.0/issueToken";
+        private string AuthUrl = SpeechAuthUrl;
+        private const string CustomSpeechAuthUrl = "https://westus.api.cognitive.microsoft.com/sts/v1.0/issueToken";
+        private const string SpeechUrl = "https://{0}/speech/recognition/{1}/cognitiveservices/v1";
 
         private bool isRecordingInitialized;
         private bool isRecording;
@@ -37,6 +39,7 @@ namespace SpeechToText
         private UInt16 thresholdLevel;
         private Windows.Media.Capture.MediaCapture mediaCapture;
         private string apiString = "interactive";
+        private string hostnameString = "speech.platform.bing.com";
         /// <summary>
         /// class SpeechToTextClient constructor
         /// </summary>
@@ -60,7 +63,7 @@ namespace SpeechToText
         /// </param>
         /// <return>True if successfull 
         /// </return>
-        public bool SetAPI(string APIstring)
+        public bool SetAPI(string HostnameString, string APIstring)
         {
             bool result = false;
             if (string.Equals(APIstring, "interactive") ||
@@ -68,11 +71,29 @@ namespace SpeechToText
                 string.Equals(APIstring, "dictation"))
             {
                 apiString = APIstring;
+                if (!string.IsNullOrEmpty(HostnameString))
+                {
+                    hostnameString = HostnameString;
+                    if (string.Equals(hostnameString, "speech.platform.bing.com"))
+                        AuthUrl = SpeechAuthUrl;
+                    else
+                        AuthUrl = CustomSpeechAuthUrl;
+                }
                 result = true;
             }
             return result;
         }
-        
+        /// <summary>
+        /// ClearToken method
+        /// </summary>
+        /// <return>true.
+        /// </return>
+        public bool ClearToken()
+        {
+            Token = String.Empty;
+            return true;
+        }
+
         /// <summary>
         /// GetToken method
         /// </summary>
@@ -92,6 +113,7 @@ namespace SpeechToText
                 Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
                 hc.DefaultRequestHeaders.TryAppendWithoutValidation("Ocp-Apim-Subscription-Key", SubscriptionKey);
                 Windows.Web.Http.HttpStringContent content = new Windows.Web.Http.HttpStringContent(String.Empty);
+
                 Windows.Web.Http.HttpResponseMessage hrm = await hc.PostAsync(new Uri(AuthUrl), content);
                 if (hrm != null)
                 {
@@ -206,7 +228,7 @@ namespace SpeechToText
             {
                 try
                 {
-                    string speechUrl = string.Format(SpeechUrl, apiString) + "?language=" + locale + "&format=" + resulttype;
+                    string speechUrl = string.Format(SpeechUrl, hostnameString, apiString) + "?language=" + locale + "&format=" + resulttype;
                     Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
                     System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
                     hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
@@ -291,7 +313,7 @@ namespace SpeechToText
             {
                 try
                 {
-                    string speechUrl = string.Format(SpeechUrl, apiString) + "?language=" + locale + "&format=" + resulttype;
+                    string speechUrl = string.Format(SpeechUrl, hostnameString, apiString) + "?language=" + locale + "&format=" + resulttype;
 
                     Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
                     System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
@@ -374,7 +396,7 @@ namespace SpeechToText
             {
                 try
                 {
-                    string speechUrl = string.Format(SpeechUrl, apiString) + "?language=" + locale + "&format=" + resulttype;
+                    string speechUrl = string.Format(SpeechUrl, hostnameString, apiString) + "?language=" + locale + "&format=" + resulttype;
                     Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
 
                     hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);

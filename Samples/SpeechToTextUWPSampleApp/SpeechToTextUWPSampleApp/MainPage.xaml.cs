@@ -129,6 +129,7 @@ namespace SpeechToTextUWPSampleApp
             if (!string.IsNullOrEmpty(subscriptionKey.Text))
             {
                 LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
+                client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem);
                 string s = await client.GetToken(subscriptionKey.Text);
                 if (!string.IsNullOrEmpty(s))
                     LogMessage("Getting Token successful Token: " + s.ToString());
@@ -239,6 +240,7 @@ namespace SpeechToTextUWPSampleApp
         }
 
         #region Settings
+        const string keyHostname = "hostnameKey";
         const string keySubscription = "subscriptionKey";
         const string keyLevel = "levelKey";
         const string keyDuration = "durationKey";
@@ -248,7 +250,8 @@ namespace SpeechToTextUWPSampleApp
         /// </summary>
         public bool SaveSettingsAndState()
         {
-            SaveSettingsValue(keySubscription,subscriptionKey.Text);
+            SaveSettingsValue(keyHostname, Hostname.Text);
+            SaveSettingsValue(keySubscription, subscriptionKey.Text);
             SaveSettingsValue(keyLevel, level.ToString());
             SaveSettingsValue(keyDuration, duration.ToString());
             SaveSettingsValue(keyIsRecordingContinuously,isRecordingContinuously.ToString());
@@ -262,6 +265,11 @@ namespace SpeechToTextUWPSampleApp
             string s = ReadSettingsValue(keySubscription) as string;
             if (!string.IsNullOrEmpty(s))
                 subscriptionKey.Text = s;
+            s = ReadSettingsValue(keyHostname) as string;
+            if (!string.IsNullOrEmpty(s))
+                Hostname.Text = s;
+            else
+                Hostname.Text = "speech.platform.bing.com";
             s = ReadSettingsValue(keyLevel) as string;
             if (!string.IsNullOrEmpty(s))
                 UInt16.TryParse(s, out level);
@@ -846,7 +854,7 @@ namespace SpeechToTextUWPSampleApp
 
                 if (client != null)
                 {
-                    client.SetAPI((string)ComboAPI.SelectedItem);
+                    client.SetAPI(Hostname.Text,(string)ComboAPI.SelectedItem);
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
                         LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
@@ -939,7 +947,7 @@ namespace SpeechToTextUWPSampleApp
 
                 if (client != null)
                 {
-                    client.SetAPI((string)ComboAPI.SelectedItem);
+                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem);
 
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
@@ -1056,7 +1064,7 @@ namespace SpeechToTextUWPSampleApp
                 Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
                 if (client != null)
                 {
-                    client.SetAPI((string)ComboAPI.SelectedItem);
+                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem);
 
                     if (client.IsRecording() == false)
                     {
@@ -1165,7 +1173,7 @@ namespace SpeechToTextUWPSampleApp
                 Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
                 if (client != null)
                 {
-                    client.SetAPI((string)ComboAPI.SelectedItem);
+                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem);
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
                         LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
@@ -1223,5 +1231,17 @@ namespace SpeechToTextUWPSampleApp
         }
 
         #endregion ui
+
+        private void subscriptionKey_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (client != null)
+                client.ClearToken();
+        }
+
+        private void Hostname_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (client != null)
+                client.ClearToken();
+        }
     }
 }

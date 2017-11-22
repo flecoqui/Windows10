@@ -64,7 +64,13 @@
                     <TextBlock x:Name="labelSubscriptionID" Text="Speech-To-Text Subscription Key:" HorizontalAlignment="Left" />
                 </StackPanel>
                 <StackPanel Orientation="Vertical"  VerticalAlignment="Center">
-                    <TextBox x:Name="subscriptionKey" ToolTipService.ToolTip="SubscriptionKey associated with the Cognitive Service Speech-To-Text Account" Width="308" IsTabStop="True"   />
+                    <TextBox x:Name="subscriptionKey" ToolTipService.ToolTip="SubscriptionKey associated with the Cognitive Service Speech-To-Text Account" Width="308" IsTabStop="True" TextChanged="subscriptionKey_TextChanged"   />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
+                    <TextBlock x:Name="labelHostname" Text="Speech-To-Text hostname:" HorizontalAlignment="Left" />
+                </StackPanel>
+                <StackPanel Orientation="Vertical"  VerticalAlignment="Center">
+                    <TextBox x:Name="Hostname" ToolTipService.ToolTip="Speech-To-Text host name, by default speech.platform.bing.com" Width="308" IsTabStop="True" TextChanged="Hostname_TextChanged"   />
                 </StackPanel>
                 <TextBlock>Cognitive Services Speech Recognition API:</TextBlock>
                 <StackPanel Orientation="Vertical"  VerticalAlignment="Center">
