@@ -202,10 +202,12 @@ namespace SpeechToText
         private const string OffsetKey = "Offset";
         private const string DurationKey = "Duration";
         private const string NBestKey = "NBest";
+        private const string DisplayTextKey = "DisplayText";
 
         private string recognitionStatus;
         private  double offset;
         private double duration;
+        private string displayText;
 
 
         //{
@@ -234,6 +236,7 @@ namespace SpeechToText
         public SpeechToTextResponse()
         {
             HttpError = string.Empty;
+            displayText = string.Empty;
             results = new ObservableCollection<SpeechToTextResult>();
         }
 
@@ -247,7 +250,7 @@ namespace SpeechToText
                 recognitionStatus = jsonObject.GetNamedString(RecognitionStatusKey, "");
                 offset = jsonObject.GetNamedNumber(OffsetKey, 0);
                 duration = jsonObject.GetNamedNumber(DurationKey, 0);
-
+                displayText = jsonObject.GetNamedString(DisplayTextKey, "");
                 results = new ObservableCollection<SpeechToTextResult>();
                 if (results != null)
                 {
@@ -267,10 +270,12 @@ namespace SpeechToText
         }
         public string Result()
         {
-            if (results == null)
-                return string.Empty;
-            if(results.Count == 0)
-                return string.Empty;
+            if ((results == null) ||  (results.Count == 0))
+            {
+                if (string.IsNullOrEmpty(displayText))
+                    return string.Empty;
+                return displayText;
+            }
 
             return results[0].GetDisplay();
         }

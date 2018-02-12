@@ -245,6 +245,7 @@ namespace SpeechToTextUWPSampleApp
         const string keyLevel = "levelKey";
         const string keyDuration = "durationKey";
         const string keyIsRecordingContinuously = "isRecordingContinuouslyKey";
+        const string defaultHostname = "speech.platform.bing.com";
         /// <summary>
         /// Function to save all the persistent attributes
         /// </summary>
@@ -269,7 +270,7 @@ namespace SpeechToTextUWPSampleApp
             if (!string.IsNullOrEmpty(s))
                 Hostname.Text = s;
             else
-                Hostname.Text = "speech.platform.bing.com";
+                Hostname.Text = defaultHostname;
             s = ReadSettingsValue(keyLevel) as string;
             if (!string.IsNullOrEmpty(s))
                 UInt16.TryParse(s, out level);
@@ -751,6 +752,11 @@ namespace SpeechToTextUWPSampleApp
                  () =>
                  {
                      {
+
+                         // if hostname is bing speech hostname, user can change language,
+                         // if hostname is different, it's custom speech user can't change the language
+                         language.IsEnabled = string.Equals(Hostname.Text, defaultHostname) ;
+
                          if ((client == null) || (!client.IsRecording()))
                          {
                              memoryRecordingButton.IsEnabled = true;
@@ -1242,6 +1248,7 @@ namespace SpeechToTextUWPSampleApp
         {
             if (client != null)
                 client.ClearToken();
+            UpdateControls();
         }
     }
 }
