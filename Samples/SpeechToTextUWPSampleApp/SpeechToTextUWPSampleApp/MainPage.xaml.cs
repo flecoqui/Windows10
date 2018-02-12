@@ -20,7 +20,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.ViewManagement;
-using SpeechToText;
+using SpeechToTextClient;
 
 namespace SpeechToTextUWPSampleApp
 {
@@ -30,7 +30,7 @@ namespace SpeechToTextUWPSampleApp
     public sealed partial class MainPage : Page
     {
         Windows.Media.Playback.MediaPlayer mediaPlayer;
-        SpeechToTextClient client;
+        SpeechToTextClient.SpeechToTextClient client;
         ulong maxSize = 3840000;
         UInt16 level = 300;
         UInt16 duration = 1000;
@@ -113,10 +113,10 @@ namespace SpeechToTextUWPSampleApp
             Application.Current.Resuming += Current_Resuming;
             
             // Display OS, Device information
-            LogMessage(SpeechToText.SystemInformation.GetString());
+            LogMessage(SpeechToTextClient.SystemInformation.GetString());
             
             // Create Cognitive Service SpeechToText Client
-            client = new SpeechToTextClient();
+            client = new SpeechToTextClient.SpeechToTextClient();
 
             // Initialize level and duration
             Level.Text = level.ToString();
@@ -878,7 +878,7 @@ namespace SpeechToTextUWPSampleApp
                         {
                             if (await client.CleanupRecording())
                             {
-                                if (await client.StartRecording())
+                                if (await client.StartRecording(0))
                                 {
                                     isRecordingInMemory = true;
                                     client.AudioLevel += Client_AudioLevel;
@@ -1076,7 +1076,7 @@ namespace SpeechToTextUWPSampleApp
                     {
                         if (await client.CleanupRecording())
                         {
-                            if (await client.StartRecording())
+                            if (await client.StartRecording(0))
                             {
                                 isRecordingInFile = true;
                                 client.AudioLevel += Client_AudioLevel;
@@ -1111,7 +1111,7 @@ namespace SpeechToTextUWPSampleApp
                             if (wavFile != null)
                             {
                                 string fileToken = Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(wavFile);
-                                if (await client.SaveBuffer(wavFile))
+                                if (await client.SaveBuffer(wavFile,0,0))
                                 {
                                     mediaUri.Text = "file://" + wavFile.Path;
                                     LogMessage("Record buffer saved in file: " + wavFile.Path.ToString());
