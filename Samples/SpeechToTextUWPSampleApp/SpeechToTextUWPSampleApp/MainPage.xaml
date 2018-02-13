@@ -115,10 +115,13 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                    <TextBlock x:Name="labelText" Text="Result:" HorizontalAlignment="Left" />
+                    <TextBlock x:Name="labelText" Text="Result:" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    <Button IsEnabled="False" Content="&#xE969;" x:Name="textToSpeechButton" ToolTipService.ToolTip="Test Text to Speech feature"  FontFamily="Segoe MDL2 Assets" IsTabStop="True" Height="42" Width="42" Margin="1,1,1,1" Click="textToSpeech_Click"/>
+                    <TextBlock x:Name="genderText" Text="Gender:" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    <ComboBox  x:Name="gender" ToolTipService.ToolTip="Gender for the TextToSpeech" VerticalAlignment="Center" Width="96"   HorizontalAlignment="Stretch"  IsTabStop="True"  ></ComboBox>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
-                    <TextBox x:Name="resultText" ToolTipService.ToolTip="Speech-To-Text Conversion result" Width="308" Height="100" IsTabStop="True"  TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" IsReadOnly="True"  />
+                    <TextBox x:Name="resultText" ToolTipService.ToolTip="Speech-To-Text Conversion result" Width="308" Height="100" IsTabStop="True"  TextWrapping="Wrap" AcceptsReturn="True" FontSize="12" IsReadOnly="False"  />
                 </StackPanel>
 
 

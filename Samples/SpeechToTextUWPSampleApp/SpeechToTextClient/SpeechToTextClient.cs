@@ -14,6 +14,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.IO;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using System.Xml.Linq;
 
 namespace SpeechToTextClient
 {
@@ -62,6 +63,7 @@ namespace SpeechToTextClient
         private UInt16 thresholdLevel;
         private Windows.Media.Capture.MediaCapture mediaCapture;
         private string apiString = "interactive";
+        private string apiSynthesizeString = "synthesize";
         private string hostnameString = "speech.platform.bing.com";
         /// <summary>
         /// class SpeechToTextClient constructor
@@ -149,7 +151,7 @@ namespace SpeechToTextClient
                                 string result = System.Text.UTF8Encoding.UTF8.GetString(b.ToArray());
                                 if (!string.IsNullOrEmpty(result))
                                 {
-                                    Token = "Bearer  " + result;
+                                    Token = "Bearer " + result;
                                     return Token;
                                 }
                                 break;
@@ -214,6 +216,195 @@ namespace SpeechToTextClient
             return string.Empty;
             }).AsAsyncOperation<string>();
         }
+        /// <summary>
+        /// Generates SSML.
+        /// </summary>
+        /// <param name="locale">The locale.</param>
+        /// <param name="gender">The gender.</param>
+        /// <param name="name">The voice name.</param>
+        /// <param name="text">The text input.</param>
+        private string GenerateSsml(string locale, string gender, string name, string text)
+        {
+            var ssmlDoc = new XDocument(
+                              new XElement("speak",
+                                  new XAttribute("version", "1.0"),
+                                  new XAttribute(XNamespace.Xml + "lang", "en-US"),
+                                  new XElement("voice",
+                                      new XAttribute(XNamespace.Xml + "lang", locale),
+                                      new XAttribute(XNamespace.Xml + "gender", gender),
+                                      new XAttribute("name", name),
+                                      text)));
+            return ssmlDoc.ToString();
+        }
+
+        string GetVoiceName(string lang, string gender)
+        {
+            string voiceName = "Microsoft Server Speech Text to Speech Voice (en-US, BenjaminRUS)";
+
+            switch (lang.ToLower())
+            {
+                case "ar-eg":
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (ar-EG, Hoda)";
+                    break;
+                case "de-de":
+                    if(gender == "Female")
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (de-DE, Hedda)";
+                    else
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (de-DE, Stefan, Apollo)";
+                    break;
+                case "en-au":
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (en-AU, Catherine)";
+                    break;
+                case "en-ca":
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (en-CA, Linda)";
+                    break;
+                case "en-gb":
+                    if(gender == "Female")
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (en-GB, Susan, Apollo)";
+                    else
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (en-GB, George, Apollo)";
+                    break;
+                case "en-in":
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (en-IN, Ravi, Apollo)";
+                    break;
+                case "en-us":
+                    if(gender == "Female")
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (en-US, ZiraRUS)";
+                    else
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (en-US, BenjaminRUS)";
+                    break;
+                case "es-es":
+                    if(gender == "Female")
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (es-ES, Laura, Apollo)";
+                    else
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (es-ES, Pablo, Apollo)";
+                    break;
+                case "es-mx":
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (es-MX, Raul, Apollo)";
+                    break;
+                case "fr-ca":
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (fr-CA, Caroline)";
+                    break;
+                case "fr-fr":
+                    if(gender == "Female")
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (fr-FR, Julie, Apollo)";
+                    else
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (fr-FR, Paul, Apollo)";
+                    break;
+                case "it-it":
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (it-IT, Cosimo, Apollo)";
+                    break;
+                case "ja-jp":
+                    if(gender == "Female")
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (ja-JP, Ayumi, Apollo)";
+                    else
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (ja-JP, Ichiro, Apollo)";
+                    break;
+                case "pt-br":
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (pt-BR, Daniel, Apollo)";
+                    break;
+                case "ru-ru":
+                    if(gender == "Female")
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (ru-RU, Irina, Apollo)";
+                    else
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (ru-RU, Pavel, Apollo)";
+                    break;
+                case "zh-cn":
+                    if(gender == "Female")
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (zh-CN, HuihuiRUS)";
+                    else
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (zh-CN, Kangkang, Apollo)";
+                    break;
+                case "zh-hk":
+                    if(gender == "Female")
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (zh-HK, Tracy, Apollo)";
+                    else
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (zh-HK, Danny, Apollo)";
+                    break;
+                case "zh-tw":
+                    if(gender == "Female")
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (zh-TW, Yating, Apollo)";
+                    else
+                    voiceName = "Microsoft Server Speech Text to Speech Voice (zh-TW, Zhiwei, Apollo)";
+                    break;
+            }
+            return voiceName;
+
+        }
+        /// <summary>
+        /// TextToSpeech method
+        /// </summary>
+        /// <param>
+        /// text to convert to speech
+        /// lang language of the text ("en-us", "fr-fr")
+        /// gender for the voice ('female" or "male")
+        /// </param>
+        /// <return>The audio stream
+        /// </return>
+        public IAsyncOperation<Windows.Storage.Streams.IInputStream> TextToSpeech(string text, string lang, string gender)
+        {
+            return Task.Run<Windows.Storage.Streams.IInputStream>(async () =>
+            {
+                if (!HasToken())
+                    return null;
+                try
+                {
+                    Windows.Web.Http.Filters.HttpBaseProtocolFilter httpBaseProtocolFilter = new Windows.Web.Http.Filters.HttpBaseProtocolFilter();
+                    httpBaseProtocolFilter.CacheControl.ReadBehavior = Windows.Web.Http.Filters.HttpCacheReadBehavior.MostRecent;
+                    httpBaseProtocolFilter.CacheControl.WriteBehavior = Windows.Web.Http.Filters.HttpCacheWriteBehavior.NoCache;
+
+                    httpBaseProtocolFilter.CookieUsageBehavior = Windows.Web.Http.Filters.HttpCookieUsageBehavior.NoCookies;
+                    httpBaseProtocolFilter.AutomaticDecompression = false;
+                    
+
+                    Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient(httpBaseProtocolFilter);
+
+
+                    string speechUrl = "https://" + hostnameString + "/" + apiSynthesizeString;
+                    System.Threading.CancellationTokenSource cts = new System.Threading.CancellationTokenSource();
+                    hc.DefaultRequestHeaders.Clear();
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Authorization", Token);
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("X-Search-AppId", "07D3234E49CE426DAA29772419F436CA");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("X-Search-ClientID", "1ECFAE91408841A480F00935DC390960");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("User-Agent", "TTSClient");
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("Expect", "100-continue");
+
+                    hc.DefaultRequestHeaders.TryAppendWithoutValidation("X-Microsoft-OutputFormat", "riff-16khz-16bit-mono-pcm");
+                    hc.DefaultRequestHeaders.Connection.Clear();
+                    
+
+
+                   // string TextToSpeechContent = "<speak version=\"1.0\" xml:lang=\"{0}\"><voice xml:lang=\"{1}\" xml:gender=\"{2}\" name=\"Microsoft Server Speech Text to Speech Voice (en-US, ZiraRUS)\">{3}</voice></speak>";
+                  //  string contentString = String.Format(TextToSpeechContent, lang, lang, gender, text);
+                    string contentString = GenerateSsml( lang, gender, GetVoiceName(lang,gender),text);
+                    Windows.Web.Http.HttpStringContent content = new Windows.Web.Http.HttpStringContent(contentString);
+                    content.Headers.Clear();
+                    content.Headers.Remove("Content-Type");
+                    content.Headers.TryAppendWithoutValidation("Content-Type", "application/ssml+xml");
+
+
+
+                    Windows.Web.Http.HttpResponseMessage hrm = await hc.PostAsync(new Uri(speechUrl), content);
+                    if (hrm != null)
+                    {
+                        switch (hrm.StatusCode)
+                        {
+                            case Windows.Web.Http.HttpStatusCode.Ok:
+                                return await hrm.Content.ReadAsInputStreamAsync();
+                            default:
+                                System.Diagnostics.Debug.WriteLine("Http Response Error:" + hrm.StatusCode.ToString() + " reason: " + hrm.ReasonPhrase.ToString());
+                                break;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Exception while getting speech from text: " + ex.Message);
+                }
+                return null;
+            }).AsAsyncOperation<Windows.Storage.Streams.IInputStream>();
+        }
+
         /// <summary>
         /// HasToken method
         /// </summary>

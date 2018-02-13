@@ -100,6 +100,9 @@ namespace SpeechToTextUWPSampleApp
                 language.Items.Add(l);
             language.SelectedItem = "en-US";
 
+            gender.Items.Add("Female");
+            gender.Items.Add("Male");
+            gender.SelectedItem = "Female";
             // Get Subscription ID from the local settings
             ReadSettingsAndState();
             
@@ -604,6 +607,75 @@ namespace SpeechToTextUWPSampleApp
                 LogMessage("Failed to play: " + mediaUri.Text + " Exception: " + ex.Message);
             }
         }
+
+        /// <summary>
+        /// TextToSpeech method which use TextToSpeech Cognitive Swervices 
+        /// </summary>
+        private async void textToSpeech_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                LogMessage("Sending text to Cognitive Services " + resultText.Text.ToString());
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
+
+                if (client != null)
+                {
+                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem);
+                    if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
+                    {
+                        LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
+                        string token = await client.GetToken(subscriptionKey.Text);
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            LogMessage("Getting Token successful Token: " + token.ToString());
+                            // Save subscription key
+                            SaveSettingsAndState();
+                        }
+                    }
+                    if (client.HasToken())
+                    {
+
+                        string locale = language.SelectedItem.ToString();
+                        string genderString = gender.SelectedItem.ToString();
+                        
+                        LogMessage("Sending text to TextToSpeech servcvice for language : " +locale);
+                        Windows.Storage.Streams.IInputStream stream = await client.TextToSpeech(resultText.Text, locale, genderString);
+                        if (stream != null)
+                        {
+                            LogMessage("Playing the audio stream ");
+                            //stream.ReadAsync(
+                            MemoryStream localStream = new MemoryStream();
+                            await stream.AsStreamForRead().CopyToAsync(localStream);
+                            // Stop the current stream
+                            mediaPlayer.Source = null;
+                            mediaPlayerElement.PosterSource = null;
+                            mediaPlayer.AutoPlay = true;
+                            // if a picture will be displayed
+                            // display or not popup
+                            // Audio or video
+                            mediaPlayer.Source = Windows.Media.Core.MediaSource.CreateFromStream(localStream.AsRandomAccessStream(), "audio/x-wav");
+                            mediaPlayer.Play();
+                        }
+                        else
+                            LogMessage("Error while readding speech buffer");
+
+                    }
+                    else
+                        LogMessage("Authentication failed check your subscription Key: " + subscriptionKey.Text.ToString());
+                }
+                UpdateControls();
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Failed to convert Text to Speech: " + resultText.Text + " Exception: " + ex.Message);
+            }
+        
+            finally
+            {
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
+            }
+
+        }
         /// <summary>
         /// Stop method which stops the video currently played by the MediaElement
         /// </summary>
@@ -752,7 +824,7 @@ namespace SpeechToTextUWPSampleApp
                  () =>
                  {
                      {
-
+                         textToSpeechButton.IsEnabled = true;
                          // if hostname is bing speech hostname, user can change language,
                          // if hostname is different, it's custom speech user can't change the language
                          language.IsEnabled = string.Equals(Hostname.Text, defaultHostname) ;
