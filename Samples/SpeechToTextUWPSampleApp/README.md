@@ -117,7 +117,7 @@ Once the application is playing an audio file it's possible to switch off the au
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/audio.png)
 
 
-### Converting Spoken Audio WAV file to Text (SpeechToText)
+### Converting Spoken Audio WAV file to Text (Speech-To-Text)
 With the application, you can convert to text the WAV file you have just recorded. 
 First, check the path of the your audio file is correct in the Path Edit box,
 then select the language in the "Language" Combo Box: 
@@ -141,7 +141,7 @@ Once the file is uploaded, after less than one second, the result is displayed i
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
 
-### Converting Live Spoken Audio to Text (SpeechToText)
+### Converting Live Spoken Audio to Text (Speech-To-Text)
 You can also directly convert the live Spoken Audio to text. 
 First, select the language in the "Language" Combo Box: 
 
@@ -164,7 +164,7 @@ After less than one second, the result is displayed in the "Result" Edit box:
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
 
 
-### Converting continuously Live Spoken Audio to Text
+### Converting continuously Live Spoken Audio to Text (Speech-To-Text)
 You can also directly convert the live Spoken Audio continuously to text. 
 First, select the language in the "Language" Combo Box: 
 
@@ -206,7 +206,7 @@ IF you want to stop the continuous recording click on the same button:
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stopcontinuousrecord.png) 
 
-### Converting text to speech  (TextToSpeech)
+### Converting text to speech  (Text-To-Speech)
 With the application, you can also convert a text into speech . 
 First, enter your text in the Result text box, 
 then select the language in the "Language" Combo Box: 
