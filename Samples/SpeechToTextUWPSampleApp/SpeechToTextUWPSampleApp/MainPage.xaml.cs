@@ -537,12 +537,10 @@ namespace SpeechToTextUWPSampleApp
                 // display or not popup
                 if (result == true)
                 {
-                    pictureElement.Visibility = Visibility.Visible;
                     mediaPlayerElement.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
-                    pictureElement.Visibility = Visibility.Collapsed;
                     mediaPlayerElement.Visibility = Visibility.Visible;
                 }
                 // Audio or video
