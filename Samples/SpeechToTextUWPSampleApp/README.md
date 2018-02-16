@@ -3,17 +3,18 @@
   samplefwlink: http://go.microsoft.com/fwlink/p/?LinkId=620563&clcid=0x409
 --->
 
-# Speech-To-Text UWP Sample Application
+# Speech-To-Text and Text-To-Speech UWP Sample Application
 
 Overview
 --------------
-This Speech-To-Text UWP Sample Application  can:
+This Speech-To-Text and Text-To-Speech UWP Sample Application  can:
 
 - **Record**: record spoken audio into a WAV file, 
 - **Play**: play the WAV files stored on the local disk,
 - **Convert WAV file**: Convert the WAV file to text with Cognitive Services,
 - **Convert live audio**: Convert live audio to text with Cognitive Services, the audio buffer is sent to Cogntive Services at the end of the recording session.
 - **Convert continuously live audio**: Convert continuously live audio to text with Cognitive Services, in that case, the audio buffers are sent to Cognitive Services if the audio level is sufficient during a configurable period.
+- **Convert Text**: Convert a text into a WAV stream associated with the current language,
 
 The spoken audio is recorded into a WAV file in the following format:
 
@@ -116,12 +117,21 @@ Once the application is playing an audio file it's possible to switch off the au
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/audio.png)
 
 
-### Converting Spoken Audio WAV file to Text
+### Converting Spoken Audio WAV file to Text (SpeechToText)
 With the application, you can convert to text the WAV file you have just recorded. 
 First, check the path of the your audio file is correct in the Path Edit box,
 then select the language in the "Language" Combo Box: 
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/language.png)
+
+You can select the conversation model: interactive, conversation, dictation with "Cognitive Services Speech Recognition API"  Combo Box: 
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/mode.png)
+
+You can also select the result type: simle or detailed  with "Cognitive Services Speech Result type"  Combo Box: 
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/resulttype.png)
+
 
 Finally click on the button "Upload" to upload the file towards the Cognitive Services.
 
@@ -131,7 +141,7 @@ Once the file is uploaded, after less than one second, the result is displayed i
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/result.png)
 
-### Converting Live Spoken Audio to Text
+### Converting Live Spoken Audio to Text (SpeechToText)
 You can also directly convert the live Spoken Audio to text. 
 First, select the language in the "Language" Combo Box: 
 
@@ -195,6 +205,25 @@ Moreover, if the application is suspended, the continuous recording is stopped. 
 IF you want to stop the continuous recording click on the same button:
 
 ![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/stopcontinuousrecord.png) 
+
+### Converting text to speech  (TextToSpeech)
+With the application, you can also convert a text into speech . 
+First, enter your text in the Result text box, 
+then select the language in the "Language" Combo Box: 
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/language.png)
+
+You can select the speech gender Male or Female with the "Gender" Combo Box:  
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/texttospeech.png)
+
+Then click on the TextToSpeech button to get the WAV stream associated with the text and the current language:  
+
+![](https://raw.githubusercontent.com/flecoqui/Windows10/master/Samples/SpeechToTextUWPSampleApp/Docs/texttospeechbutton.png)
+
+
+
+
 
 
 Building the application
