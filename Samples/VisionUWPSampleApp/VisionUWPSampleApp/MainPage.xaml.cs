@@ -39,6 +39,9 @@ namespace VisionUWPSampleApp
         const string defaultCustomVisionHostname = "custom.westus.api.cognitive.microsoft.com";
         string VisionHostname = defaultVisionHostname;
         string CustomVisionHostname = defaultCustomVisionHostname;
+        string VisionSubscriptionKey = string.Empty;
+        string CustomVisionSubscriptionKey = string.Empty;
+
         bool isPreviewingVideo = false;
         // Object to manage access to camera devices
         private MediaCapturePreviewer _previewer = null;
@@ -140,6 +143,16 @@ namespace VisionUWPSampleApp
 
         private void CustomVisionCheck_Checked(object sender, RoutedEventArgs e)
         {
+            if(CustomVisionCheck.IsChecked == true)
+            {
+                subscriptionKey.Text = CustomVisionSubscriptionKey;
+                Hostname.Text = CustomVisionHostname;
+            }
+            else
+            {
+                subscriptionKey.Text = VisionSubscriptionKey;
+                Hostname.Text = VisionHostname;
+            }
             UpdateControls();
         }
 
@@ -177,7 +190,7 @@ namespace VisionUWPSampleApp
         /// <summary>
         /// This method is called when the application is suspending
         /// </summary>
-        async void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
+        void Current_Suspending(object sender, Windows.ApplicationModel.SuspendingEventArgs e)
         {
             LogMessage("Suspending");
             var deferal = e.SuspendingOperation.GetDeferral();
@@ -194,7 +207,8 @@ namespace VisionUWPSampleApp
         #region Settings
         const string keyVisionHostname = "VisionHostnameKey";
         const string keyCustomVisionHostname = "CustomVisionHostnameKey";
-        const string keySubscription = "SubscriptionKey";
+        const string keySubscriptionKey = "SubscriptionKey";
+        const string keyCustomSubscriptionKey = "CustomSubscriptionKey";
         const string keyCurrentPicturePath = "CurrentPicturePath";
         const string keyIsCustom = "isCustomKey";
         const string keyVisionVisualFeatures = "VisionVisualFeaturesKey";
@@ -207,12 +221,19 @@ namespace VisionUWPSampleApp
         public bool SaveSettingsAndState()
         {
             if (CustomVisionCheck.IsChecked == true)
+            {
+                CustomVisionSubscriptionKey = subscriptionKey.Text;
                 CustomVisionHostname = Hostname.Text;
+            }
             else
+            {
+                VisionSubscriptionKey = subscriptionKey.Text;
                 VisionHostname = Hostname.Text;
+            }
             SaveSettingsValue(keyCustomVisionHostname, CustomVisionHostname);
+            SaveSettingsValue(keyCustomSubscriptionKey, CustomVisionSubscriptionKey);
             SaveSettingsValue(keyVisionHostname, VisionHostname);
-            SaveSettingsValue(keySubscription, subscriptionKey.Text);
+            SaveSettingsValue(keySubscriptionKey, VisionSubscriptionKey);
             SaveSettingsValue(keyCurrentPicturePath, currentPicturePath);
             SaveSettingsValue(keyIsCustom, CustomVisionCheck.IsChecked.ToString());
             SaveSettingsValue(keyVisionVisualFeatures, (string) ComboVisualFeatures.SelectedItem);
@@ -226,9 +247,14 @@ namespace VisionUWPSampleApp
         /// </summary>
         public bool ReadSettingsAndState()
         {
-            string s = ReadSettingsValue(keySubscription) as string;
+            string s = ReadSettingsValue(keyCustomSubscriptionKey) as string;
             if (!string.IsNullOrEmpty(s))
-                subscriptionKey.Text = s;
+                CustomVisionSubscriptionKey = s;
+            s = ReadSettingsValue(keySubscriptionKey) as string;
+            if (!string.IsNullOrEmpty(s))
+                VisionSubscriptionKey = s;
+
+
             s = ReadSettingsValue(keyCurrentPicturePath) as string;
             if (!string.IsNullOrEmpty(s))
                 currentPicturePath = s;
@@ -251,9 +277,15 @@ namespace VisionUWPSampleApp
                 bool.TryParse(s, out bresult);
             CustomVisionCheck.IsChecked = bresult;
             if (CustomVisionCheck.IsChecked == true)
+            {
                 Hostname.Text = CustomVisionHostname;
+                subscriptionKey.Text = CustomVisionSubscriptionKey;
+            }
             else
-                Hostname.Text = VisionHostname ;
+            {
+                Hostname.Text = VisionHostname;
+                subscriptionKey.Text = VisionSubscriptionKey;
+            }
 
 
             s = ReadSettingsValue(keyVisionDetails) as string;
@@ -578,15 +610,19 @@ namespace VisionUWPSampleApp
                 LogMessage("Failed to select WAV file: Exception: " + ex.Message);
             }
         }
+        private string ParseString(string jsonString)
+        {
+            return jsonString.Replace(",", ",\n").Replace("{", "{\n").Replace("}", "\n}");
+        }
         /// <summary>
         /// sendPicture_Click method 
         /// </summary>
         private async void sendPicture_Click(object sender, RoutedEventArgs e)
         {
-            LogMessage("Send current picture to Cognitive Services");
+            LogMessage("Send current picture to Cognitive Services: " + currentPicturePath);
             if (!string.IsNullOrEmpty(currentPicturePath))
             {
-
+                sendPictureButton.IsEnabled = false;
                 try
                 {
                     Windows.Storage.StorageFile file = await GetFileFromLocalPathUrl(currentPicturePath);
@@ -595,28 +631,37 @@ namespace VisionUWPSampleApp
                         // Cognitive Service Vision GetToken 
                         if (!string.IsNullOrEmpty(subscriptionKey.Text))
                         {
-                            if (!client.HasToken())
-                            {
-                                LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
-                                string s = await client.GetToken(subscriptionKey.Text);
-                                if (!string.IsNullOrEmpty(s))
-                                    LogMessage("Getting Token successful Token: " + s.ToString());
-                                else
-                                    LogMessage("Getting Token failed for subscription Key: " + subscriptionKey.Text);
-                            }
-                            var response = await client.SendVisionPicture(Hostname.Text, ComboVisualFeatures.SelectedItem.ToString(), ComboDetails.SelectedItem.ToString(), LanguageArray[0], file);
+                            VisionResponse response = null;
 
+                            if(CustomVisionCheck.IsChecked==true)
+                                response = await client.SendCustomVisionPicture(subscriptionKey.Text.ToString(), Hostname.Text, projectID.Text, iterationID.Text, file);
+                            else
+                                response = await client.SendVisionPicture(subscriptionKey.Text.ToString(), Hostname.Text, ComboVisualFeatures.SelectedItem.ToString(), ComboDetails.SelectedItem.ToString(), LanguageArray[0], file);
+                            if (response!=null)
+                            {
+                                string error = response.GetHttpError();
+                                if(!string.IsNullOrEmpty(error))
+                                {
+                                    LogMessage("Error from Cognitive Services: " + error);
+                                }
+                                else
+                                {
+                                   LogMessage("Response from Cognitive Services: " + ParseString(response.Result()));
+                                    
+                                }
+                            }
                         }
                     }
-                    LogMessage("Photo taken, saved to: " + file.Path);
                 }
                 catch (Exception ex)
                 {
                     // File I/O errors are reported as exceptions.
-                    LogMessage("Exception when taking a photo: " + ex.Message);
+                    LogMessage("Exception when sending photo: " + ex.Message);
                 }
-
-
+                finally
+                {
+                    sendPictureButton.IsEnabled = true;
+                }
             }
             else
             {
@@ -859,13 +904,13 @@ namespace VisionUWPSampleApp
                          {
                              VisionPanel.Visibility = Visibility.Collapsed;
                              CustomVisionPanel.Visibility = Visibility.Visible;
-                             Hostname.Text = CustomVisionHostname;
+
                          }
                          else
                          {
                              VisionPanel.Visibility = Visibility.Visible;
                              CustomVisionPanel.Visibility = Visibility.Collapsed;
-                             Hostname.Text = VisionHostname;
+
                          }
                          if (isPreviewingVideo)
                          {
@@ -897,17 +942,6 @@ namespace VisionUWPSampleApp
 
         #endregion ui
 
-        private void subscriptionKey_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (client != null)
-                client.ClearToken();
-        }
 
-        private void Hostname_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (client != null)
-                client.ClearToken();
-            UpdateControls();
-        }
     }
 }

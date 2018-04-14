@@ -69,13 +69,13 @@
                         <TextBlock x:Name="labelSubscriptionID" Text="Vision Subscription Key:" HorizontalAlignment="Left" />
                     </StackPanel>
                     <StackPanel Orientation="Vertical"  VerticalAlignment="Center">
-                        <TextBox x:Name="subscriptionKey" ToolTipService.ToolTip="SubscriptionKey associated with the Cognitive Service Vision Account" Width="308" IsTabStop="True" TextChanged="subscriptionKey_TextChanged" HorizontalAlignment="Left"  Text=""/>
+                        <TextBox x:Name="subscriptionKey" ToolTipService.ToolTip="SubscriptionKey associated with the Cognitive Service Vision Account" Width="308" IsTabStop="True"  HorizontalAlignment="Left"  Text=""/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal"  VerticalAlignment="Center">
                         <TextBlock x:Name="labelHostname" Text="Vision hostname:" HorizontalAlignment="Left" />
                     </StackPanel>
                     <StackPanel Orientation="Vertical"  VerticalAlignment="Center">
-                        <TextBox x:Name="Hostname" ToolTipService.ToolTip="Vision host name, by default speech.platform.bing.com" Width="308" IsTabStop="True" TextChanged="Hostname_TextChanged"  HorizontalAlignment="Left" />
+                        <TextBox x:Name="Hostname" ToolTipService.ToolTip="Vision host name, by default region.api.cognitive.microsoft.com" Width="308" IsTabStop="True"  HorizontalAlignment="Left" />
                     </StackPanel>
                     <StackPanel x:Name="VisionPanel"  Orientation="Vertical">
                         <TextBlock>Cognitive Services Vision Visual Features:</TextBlock>
