@@ -38,7 +38,7 @@ namespace VisionClient
 
         private const string VisionUrl = "https://{0}/vision/v1.0/analyze?visualFeatures={1}&details={2}&language={3}";
         private const string CustomVisionUrl = "https://{0}/customvision/v1.1/Prediction/{1}/image?iterationId={2}";
-
+        private const string CustomVisionShortUrl = "https://{0}/customvision/v1.1/Prediction/{1}/image";
 
         /// <summary>
         /// class VisionClient constructor
@@ -163,11 +163,16 @@ namespace VisionClient
 
                     try
                     {
-                        string customVisionUrl = string.Format(CustomVisionUrl, hostname, projectID, iterationID);
+                        string customVisionUrl = string.Empty;
+
+                        if(!string.IsNullOrEmpty(iterationID))
+                            customVisionUrl = string.Format(CustomVisionUrl, hostname, projectID, iterationID);
+                        else
+                            customVisionUrl = string.Format(CustomVisionShortUrl, hostname, projectID);
                         //                        string visionUrl = string.Format(VisionUrl, hostname, visualFeatures);
                         Windows.Web.Http.HttpClient hc = new Windows.Web.Http.HttpClient();
 
-                        hc.DefaultRequestHeaders.TryAppendWithoutValidation("Ocp-Apim-Subscription-Key", subscriptionKey);
+                        hc.DefaultRequestHeaders.TryAppendWithoutValidation("Prediction-Key", subscriptionKey);
                         hc.DefaultRequestHeaders.TryAppendWithoutValidation("ContentType", "application/octet-stream");
 
                         Windows.Web.Http.HttpResponseMessage hrm = null;

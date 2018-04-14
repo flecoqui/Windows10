@@ -35,8 +35,8 @@ namespace VisionUWPSampleApp
     {
         static public MainPage Current = null;
         VisionClient.VisionClient client;
-        const string defaultVisionHostname = "westus.api.cognitive.microsoft.com";
-        const string defaultCustomVisionHostname = "custom.westus.api.cognitive.microsoft.com";
+        const string defaultVisionHostname = "northeurope.api.cognitive.microsoft.com";
+        const string defaultCustomVisionHostname = "southcentralus.api.cognitive.microsoft.com";
         string VisionHostname = defaultVisionHostname;
         string CustomVisionHostname = defaultCustomVisionHostname;
         string VisionSubscriptionKey = string.Empty;
@@ -213,7 +213,7 @@ namespace VisionUWPSampleApp
         const string keyIsCustom = "isCustomKey";
         const string keyVisionVisualFeatures = "VisionVisualFeaturesKey";
         const string keyVisionDetails = "VisionDetailsKey";
-        const string keyProjectID = "IterationIDKey";
+        const string keyProjectID = "ProjectIDKey";
         const string keyIterationID = "IterationIDKey";
         /// <summary>
         /// Function to save all the persistent attributes
@@ -304,13 +304,13 @@ namespace VisionUWPSampleApp
             if (!string.IsNullOrEmpty(s))
                 projectID.Text = s;
             else
-                projectID.Text = "f4322e1f-f5ed-409b-8f32-d29c2319972a";
+                projectID.Text = "";
 
             s = ReadSettingsValue(keyIterationID) as string;
             if (!string.IsNullOrEmpty(s))
                 iterationID.Text = s;
             else
-                iterationID.Text = "f4322e1f-f5ed-409b-8f32-d29c2319972a";
+                iterationID.Text = "";
             return true;
         }
         /// <summary>
@@ -646,7 +646,8 @@ namespace VisionUWPSampleApp
                                 }
                                 else
                                 {
-                                   LogMessage("Response from Cognitive Services: " + ParseString(response.Result()));
+                                    SaveSettingsAndState();
+                                    LogMessage("Response from Cognitive Services: " + ParseString(response.Result()));
                                     
                                 }
                             }
