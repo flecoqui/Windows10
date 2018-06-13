@@ -37,6 +37,7 @@ namespace SpeechToTextUWPSampleApp
         bool isRecordingInMemory = false;
         bool isRecordingInFile = false;
         bool isRecordingContinuously = false;
+        bool bUseWebSocket = false;
 
         string[] LanguageArray = 
             {"ca-ES","de-DE","zh-TW", "zh-HK","ru-RU","es-ES", "ja-JP","ar-EG", "da-DK","en-AU" ,"en-CA","en-GB" ,"en-IN", "en-US" , "en-NZ","es-MX","fi-FI",
@@ -132,7 +133,7 @@ namespace SpeechToTextUWPSampleApp
             if (!string.IsNullOrEmpty(subscriptionKey.Text))
             {
                 LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
-                client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem);
+                client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem, bUseWebSocket);
                 string s = await client.GetToken(subscriptionKey.Text);
                 if (!string.IsNullOrEmpty(s))
                     LogMessage("Getting Token successful Token: " + s.ToString());
@@ -618,7 +619,7 @@ namespace SpeechToTextUWPSampleApp
 
                 if (client != null)
                 {
-                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem);
+                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem, bUseWebSocket);
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
                         LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
@@ -930,7 +931,7 @@ namespace SpeechToTextUWPSampleApp
 
                 if (client != null)
                 {
-                    client.SetAPI(Hostname.Text,(string)ComboAPI.SelectedItem);
+                    client.SetAPI(Hostname.Text,(string)ComboAPI.SelectedItem, bUseWebSocket);
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
                         LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());
@@ -1023,7 +1024,7 @@ namespace SpeechToTextUWPSampleApp
 
                 if (client != null)
                 {
-                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem);
+                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem,bUseWebSocket);
 
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
@@ -1140,7 +1141,7 @@ namespace SpeechToTextUWPSampleApp
                 Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
                 if (client != null)
                 {
-                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem);
+                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem, bUseWebSocket);
 
                     if (client.IsRecording() == false)
                     {
@@ -1249,7 +1250,7 @@ namespace SpeechToTextUWPSampleApp
                 Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 1);
                 if (client != null)
                 {
-                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem);
+                    client.SetAPI(Hostname.Text, (string)ComboAPI.SelectedItem, bUseWebSocket);
                     if ((!client.HasToken()) && (!string.IsNullOrEmpty(subscriptionKey.Text)))
                     {
                         LogMessage("Getting Token for subscription key: " + subscriptionKey.Text.ToString());

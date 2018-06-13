@@ -1,0 +1,16 @@
+Bing
+c7752a93be604b97a2beb44ac241d922
+speech.platform.bing.com
+
+
+Custom Speech
+62b5772f32c544a6bbedbcc037e8f664
+
+https://westus.api.cognitive.microsoft.com/sts/v1.0 
+
+wss://westus.stt.speech.microsoft.com/speech/recognition/dictation/cognitiveservices/v1?cid=d1ed3aff-18e7-4539-ad2f-d95e3129a842 
+
+New Speech:
+14f47d6474644eacabf62e73e604fa17
+https://northeurope.api.cognitive.microsoft.com/sts/v1.0
+
