@@ -1159,25 +1159,44 @@ namespace AudioVideoPlayer
         #endregion
 
         #region Logs
-        System.Collections.Concurrent.ConcurrentQueue<String> MessageList;
+
+        void PushMessage(string Message)
+        {
+            App app = Windows.UI.Xaml.Application.Current as App;
+            if (app != null)
+                app.MessageList.Enqueue(Message);
+        }
+        bool PopMessage(out string Message)
+        {
+            Message = string.Empty;
+            App app = Windows.UI.Xaml.Application.Current as App;
+            if (app != null)
+                return app.MessageList.TryDequeue(out Message);
+            return false;
+        }
         /// <summary>
         /// Display Message on the application page
         /// </summary>
         /// <param name="Message">String to display</param>
         async void LogMessage(string Message)
         {
-            if (MessageList == null)
-                MessageList = new System.Collections.Concurrent.ConcurrentQueue<string>();
             string Text = string.Format("{0:d/M/yyyy HH:mm:ss.fff}", DateTime.Now) + " " + Message + "\n";
-            MessageList.Enqueue(Text);
+            PushMessage(Text);
             System.Diagnostics.Debug.WriteLine(Text);
+            await DisplayLogMessage();
+        }
+        /// <summary>
+        /// Display Message on the application page
+        /// </summary>
+        /// <param name="Message">String to display</param>
+        async System.Threading.Tasks.Task<bool> DisplayLogMessage()
+        {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
                 () =>
                 {
 
                     string result;
-                    //  double h = logs.ActualHeight;
-                    while (MessageList.TryDequeue(out result))
+                    while (PopMessage(out result))
                     {
                         logs.Text += result;
                         if (logs.Text.Length > 16000)
@@ -1186,19 +1205,23 @@ namespace AudioVideoPlayer
                             while (LocalString.Length > 12000)
                             {
                                 int pos = LocalString.IndexOf('\n');
-                                if ((pos > 0) && (pos < LocalString.Length))
+                                if (pos == -1)
+                                    pos = LocalString.IndexOf('\r');
+
+
+                                if ((pos >= 0) && (pos < LocalString.Length))
                                 {
                                     LocalString = LocalString.Substring(pos + 1);
                                 }
+                                else
+                                    break;
                             }
                             logs.Text = LocalString;
                         }
                     }
-                    //if (logs.ActualHeight > h)
-                    //  logs.Height = h;
-
                 }
             );
+            return true;
         }
         /// <summary>
         /// This method is called when the content of the Logs TextBox changed  
@@ -2395,6 +2418,58 @@ namespace AudioVideoPlayer
             // VC1 Codec flag: true if VC1 codec is used for this Smooth Streaming content
             bool bVC1CodecDetected = false;
             LogMessage("Manifest Ready for uri: " + sender.Uri.ToString());
+            foreach (var stream in args.AdaptiveSource.Manifest.AvailableStreams)
+            {
+                if (stream.Type == Microsoft.Media.AdaptiveStreaming.MediaStreamType.Audio)
+                {
+                    foreach (var track in stream.AvailableTracks)
+                    {
+                        string Lang = string.Empty;
+                        string Name = string.Empty;
+                        try
+                        {
+                            Lang = stream.GetAttribute("Language");
+                            Name = stream.GetAttribute("Name");
+
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                        if (string.IsNullOrEmpty(Lang))
+                            Lang = "Unknown";
+                        if (string.IsNullOrEmpty(Name))
+                            Name = "Unknown";
+                        LogMessage("Audio Stream: " + Name + " Bitrate: " + track.Bitrate.ToString() + " Lang: " + Lang);
+
+                    }
+                }
+                if (stream.Type == Microsoft.Media.AdaptiveStreaming.MediaStreamType.Text)
+                {
+                    foreach (var track in stream.AvailableTracks)
+                    {
+                        string Lang = string.Empty;
+                        string Name = string.Empty;
+                        try
+                        {
+                            Lang = stream.GetAttribute("Language");
+                            Name = stream.GetAttribute("Name");
+
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                        if (string.IsNullOrEmpty(Lang))
+                            Lang = "Unknown";
+                        if (string.IsNullOrEmpty(Name))
+                            Name = "Unknown";
+
+                        LogMessage("Text Stream: " + Name + " Bitrate: " + track.Bitrate.ToString() + " Lang: " + Lang);
+
+                    }
+                }
+            }
             foreach (var stream in args.AdaptiveSource.Manifest.SelectedStreams)
             {
 
